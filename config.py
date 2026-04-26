@@ -27,7 +27,7 @@ if not ALPACA_API_KEY or not ALPACA_SECRET_KEY:
 TIMEZONE = "America/New_York"
 MARKET_OPEN = "09:30"
 ORB_END_TIME = "09:45"
-LAST_ENTRY_TIME = "15:30"   # scan for entries until 3:30 PM
+LAST_ENTRY_TIME = "11:30"   # ORB edge is in the morning; after 11:30 AM signals are historically weak
 CLOSE_ALL_TIME = "15:55"
 BAR_SIZE_MINUTES = 5
 ORB_DURATION_MINUTES = 15
