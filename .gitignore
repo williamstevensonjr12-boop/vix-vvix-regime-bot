@@ -1,0 +1,13 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+trades.csv
+performance.csv
+trading_bot.log
+backtest_results/
+DAILY-SUMMARY.md
+.DS_Store
