@@ -285,6 +285,11 @@ class BacktestEngine:
                 atr = float(atr_s.iloc[-1])
                 orb_high = opening_range["high"]
 
+                # Skip flat opens — ORB range must be at least 0.3% of price
+                orb_range_pct = (opening_range["high"] - opening_range["low"]) / opening_range["low"]
+                if orb_range_pct < config.MIN_ORB_RANGE_PCT:
+                    continue
+
                 c1 = price > orb_high
                 c2 = price > vwap
                 c3 = avg_vol > 0 and volume > config.VOLUME_MULTIPLIER * avg_vol

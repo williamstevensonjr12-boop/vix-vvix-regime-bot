@@ -113,7 +113,8 @@ DAILY_MAX_LOSS_PCT: float = 0.02
 KILL_SWITCH_LOSS_PCT: float = 0.03    # hard stop all trading
 
 VOLUME_LOOKBACK_BARS: int = 20
-VOLUME_MULTIPLIER: float = 1.5
+VOLUME_MULTIPLIER: float = 2.0
+MIN_ORB_RANGE_PCT: float = 0.003   # skip flat opens (ORB range < 0.3% of price)
 
 # ── Optional filters ──────────────────────────────────────────────────────────
 ENABLE_BREADTH_FILTER: bool = False

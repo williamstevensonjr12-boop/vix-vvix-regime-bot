@@ -141,6 +141,12 @@ def check_entry_signal(
     orb_low = opening_range["low"]
 
     # ── 7. ORB + VWAP + volume conditions ────────────────────────────────
+    # Skip flat opens — not enough range to trade
+    orb_range_pct = (orb_high - orb_low) / orb_low if orb_low > 0 else 0
+    if orb_range_pct < config.MIN_ORB_RANGE_PCT:
+        logger.debug(f"{symbol}: ORB range {orb_range_pct:.4f} too narrow, skipping")
+        return None
+
     c1_orb = price > orb_high
     c2_vwap = price > vwap
     c3_vol = avg_vol > 0 and volume > config.VOLUME_MULTIPLIER * avg_vol
