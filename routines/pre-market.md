@@ -8,11 +8,11 @@ Resolve today's date: DATE=$(date +%Y-%m-%d)
 IMPORTANT — ENVIRONMENT VARIABLES:
 - Every API key is ALREADY exported as a process env var:
   ALPACA_API_KEY, ALPACA_SECRET_KEY, ALPACA_ENDPOINT, ALPACA_DATA_ENDPOINT,
-  PERPLEXITY_API_KEY, PERPLEXITY_MODEL, CLICKUP_API_KEY, CLICKUP_WORKSPACE_ID, CLICKUP_CHANNEL_ID
+  TAVILY_API_KEY, CLICKUP_API_KEY, CLICKUP_WORKSPACE_ID, CLICKUP_CHANNEL_ID
 - There is NO .env file in this repo. DO NOT create, write, or source one.
 - If a wrapper prints "not set in environment" → STOP, send one ClickUp alert naming the missing var, exit.
 - Verify env vars first:
-  for v in ALPACA_API_KEY ALPACA_SECRET_KEY PERPLEXITY_API_KEY CLICKUP_API_KEY CLICKUP_WORKSPACE_ID CLICKUP_CHANNEL_ID; do
+  for v in ALPACA_API_KEY ALPACA_SECRET_KEY TAVILY_API_KEY CLICKUP_API_KEY CLICKUP_WORKSPACE_ID CLICKUP_CHANNEL_ID; do
     [[ -n "${!v:-}" ]] && echo "$v: set" || echo "$v: MISSING"
   done
 
