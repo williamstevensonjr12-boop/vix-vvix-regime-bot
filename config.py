@@ -27,7 +27,7 @@ if not ALPACA_API_KEY or not ALPACA_SECRET_KEY:
 TIMEZONE = "America/New_York"
 MARKET_OPEN = "09:30"
 ORB_END_TIME = "09:45"
-LAST_ENTRY_TIME = "11:30"   # ORB edge is in the morning; after 11:30 AM signals are historically weak
+LAST_ENTRY_TIME = "12:00"   # data shows 9AM+11AM profitable, 12PM+ consistently loses money
 CLOSE_ALL_TIME = "15:55"
 BAR_SIZE_MINUTES = 5
 ORB_DURATION_MINUTES = 15
@@ -115,6 +115,10 @@ KILL_SWITCH_LOSS_PCT: float = 0.03    # hard stop all trading
 VOLUME_LOOKBACK_BARS: int = 20
 VOLUME_MULTIPLIER: float = 2.0
 MIN_ORB_RANGE_PCT: float = 0.003   # skip flat opens (ORB range < 0.3% of price)
+
+# ── Opening gap safety ────────────────────────────────────────────────────────
+GAP_SKIP_PCT: float = 0.02        # skip day entirely if SPY gaps >2% up or down
+GAP_REDUCE_PCT: float = 0.01      # cut position size 50% if SPY gaps 1-2%
 
 # ── Optional filters ──────────────────────────────────────────────────────────
 ENABLE_BREADTH_FILTER: bool = False

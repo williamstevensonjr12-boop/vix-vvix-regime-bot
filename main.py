@@ -358,7 +358,25 @@ def cmd_scan(debug: bool = False):
     account = broker.get_account()
     daily_start_equity = float(account.equity)
     trades_today = 0
+    gap_size_factor = 1.0  # reduced if large gap detected
     rsk.reset_kill_switch()
+
+    # ── Opening gap safety ────────────────────────────────────────────────────
+    try:
+        spy_bars_today = mkt_data.get_today_bars(data_client, "SPY")
+        if not spy_bars_today.empty and not spy_s.empty:
+            spy_prev_close = float(spy_s.iloc[-1])
+            spy_open = float(spy_bars_today["open"].iloc[0])
+            gap_pct = abs(spy_open - spy_prev_close) / spy_prev_close
+            if gap_pct >= config.GAP_SKIP_PCT:
+                logger.warning(f"Opening gap {gap_pct:.1%} >= {config.GAP_SKIP_PCT:.0%} — skipping trading day.")
+                _save_daily_summary(broker, daily_start_equity, today, "GAP_SKIP")
+                return
+            elif gap_pct >= config.GAP_REDUCE_PCT:
+                gap_size_factor = 0.5
+                logger.warning(f"Opening gap {gap_pct:.1%} — reducing position size 50%.")
+    except Exception as e:
+        logger.warning(f"Gap check failed: {e} — proceeding normally.")
 
     logger.info(f"Scan start | equity=${daily_start_equity:,.2f} | regime={regime_state.regime.value} | universe={active_universe}")
 
@@ -419,9 +437,10 @@ def cmd_scan(debug: bool = False):
                     continue
 
                 journal.log_signal(sym, sig, taken=True)
+                adjusted_qty = max(1, int(sig.qty * gap_size_factor))
                 order = broker.submit_bracket_order(
                     symbol=sym,
-                    qty=sig.qty,
+                    qty=adjusted_qty,
                     stop_price=sig.stop_price,
                     take_profit_price=sig.target_price,
                 )
