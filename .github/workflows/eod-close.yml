@@ -31,6 +31,13 @@ jobs:
           PAPER_TRADING: "true"
         run: python main.py close
 
+      - name: Generate daily brief
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          PAPER_TRADING: "true"
+        run: python main.py daily-brief
+
       - name: Commit EOD summary
         run: |
           git config user.name "trading-bot"

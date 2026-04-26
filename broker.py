@@ -78,6 +78,25 @@ class AlpacaBroker:
     def get_open_orders(self) -> list:
         return self.client.get_orders(filter=GetOrdersRequest(status=QueryOrderStatus.OPEN))
 
+    def get_todays_closed_orders(self) -> list:
+        """Return all filled orders from today, sorted by fill time."""
+        from datetime import datetime, timezone, timedelta
+        from zoneinfo import ZoneInfo
+        et = ZoneInfo("America/New_York")
+        today_et = datetime.now(et).date()
+        day_start = datetime(today_et.year, today_et.month, today_et.day,
+                             tzinfo=et).astimezone(timezone.utc)
+        try:
+            orders = self.client.get_orders(filter=GetOrdersRequest(
+                status=QueryOrderStatus.CLOSED,
+                after=day_start,
+                limit=200,
+            ))
+            return [o for o in orders if str(o.status) in ("filled", "OrderStatus.filled")]
+        except Exception as e:
+            logger.error(f"Failed to fetch today's orders: {e}")
+            return []
+
     def submit_bracket_order(
         self,
         symbol: str,

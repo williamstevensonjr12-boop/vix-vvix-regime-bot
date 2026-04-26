@@ -671,6 +671,123 @@ def cmd_weekly(debug: bool = False):
     print(report)
 
 
+# ── Daily brief (runs after EOD close) ───────────────────────────────────────
+
+def cmd_daily_brief(debug: bool = False):
+    """Pull today's filled orders from Alpaca and print a formatted P&L brief."""
+    import os
+
+    setup_logging(debug)
+    logger.info("Mode: DAILY BRIEF")
+
+    broker = AlpacaBroker()
+    account = broker.get_account()
+    today = datetime.now(ET).date()
+    equity = float(account.equity)
+
+    orders = broker.get_todays_closed_orders()
+
+    # Pair entries (BUY) with exits (SELL) by symbol
+    buys: dict = {}
+    sells: dict = {}
+    for o in orders:
+        sym = o.symbol
+        side = str(o.side)
+        filled_price = float(o.filled_avg_price) if o.filled_avg_price else 0.0
+        qty = float(o.filled_qty) if o.filled_qty else 0.0
+        if qty == 0 or filled_price == 0:
+            continue
+        if "buy" in side.lower():
+            buys[sym] = {"price": filled_price, "qty": qty}
+        elif "sell" in side.lower():
+            sells[sym] = {"price": filled_price, "qty": qty}
+
+    trades = []
+    for sym, buy in buys.items():
+        if sym in sells:
+            sell = sells[sym]
+            qty = min(buy["qty"], sell["qty"])
+            pnl = (sell["price"] - buy["price"]) * qty
+            trades.append({
+                "symbol": sym,
+                "entry": buy["price"],
+                "exit": sell["price"],
+                "qty": int(qty),
+                "pnl": pnl,
+                "result": "WIN" if pnl > 0 else "LOSS",
+            })
+
+    # Regime snapshot
+    try:
+        snapshot = mkt_data.get_current_vol_snapshot()
+        regime_line = f"VIX={snapshot['vix']:.1f}  VVIX={snapshot['vvix']:.1f}  VIX3M={snapshot['vix3m']:.1f}"
+    except Exception:
+        regime_line = "VIX data unavailable"
+
+    total_pnl = sum(t["pnl"] for t in trades)
+    wins = [t for t in trades if t["result"] == "WIN"]
+    losses = [t for t in trades if t["result"] == "LOSS"]
+    win_rate = len(wins) / len(trades) * 100 if trades else 0
+    gross_profit = sum(t["pnl"] for t in wins)
+    gross_loss = abs(sum(t["pnl"] for t in losses))
+    profit_factor = gross_profit / gross_loss if gross_loss > 0 else 0
+
+    # All-time P&L from journal (what we have)
+    all_trades = journal.load_trades()
+    all_time_pnl = sum(float(t.get("pnl", 0)) for t in all_trades if t.get("pnl"))
+
+    SEP = "=" * 55
+
+    lines = [
+        SEP,
+        f"  DAILY BRIEF — {today}",
+        SEP,
+        "",
+        f"  Volatility   {regime_line}",
+        f"  Equity       ${equity:,.2f}",
+        "",
+    ]
+
+    if trades:
+        lines += [
+            f"  {'Symbol':<8} {'Entry':>8} {'Exit':>8} {'Qty':>5} {'P&L':>10}  Result",
+            "  " + "-" * 53,
+        ]
+        for t in sorted(trades, key=lambda x: x["pnl"], reverse=True):
+            pnl_str = f"${t['pnl']:+,.2f}"
+            lines.append(
+                f"  {t['symbol']:<8} ${t['entry']:>7.2f} ${t['exit']:>7.2f} "
+                f"{t['qty']:>5} {pnl_str:>10}  {t['result']}"
+            )
+        lines += [
+            "  " + "-" * 53,
+            f"  {'TOTAL':<8} {'':>8} {'':>8} {'':>5} ${total_pnl:>+9,.2f}",
+            "",
+            f"  Trades       {len(trades)} ({len(wins)}W / {len(losses)}L)",
+            f"  Win Rate     {win_rate:.1f}%",
+            f"  Profit Factor {profit_factor:.2f}",
+        ]
+    else:
+        lines.append("  No trades today.")
+
+    lines += [
+        "",
+        f"  All-Time P&L (journal) ${all_time_pnl:+,.2f}",
+        "",
+        SEP,
+    ]
+
+    brief = "\n".join(lines)
+    print(brief)
+
+    os.makedirs("reports", exist_ok=True)
+    path = f"reports/{today}-daily.md"
+    with open(path, "w") as f:
+        f.write(f"```\n{brief}\n```\n")
+
+    logger.info(f"Daily brief saved: {path}")
+
+
 # ── Backtest ──────────────────────────────────────────────────────────────────
 
 def cmd_backtest(start: str, end: str, equity: float, debug: bool = False):
@@ -726,6 +843,7 @@ def main():
     sub.add_parser("paper", help="Live paper trading (long-running, local use)")
     sub.add_parser("scan", help="Morning entry scan with bracket orders, then exit (cloud)")
     sub.add_parser("close", help="Close all positions and cancel orders (cloud EOD)")
+    sub.add_parser("daily-brief", help="Pull today's Alpaca fills and print P&L summary")
     sub.add_parser("research", help="Pull Yahoo Finance news and save daily report")
     sub.add_parser("weekly", help="Generate weekly P&L review and save report")
     sub.add_parser("regime-status", help="Print current regime and exit")
@@ -743,6 +861,8 @@ def main():
         cmd_scan(args.debug)
     elif args.mode == "close":
         cmd_close(args.debug)
+    elif args.mode == "daily-brief":
+        cmd_daily_brief(args.debug)
     elif args.mode == "research":
         cmd_research(args.debug)
     elif args.mode == "weekly":
