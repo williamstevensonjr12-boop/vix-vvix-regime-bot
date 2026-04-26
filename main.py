@@ -306,6 +306,11 @@ def _save_daily_summary(broker, daily_start_equity, today, regime):
 
 # ── Backtest ──────────────────────────────────────────────────────────────────
 
+def cmd_tracker(days: int = 30):
+    import tracker
+    tracker.run_dashboard(window_days=days)
+
+
 def cmd_backtest(start: str, end: str, equity: float, debug: bool = False):
     import pandas as pd
     import os
@@ -359,7 +364,10 @@ def main():
     sub.add_parser("paper", help="Live paper trading")
     sub.add_parser("regime-status", help="Print current regime and exit")
 
-    bt = sub.add_parser("backtest", help="Historical 3-strategy comparison backtest")
+    tr = sub.add_parser("tracker", help="Paper trading performance dashboard")
+    tr.add_argument("--days", type=int, default=30, help="Rolling window in trading days")
+
+    bt = sub.add_parser("backtest", help="Historical 4-strategy comparison backtest")
     bt.add_argument("--start", required=True, metavar="YYYY-MM-DD")
     bt.add_argument("--end", required=True, metavar="YYYY-MM-DD")
     bt.add_argument("--equity", type=float, default=config.INITIAL_EQUITY)
@@ -370,6 +378,8 @@ def main():
         cmd_paper(args.debug)
     elif args.mode == "regime-status":
         cmd_regime_status(args.debug)
+    elif args.mode == "tracker":
+        cmd_tracker(args.days)
     elif args.mode == "backtest":
         cmd_backtest(args.start, args.end, args.equity, args.debug)
 

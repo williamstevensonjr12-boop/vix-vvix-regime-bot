@@ -21,6 +21,9 @@ import pandas as pd
 
 import config
 import indicators as ind
+from calendar_filter import is_high_impact_day, event_name, EarningsCalendar
+
+_earnings_cal = EarningsCalendar()
 from regime import Regime, RegimeState
 from vvix_filter import VVIXFilterResult
 from sentiment import SentimentState
@@ -77,10 +80,23 @@ def check_entry_signal(
     current_time = now.strftime("%H:%M")
     today = now.date()
 
+    # ── 0. Calendar + earnings filter ────────────────────────────────────
+    if is_high_impact_day(today):
+        logger.info(f"{symbol}: skipping — {event_name(today)} day (calendar filter)")
+        return None
+    if not _earnings_cal._fetched:
+        _earnings_cal.prefetch([symbol])
+    if _earnings_cal.is_earnings_day(symbol, today):
+        logger.info(f"{symbol}: skipping — earnings day")
+        return None
+
     # ── 1. Timing ─────────────────────────────────────────────────────────
     if current_time < config.ORB_END_TIME:
         return None
     if current_time >= config.LAST_ENTRY_TIME:
+        return None
+    if config.ENABLE_LUNCH_FILTER and config.LUNCH_BLOCK_START <= current_time < config.LUNCH_BLOCK_END:
+        logger.debug(f"{symbol}: lunch chop window — no entries {config.LUNCH_BLOCK_START}–{config.LUNCH_BLOCK_END}")
         return None
 
     # ── 2. Kill switch / daily limits ─────────────────────────────────────

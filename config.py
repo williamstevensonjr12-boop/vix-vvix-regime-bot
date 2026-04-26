@@ -26,7 +26,7 @@ if not ALPACA_API_KEY or not ALPACA_SECRET_KEY:
 # ── Market timing ────────────────────────────────────────────────────────────
 TIMEZONE = "America/New_York"
 MARKET_OPEN = "09:30"
-ORB_END_TIME = "09:45"
+ORB_END_TIME = "09:50"
 LAST_ENTRY_TIME = "15:30"
 CLOSE_ALL_TIME = "15:55"
 BAR_SIZE_MINUTES = 5
@@ -99,7 +99,7 @@ REALIZED_VOL_LOOKBACK: int = 20       # days
 
 ATR_PERIOD: int = 14
 ATR_STOP_MULTIPLIER: float = 1.5
-TAKE_PROFIT_R: float = 3.0
+TAKE_PROFIT_R: float = 2.0
 STOP_BUFFER_PCT: float = 0.0025
 
 REGIME_B_SIZE_FACTOR: float = 0.50
@@ -113,8 +113,9 @@ DAILY_MAX_LOSS_PCT: float = 0.02
 KILL_SWITCH_LOSS_PCT: float = 0.03    # hard stop all trading
 
 VOLUME_LOOKBACK_BARS: int = 20
-VOLUME_MULTIPLIER: float = 2.0
+VOLUME_MULTIPLIER: float = 2.5
 MIN_ORB_RANGE_PCT: float = 0.003   # skip flat opens (ORB range < 0.3% of price)
+VWAP_VOL_MULTIPLIER: float = 2.0   # volume threshold for VWAP reclaim entries
 
 # ── Optional filters ──────────────────────────────────────────────────────────
 ENABLE_BREADTH_FILTER: bool = False
@@ -123,6 +124,15 @@ SPY_TREND_FILTER: bool = True         # block Regime A entries when SPY < 20d MA
 SPY_TREND_MA_PERIOD: int = 20
 ATR_EXPANSION_MULTIPLIER: float = 1.2
 REALIZED_VOL_BREAKOUT_MULTIPLIER: float = 1.3
+
+# Gap filter — skip entries when SPY opens with a large gap (fake breakout risk)
+ENABLE_GAP_FILTER: bool = True
+GAP_FILTER_PCT: float = 0.007         # 0.7% gap vs prior close = skip day
+
+# Time-of-day filter — block entries during lunch chop window
+ENABLE_LUNCH_FILTER: bool = True
+LUNCH_BLOCK_START: str = "10:30"      # stop entries at 10:30
+LUNCH_BLOCK_END: str = "13:00"        # resume entries at 1:00 PM
 
 # ── Backtest ──────────────────────────────────────────────────────────────────
 SLIPPAGE_PCT: float = 0.0003

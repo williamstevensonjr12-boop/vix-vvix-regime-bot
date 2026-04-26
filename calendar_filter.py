@@ -1,0 +1,120 @@
+"""
+calendar_filter.py — High-impact economic event filter.
+
+Blocks ORB entries on FOMC, CPI, and NFP days. These events create
+explosive fake breakouts that stop out ORB positions immediately.
+"""
+from __future__ import annotations
+from datetime import date
+
+# FOMC decision days, CPI release days, NFP release days
+# These are the three highest-impact scheduled macro events.
+# All dates verified from Fed calendar and BLS release schedule.
+_HIGH_IMPACT_DATES: set[str] = {
+    # ── FOMC 2023 ─────────────────────────────────────────────────────────
+    "2023-02-01", "2023-03-22", "2023-05-03", "2023-06-14",
+    "2023-07-26", "2023-09-20", "2023-11-01", "2023-12-13",
+    # ── CPI 2023 ─────────────────────────────────────────────────────────
+    "2023-01-12", "2023-02-14", "2023-03-14", "2023-04-12",
+    "2023-05-10", "2023-06-13", "2023-07-12", "2023-08-10",
+    "2023-09-13", "2023-10-12", "2023-11-14", "2023-12-12",
+    # ── NFP 2023 ─────────────────────────────────────────────────────────
+    "2023-01-06", "2023-02-03", "2023-03-10", "2023-04-07",
+    "2023-05-05", "2023-06-02", "2023-07-07", "2023-08-04",
+    "2023-09-01", "2023-10-06", "2023-11-03", "2023-12-08",
+    # ── FOMC 2024 ─────────────────────────────────────────────────────────
+    "2024-01-31", "2024-03-20", "2024-05-01", "2024-06-12",
+    "2024-07-31", "2024-09-18", "2024-11-07", "2024-12-18",
+    # ── CPI 2024 ─────────────────────────────────────────────────────────
+    "2024-01-11", "2024-02-13", "2024-03-12", "2024-04-10",
+    "2024-05-15", "2024-06-12", "2024-07-11", "2024-08-14",
+    "2024-09-11", "2024-10-10", "2024-11-13", "2024-12-11",
+    # ── NFP 2024 ─────────────────────────────────────────────────────────
+    "2024-01-05", "2024-02-02", "2024-03-08", "2024-04-05",
+    "2024-05-03", "2024-06-07", "2024-07-05", "2024-08-02",
+    "2024-09-06", "2024-10-04", "2024-11-01", "2024-12-06",
+    # ── FOMC 2025 ─────────────────────────────────────────────────────────
+    "2025-01-29", "2025-03-19", "2025-05-07", "2025-06-18",
+    "2025-07-30", "2025-09-17", "2025-10-29", "2025-12-10",
+    # ── CPI 2025 ─────────────────────────────────────────────────────────
+    "2025-01-15", "2025-02-12", "2025-03-12", "2025-04-10",
+    "2025-05-13", "2025-06-11", "2025-07-15", "2025-08-13",
+    "2025-09-10", "2025-10-15", "2025-11-13", "2025-12-10",
+    # ── NFP 2025 ─────────────────────────────────────────────────────────
+    "2025-01-10", "2025-02-07", "2025-03-07", "2025-04-04",
+    "2025-05-02", "2025-06-06", "2025-07-03", "2025-08-01",
+    "2025-09-05", "2025-10-03", "2025-11-07", "2025-12-05",
+}
+
+
+def is_high_impact_day(trading_day) -> bool:
+    """Return True if trading_day is a known high-impact macro event day."""
+    if isinstance(trading_day, date):
+        key = trading_day.isoformat()
+    else:
+        key = str(trading_day)[:10]
+    return key in _HIGH_IMPACT_DATES
+
+
+class EarningsCalendar:
+    """Pre-fetches and caches earnings dates per symbol for backtest + live use."""
+
+    def __init__(self):
+        self._cache: dict[str, set] = {}
+        self._fetched = False
+
+    def prefetch(self, symbols: list) -> None:
+        import yfinance as yf
+        from datetime import timezone
+        for sym in symbols:
+            try:
+                ed = yf.Ticker(sym).earnings_dates
+                if ed is not None and not ed.empty:
+                    dates = set()
+                    for ts in ed.index:
+                        try:
+                            d = ts.date() if hasattr(ts, "date") else ts
+                            dates.add(d)
+                        except Exception:
+                            pass
+                    self._cache[sym] = dates
+                else:
+                    self._cache[sym] = set()
+            except Exception:
+                self._cache[sym] = set()
+        self._fetched = True
+
+    def is_earnings_day(self, symbol: str, trading_day) -> bool:
+        if not self._fetched:
+            return False
+        if hasattr(trading_day, "date"):
+            trading_day = trading_day.date() if callable(trading_day.date) else trading_day
+        elif isinstance(trading_day, str):
+            from datetime import date as _date
+            trading_day = _date.fromisoformat(str(trading_day)[:10])
+        return trading_day in self._cache.get(symbol, set())
+
+
+def event_name(trading_day) -> str:
+    """Return the event type for a given day, or empty string."""
+    if isinstance(trading_day, date):
+        key = trading_day.isoformat()
+    else:
+        key = str(trading_day)[:10]
+    if key not in _HIGH_IMPACT_DATES:
+        return ""
+    # Identify type from month-day pattern for labeling
+    for tag, dates in [
+        ("FOMC", {"01-31","03-20","05-01","06-12","07-31","09-18","11-07","12-18",
+                  "02-01","03-22","05-03","06-14","07-26","09-20","11-01","12-13",
+                  "01-29","03-19","05-07","06-18","07-30","09-17","10-29","12-10"}),
+        ("CPI",  {"01-11","02-13","03-12","04-10","05-15","06-12","07-11","08-14",
+                  "09-11","10-10","11-13","12-11","01-12","02-14","03-14","04-12",
+                  "05-10","06-13","07-12","08-10","09-13","10-12","11-14","12-12",
+                  "01-15","02-12","03-12","04-10","05-13","06-11","07-15","08-13",
+                  "09-10","10-15","11-13","12-10"}),
+    ]:
+        md = key[5:]
+        if md in dates:
+            return tag
+    return "NFP"

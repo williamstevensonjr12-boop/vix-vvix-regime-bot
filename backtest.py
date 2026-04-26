@@ -21,6 +21,7 @@ import pandas as pd
 
 import config
 import indicators as ind
+from calendar_filter import is_high_impact_day, event_name, EarningsCalendar
 from regime import Regime, RegimeEngine
 from vix_factor import VIXBetaRanker
 from vvix_filter import regime_filter
@@ -37,6 +38,7 @@ class StrategyMode(Enum):
     PLAIN_ORB = "plain_orb"
     ORB_VIX_BETA = "orb_vix_beta"
     FULL_SYSTEM = "full_system"
+    VWAP_FULL_SYSTEM = "vwap_full_system"
 
 
 @dataclass
@@ -61,6 +63,7 @@ class BacktestEngine:
         self.daily_summaries: list[dict] = []
         self._regime_engine = RegimeEngine()
         self._vix_ranker = VIXBetaRanker()
+        self._earnings_cal = EarningsCalendar()
 
     # ── Public API ────────────────────────────────────────────────────────────
 
@@ -83,8 +86,12 @@ class BacktestEngine:
             f"days={len(trading_days)} ({trading_days[0]} → {trading_days[-1]})"
         )
 
+        # Pre-fetch earnings dates once for all symbols
+        logger.info("Pre-fetching earnings calendars...")
+        self._earnings_cal.prefetch(list(bars_by_symbol.keys()))
+
         # Pre-compute full rolling VIX beta history once — avoids O(n²) refit per day
-        if self.cfg.mode in (StrategyMode.ORB_VIX_BETA, StrategyMode.FULL_SYSTEM):
+        if self.cfg.mode in (StrategyMode.ORB_VIX_BETA, StrategyMode.FULL_SYSTEM, StrategyMode.VWAP_FULL_SYSTEM):
             if not vol_df.empty and "vix" in vol_df.columns:
                 logger.info("Pre-computing VIX beta history...")
                 self._vix_ranker.precompute(daily_returns_by_sym, vol_df["vix"])
@@ -141,10 +148,29 @@ class BacktestEngine:
         daily_pnl = 0.0
         entered_today: set = set()
 
+        # ── Calendar filter — skip FOMC, CPI, NFP days ────────────────────
+        if is_high_impact_day(trading_day):
+            logger.debug(f"[CAL] Skipping {trading_day} — {event_name(trading_day)} day")
+            return
+
+        # ── Gap filter — skip if SPY opens with a large gap ───────────────
+        gap_too_large = False
+        if config.ENABLE_GAP_FILTER and "SPY" in bars_by_symbol:
+            spy_all = bars_by_symbol["SPY"]
+            spy_today = spy_all[spy_all.index.date == trading_day]
+            prev_days = spy_all[spy_all.index.date < trading_day]
+            if not spy_today.empty and not prev_days.empty:
+                spy_open = float(spy_today.iloc[0]["open"])
+                spy_prev_close = float(prev_days.iloc[-1]["close"])
+                gap_pct = abs(spy_open - spy_prev_close) / spy_prev_close
+                if gap_pct > config.GAP_FILTER_PCT:
+                    gap_too_large = True
+                    logger.debug(f"[GAP] {trading_day} gap={gap_pct:.2%} — entries blocked")
+
         # ── Regime detection (end-of-previous-day data only) ──────────────
         as_of = pd.Timestamp(trading_day, tz=ET) - pd.Timedelta(minutes=1)
 
-        if self.cfg.mode in (StrategyMode.ORB_VIX_BETA, StrategyMode.FULL_SYSTEM):
+        if self.cfg.mode in (StrategyMode.ORB_VIX_BETA, StrategyMode.FULL_SYSTEM, StrategyMode.VWAP_FULL_SYSTEM):
             regime_state = self._regime_engine.compute_from_dataframes(
                 vol_df, spy_daily, pc_series, as_of
             )
@@ -154,8 +180,8 @@ class BacktestEngine:
         else:
             regime_state = self._regime_engine._fallback_regime()
 
-        # ── VIX beta ranking (full_system + orb_vix_beta) ─────────────────
-        if self.cfg.mode in (StrategyMode.ORB_VIX_BETA, StrategyMode.FULL_SYSTEM):
+        # ── VIX beta ranking (full_system + orb_vix_beta + vwap_full_system) ──
+        if self.cfg.mode in (StrategyMode.ORB_VIX_BETA, StrategyMode.FULL_SYSTEM, StrategyMode.VWAP_FULL_SYSTEM):
             active_universe = self._vix_ranker.rank_at_date(
                 regime_state.active_universe,
                 as_of_date=as_of,
@@ -166,7 +192,7 @@ class BacktestEngine:
             active_universe = config.MOMENTUM_UNIVERSE[:]
 
         # ── VVIX filter ───────────────────────────────────────────────────
-        if self.cfg.mode == StrategyMode.FULL_SYSTEM and not vol_df.empty:
+        if self.cfg.mode in (StrategyMode.FULL_SYSTEM, StrategyMode.VWAP_FULL_SYSTEM) and not vol_df.empty:
             vvix_val = float(vol_df[vol_df.index <= as_of]["vvix"].dropna().iloc[-1]) if "vvix" in vol_df else 100.0
             vvix_f = regime_filter(vvix_val)
         else:
@@ -174,7 +200,7 @@ class BacktestEngine:
             vvix_f = VVIXFilterResult(True, 1.0, False, 100.0, 100.0, 0.0, "backtest_disabled")
 
         # ── Sentiment filter ──────────────────────────────────────────────
-        if self.cfg.mode == StrategyMode.FULL_SYSTEM:
+        if self.cfg.mode in (StrategyMode.FULL_SYSTEM, StrategyMode.VWAP_FULL_SYSTEM):
             pc_slice = pc_series[pc_series.index <= as_of] if not pc_series.empty else pd.Series([0.9])
             sent = classify_put_call(pc_slice)
         else:
@@ -187,7 +213,7 @@ class BacktestEngine:
         # ── SPY daily trend filter (full_system only) ─────────────────────
         spy_uptrend = True
         if (
-            self.cfg.mode == StrategyMode.FULL_SYSTEM
+            self.cfg.mode in (StrategyMode.FULL_SYSTEM, StrategyMode.VWAP_FULL_SYSTEM)
             and config.SPY_TREND_FILTER
             and not spy_daily.empty
             and "close" in spy_daily.columns
@@ -238,6 +264,10 @@ class BacktestEngine:
             # Entry scan
             if current_time < config.ORB_END_TIME or current_time >= config.LAST_ENTRY_TIME:
                 continue
+            if config.ENABLE_LUNCH_FILTER and config.LUNCH_BLOCK_START <= current_time < config.LUNCH_BLOCK_END:
+                continue
+            if gap_too_large:
+                continue
             if len(open_positions) >= config.MAX_OPEN_POSITIONS:
                 continue
             if trades_today >= config.MAX_TRADES_PER_DAY:
@@ -251,7 +281,7 @@ class BacktestEngine:
 
             # Block Regime A momentum entries when SPY is below its 20d MA
             if (
-                self.cfg.mode == StrategyMode.FULL_SYSTEM
+                self.cfg.mode in (StrategyMode.FULL_SYSTEM, StrategyMode.VWAP_FULL_SYSTEM)
                 and regime_state.regime == Regime.A
                 and not spy_uptrend
             ):
@@ -259,6 +289,8 @@ class BacktestEngine:
 
             for sym in active_universe:
                 if sym in entered_today or sym in open_positions:
+                    continue
+                if self._earnings_cal.is_earnings_day(sym, trading_day):
                     continue
                 if sym not in day_bars or ts not in day_bars[sym].index:
                     continue
@@ -285,23 +317,41 @@ class BacktestEngine:
                 atr = float(atr_s.iloc[-1])
                 orb_high = opening_range["high"]
 
-                # Skip flat opens — ORB range must be at least 0.3% of price
-                orb_range_pct = (opening_range["high"] - opening_range["low"]) / opening_range["low"]
-                if orb_range_pct < config.MIN_ORB_RANGE_PCT:
-                    continue
-
-                c1 = price > orb_high
-                c2 = price > vwap
-                c3 = avg_vol > 0 and volume > config.VOLUME_MULTIPLIER * avg_vol
-                if not (c1 and c2 and c3):
-                    continue
-
-                # Stop: min of VWAP, ORB high - buffer, ATR stop
-                stop = min(
-                    vwap,
-                    orb_high * (1 - config.STOP_BUFFER_PCT),
-                    ind.atr_stop_price(price, atr),
-                )
+                if self.cfg.mode == StrategyMode.VWAP_FULL_SYSTEM:
+                    # VWAP reclaim: price must have dipped below VWAP earlier today
+                    import datetime as _dt
+                    orb_cutoff = _dt.datetime.strptime(config.ORB_END_TIME, "%H:%M").time()
+                    post_orb = bars_so_far[bars_so_far.index.time > orb_cutoff]
+                    if len(post_orb) < 2:
+                        continue
+                    prev_post_orb = post_orb.iloc[:-1]
+                    prev_vwap = ind.calculate_vwap(bars_so_far).reindex(prev_post_orb.index)
+                    touched_below = bool((prev_post_orb["low"].values < prev_vwap.values).any())
+                    if not touched_below:
+                        continue
+                    c1 = price > vwap
+                    c2 = avg_vol > 0 and volume > config.VWAP_VOL_MULTIPLIER * avg_vol
+                    if not (c1 and c2):
+                        continue
+                    stop = min(
+                        vwap * (1 - config.STOP_BUFFER_PCT),
+                        ind.atr_stop_price(price, atr),
+                    )
+                else:
+                    # ORB breakout entry
+                    orb_range_pct = (opening_range["high"] - opening_range["low"]) / opening_range["low"]
+                    if orb_range_pct < config.MIN_ORB_RANGE_PCT:
+                        continue
+                    c1 = price > orb_high
+                    c2 = price > vwap
+                    c3 = avg_vol > 0 and volume > config.VOLUME_MULTIPLIER * avg_vol
+                    if not (c1 and c2 and c3):
+                        continue
+                    stop = min(
+                        vwap,
+                        orb_high * (1 - config.STOP_BUFFER_PCT),
+                        ind.atr_stop_price(price, atr),
+                    )
                 if stop >= price:
                     continue
 
@@ -416,7 +466,7 @@ def run_three_way_comparison(
     save_to_dir: str = None,
 ) -> dict:
     """
-    Run all three strategies on the same data and print a side-by-side comparison.
+    Run all four strategies on the same data and print a side-by-side comparison.
     Returns dict of {strategy_name: metrics}.
     """
     if save_to_dir:
@@ -440,51 +490,45 @@ def run_three_way_comparison(
 
 
 def _print_comparison_table(results: dict, initial_equity: float):
-    """Print a side-by-side comparison of all three strategies."""
-    header = f"\n{'='*75}\n  STRATEGY COMPARISON (same data, same period)\n{'='*75}"
-    print(header)
-    cols = ["plain_orb", "orb_vix_beta", "full_system"]
+    """Print a side-by-side comparison of all strategies (dynamic column count)."""
+    cols = list(results.keys())
     labels = {
-        "plain_orb": "1. Plain ORB",
-        "orb_vix_beta": "2. ORB + VIX Beta",
-        "full_system": "3. Full System",
+        "plain_orb":         "1. Plain ORB",
+        "orb_vix_beta":      "2. ORB+VIX Beta",
+        "full_system":       "3. ORB Full Sys",
+        "vwap_full_system":  "4. VWAP Full Sys",
     }
-    rows = [
-        ("Trades", "total_trades", "{:.0f}"),
-        ("Win Rate", "win_rate", "{:.1%}"),
-        ("Total P&L", "total_pnl", "${:,.2f}"),
-        ("Return", None, None),
-        ("Profit Factor", "profit_factor", "{:.2f}"),
-        ("Avg R", "avg_r_multiple", "{:.2f}R"),
-        ("Max Drawdown", "max_drawdown_pnl", "${:,.2f}"),
-        ("Sharpe", "sharpe", "{:.2f}"),
-    ]
     name_w = 18
-    col_w = 18
+    col_w = 17
+    total_w = name_w + col_w * len(cols)
+    print(f"\n{'='*total_w}\n  STRATEGY COMPARISON (same data, same period)\n{'='*total_w}")
     header_row = f"{'Metric':<{name_w}}" + "".join(f"{labels.get(c, c):<{col_w}}" for c in cols)
     print(header_row)
-    print("-" * 75)
+    print("-" * total_w)
+    rows = [
+        ("Trades",        "total_trades",    "{:.0f}"),
+        ("Win Rate",      "win_rate",        "{:.1%}"),
+        ("Total P&L",     "total_pnl",       "${:,.2f}"),
+        ("Return",        None,              None),
+        ("Profit Factor", "profit_factor",   "{:.2f}"),
+        ("Avg R",         "avg_r_multiple",  "{:.2f}R"),
+        ("Max Drawdown",  "max_drawdown_pnl","${:,.2f}"),
+        ("Sharpe",        "sharpe",          "{:.2f}"),
+    ]
     for label, key, fmt in rows:
         if key is None:
             vals = []
             for c in cols:
-                m = results.get(c, {})
-                ret = m.get("total_pnl", 0) / initial_equity * 100 if initial_equity else 0
+                ret = results.get(c, {}).get("total_pnl", 0) / initial_equity * 100
                 vals.append(f"{ret:+.2f}%")
             print(f"{'Return':<{name_w}}" + "".join(f"{v:<{col_w}}" for v in vals))
         else:
             vals = []
             for c in cols:
                 raw = results.get(c, {}).get(key, 0)
-                if fmt:
-                    try:
-                        if raw == float("inf"):
-                            vals.append("∞")
-                        else:
-                            vals.append(fmt.format(raw))
-                    except Exception:
-                        vals.append(str(raw))
-                else:
+                try:
+                    vals.append("∞" if raw == float("inf") else fmt.format(raw))
+                except Exception:
                     vals.append(str(raw))
             print(f"{label:<{name_w}}" + "".join(f"{v:<{col_w}}" for v in vals))
-    print("=" * 75)
+    print("=" * total_w)
