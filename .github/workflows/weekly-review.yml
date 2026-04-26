@@ -1,0 +1,41 @@
+name: Weekly Review
+
+on:
+  schedule:
+    # 4:32 PM EDT Friday (20:32 UTC) — after market close, before weekend
+    - cron: "32 20 * * 5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  weekly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate weekly review
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          PAPER_TRADING: "true"
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+        run: python main.py weekly
+
+      - name: Commit weekly review to repo
+        run: |
+          git config user.name "trading-bot"
+          git config user.email "bot@noreply.github.com"
+          git add reports/
+          git diff --staged --quiet || git commit -m "weekly: $(date -u +%Y-%m-%d)"
+          git push

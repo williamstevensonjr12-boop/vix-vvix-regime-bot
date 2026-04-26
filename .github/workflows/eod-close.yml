@@ -1,0 +1,40 @@
+name: EOD Close
+
+on:
+  schedule:
+    # 3:50 PM EDT (19:50 UTC) Mon-Fri — closes anything still open before 3:55 PM kill
+    - cron: "50 19 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  close:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Close all positions
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          PAPER_TRADING: "true"
+        run: python main.py close
+
+      - name: Commit EOD summary
+        run: |
+          git config user.name "trading-bot"
+          git config user.email "bot@noreply.github.com"
+          git add trades.csv performance.csv trading_bot.log || true
+          git diff --staged --quiet || git commit -m "eod: $(date -u +%Y-%m-%d)"
+          git push

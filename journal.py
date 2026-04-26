@@ -86,6 +86,14 @@ def load_trades(filepath: str = None) -> list:
         return list(csv.DictReader(f))
 
 
+def load_daily_performance(filepath: str = None) -> list:
+    filepath = filepath or config.PERFORMANCE_CSV
+    if not os.path.isfile(filepath):
+        return []
+    with open(filepath, "r") as f:
+        return list(csv.DictReader(f))
+
+
 def build_trade_record(signal, order_id: str, today, entry_time: str) -> dict:
     return {
         "date": str(today),
