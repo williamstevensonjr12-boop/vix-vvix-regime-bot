@@ -593,6 +593,38 @@ def cmd_research(debug: bool = False):
     except Exception:
         pass
 
+    # Tavily web search — deep current intelligence on key topics
+    if config.TAVILY_API_KEY:
+        try:
+            from tavily import TavilyClient
+            tavily = TavilyClient(api_key=config.TAVILY_API_KEY)
+            tavily_topics = [
+                "S&P 500 market outlook today",
+                "Federal Reserve interest rates economy",
+                "NVIDIA stock news today",
+                "inflation CPI economic data",
+                "tariffs trade war market impact",
+                "geopolitical risk stock market",
+                "oil prices energy market today",
+                "AI technology stocks today",
+            ]
+            for topic in tavily_topics:
+                try:
+                    results = tavily.search(topic, max_results=3, search_depth="basic")
+                    items = []
+                    for r in results.get("results", []):
+                        title = r.get("title", "").strip()
+                        url = r.get("url", "").strip()
+                        if title and title not in seen_titles:
+                            seen_titles.add(title)
+                            items.append(f"- [{title}]({url})" if url else f"- {title}")
+                    if items:
+                        sections[f"Web: {topic}"] = items
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
     # Current regime snapshot
     try:
         snapshot = mkt_data.get_current_vol_snapshot()

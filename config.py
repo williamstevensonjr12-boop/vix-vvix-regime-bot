@@ -10,6 +10,7 @@ load_dotenv()
 
 # ── AI Intelligence ──────────────────────────────────────────────────────────
 ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
+TAVILY_API_KEY: str = os.getenv("TAVILY_API_KEY", "")
 
 # ── Broker ──────────────────────────────────────────────────────────────────
 ALPACA_API_KEY: str = os.getenv("ALPACA_API_KEY", "")
