@@ -489,29 +489,38 @@ def cmd_research(debug: bool = False):
     setup_logging(debug)
     logger.info("Mode: RESEARCH")
 
+    import urllib.request
+    import xml.etree.ElementTree as ET_xml
+
     today = datetime.now(ET).date()
-    tickers = ["SPY", "QQQ", "^VIX", "^VVIX"] + config.ALL_SYMBOLS
+
+    # Yahoo Finance RSS — reliable, no API key, always works
+    rss_tickers = ["SPY", "QQQ", "AAPL", "MSFT", "NVDA", "AMZN", "META", "TSLA", "AMD",
+                   "XLU", "XLP", "XLV", "GLD"]
 
     seen_titles: set = set()
     sections: dict = {}
 
-    for ticker in tickers:
+    headers = {"User-Agent": "Mozilla/5.0"}
+    for ticker in rss_tickers:
         try:
-            news = yf.Ticker(ticker).news or []
+            url = f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={ticker}&region=US&lang=en-US"
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                xml_data = resp.read()
+            root = ET_xml.fromstring(xml_data)
+            items = []
+            for item in root.findall(".//item")[:4]:
+                title = (item.findtext("title") or "").strip()
+                link = (item.findtext("link") or "").strip()
+                source = (item.findtext("source") or "Yahoo Finance").strip()
+                if title and title not in seen_titles:
+                    seen_titles.add(title)
+                    items.append(f"- [{title}]({link}) — *{source}*")
+            if items:
+                sections[ticker] = items
         except Exception:
-            news = []
-
-        items = []
-        for item in news[:5]:
-            title = item.get("title", "").strip()
-            link = item.get("link", "")
-            publisher = item.get("publisher", "")
-            if title and title not in seen_titles:
-                seen_titles.add(title)
-                items.append(f"- [{title}]({link}) — *{publisher}*")
-
-        if items:
-            sections[ticker] = items
+            pass
 
     # Current regime snapshot
     try:
@@ -626,14 +635,21 @@ def cmd_weekly(debug: bool = False):
         vix_line = "VIX data unavailable"
 
     # News headlines for weekly context
+    import urllib.request
+    import xml.etree.ElementTree as ET_xml
+
     seen: set = set()
     headlines = []
-    for ticker in ["SPY", "QQQ", "^VIX"]:
+    headers = {"User-Agent": "Mozilla/5.0"}
+    for ticker in ["SPY", "QQQ"]:
         try:
-            news = yf.Ticker(ticker).news or []
-            for item in news[:3]:
-                title = item.get("title", "").strip()
-                link = item.get("link", "")
+            url = f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={ticker}&region=US&lang=en-US"
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                root = ET_xml.fromstring(resp.read())
+            for item in root.findall(".//item")[:3]:
+                title = (item.findtext("title") or "").strip()
+                link = (item.findtext("link") or "").strip()
                 if title and title not in seen:
                     seen.add(title)
                     headlines.append(f"- [{title}]({link})")
