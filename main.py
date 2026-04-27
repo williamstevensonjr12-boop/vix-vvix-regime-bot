@@ -524,10 +524,37 @@ def cmd_research(debug: bool = False):
         except Exception:
             pass
 
-    # Google News RSS for private companies and special topics
+    # Google News RSS — broad market intelligence
     google_topics = {
+        # Private companies
         "SpaceX IPO": "SpaceX+IPO",
         "OpenAI": "OpenAI",
+        # Macro & monetary policy
+        "Federal Reserve": "Federal+Reserve+interest+rates",
+        "Inflation": "inflation+CPI+economy",
+        "Interest Rates": "interest+rates+Fed+2026",
+        "Unemployment": "unemployment+jobs+report+economy",
+        "GDP": "GDP+economic+growth+recession",
+        # Government & policy
+        "Politics & Markets": "politics+stock+market+economy",
+        "Tax Policy": "tax+rates+policy+economy",
+        "Government Spending": "government+spending+deficit+debt",
+        # Trade & geopolitics
+        "Tariffs & Trade": "tariffs+trade+war+economy",
+        "China Economy": "China+economy+markets",
+        "Geopolitical Risk": "geopolitical+risk+war+markets",
+        # Sectors & commodities
+        "Oil & Energy": "oil+prices+energy+market",
+        "Housing Market": "housing+market+mortgage+rates",
+        "Banking & Finance": "banking+financial+system+economy",
+        "Crypto & Bitcoin": "bitcoin+crypto+market",
+        # Tech & AI
+        "AI & Technology": "artificial+intelligence+tech+stocks",
+        "Earnings Season": "earnings+season+S&P+500+results",
+        # Broader market
+        "S&P 500 Outlook": "S%26P+500+market+outlook",
+        "Consumer Spending": "consumer+spending+retail+sales",
+        "Bond Market": "bond+market+treasury+yields",
     }
     for label, query in google_topics.items():
         try:
