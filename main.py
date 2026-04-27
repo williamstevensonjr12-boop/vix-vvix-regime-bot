@@ -621,6 +621,38 @@ def cmd_research(debug: bool = False):
 
     report = "\n".join(lines)
 
+    # AI trading intelligence brief
+    ai_brief = ""
+    if config.ANTHROPIC_API_KEY:
+        try:
+            import anthropic
+            client_ai = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
+            prompt = (
+                f"You are a quantitative trading analyst. Today is {today}.\n\n"
+                f"Below is today's market research pulled from Yahoo Finance, Google News, and FinancialJuice.\n\n"
+                f"{report}\n\n"
+                f"Based on this research, provide a concise trading intelligence brief covering:\n"
+                f"1. **Overall Market Sentiment** (bullish / neutral / bearish) and why\n"
+                f"2. **Key Macro Risks Today** — anything that could disrupt momentum trades\n"
+                f"3. **Stock Spotlight** — any stocks in this universe with notable catalysts: "
+                f"SPY, QQQ, AAPL, MSFT, NVDA, AMZN, META, TSLA, AMD, XLU, XLP, XLV, GLD\n"
+                f"4. **Regime Implication** — given VIX/macro context, does today favor Regime A (momentum), "
+                f"B (defensive), or C (risk-off)?\n"
+                f"5. **Stocks to Prioritize / Avoid** today based on news\n\n"
+                f"Be direct and specific. Under 300 words. No fluff."
+            )
+            msg = client_ai.messages.create(
+                model="claude-sonnet-4-6",
+                max_tokens=600,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            ai_brief = msg.content[0].text
+        except Exception as e:
+            logger.warning(f"AI brief failed: {e}")
+
+    if ai_brief:
+        report = report + "\n\n## AI Trading Intelligence Brief\n\n" + ai_brief
+
     os.makedirs("reports", exist_ok=True)
     path = f"reports/{today}-research.md"
     with open(path, "w") as f:

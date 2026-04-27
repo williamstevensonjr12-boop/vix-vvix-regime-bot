@@ -8,6 +8,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# ── AI Intelligence ──────────────────────────────────────────────────────────
+ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
+
 # ── Broker ──────────────────────────────────────────────────────────────────
 ALPACA_API_KEY: str = os.getenv("ALPACA_API_KEY", "")
 ALPACA_SECRET_KEY: str = os.getenv("ALPACA_SECRET_KEY", "")

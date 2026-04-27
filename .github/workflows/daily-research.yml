@@ -31,12 +31,14 @@ jobs:
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
           PAPER_TRADING: "true"
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python main.py research
 
       - name: Commit research report to repo
         run: |
           git config user.name "trading-bot"
           git config user.email "bot@noreply.github.com"
+          git pull --rebase origin main || true
           git add reports/
           git diff --staged --quiet || git commit -m "research: $(date -u +%Y-%m-%d)"
-          git push
+          git diff origin/main..HEAD --quiet || git push
