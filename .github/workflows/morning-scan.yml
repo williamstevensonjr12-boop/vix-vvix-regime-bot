@@ -37,6 +37,7 @@ jobs:
         run: |
           git config user.name "trading-bot"
           git config user.email "bot@noreply.github.com"
-          git add trades.csv performance.csv trading_bot.log || true
+          git pull --rebase origin main || true
+          git add trades.csv performance.csv trading_bot.log 2>/dev/null || true
           git diff --staged --quiet || git commit -m "trades: $(date -u +%Y-%m-%d)"
-          git push
+          git diff origin/main..HEAD --quiet || git push
