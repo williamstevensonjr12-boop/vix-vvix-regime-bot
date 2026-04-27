@@ -132,7 +132,7 @@ GAP_FILTER_PCT: float = 0.007         # 0.7% gap vs prior close = skip day
 # Time-of-day filter — block entries during lunch chop window
 ENABLE_LUNCH_FILTER: bool = True
 LUNCH_BLOCK_START: str = "11:00"      # stop entries at 11:00
-LUNCH_BLOCK_END: str = "12:00"        # resume entries at 12:00 PM
+LUNCH_BLOCK_END: str = "12:15"        # resume entries at 12:15 PM (after midday routine completes)
 
 # ── Backtest ──────────────────────────────────────────────────────────────────
 SLIPPAGE_PCT: float = 0.0003
