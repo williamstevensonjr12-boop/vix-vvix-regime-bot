@@ -94,3 +94,63 @@ Daily pre-market research entries appended here.
 - Revisit at market open once live VIX/VVIX confirmed. If VIX holds <20 and VVIX <100, NVDA ORB setup is primary watch.
 
 *Note: This run used WebSearch fallback — Perplexity API key not available in environment. Alpaca account/position data also unavailable. All figures estimated from public sources.*
+
+---
+
+### 2026-04-27 — Pre-market Research
+
+**Account:** Equity $100,000.00 | Cash $100,000.00 (100%) | Buying Power $200,000.00 (2× margin)
+*(Paper account — Alpaca paper-api confirmed active, no open positions)*
+
+**Volatility Snapshot:**
+- VIX: 19.0 (+1.71% pre-market) — live via regime-status
+- VVIX: 96.9 — normal (below 100 risk-reduction threshold)
+- VIX3M term ratio: 0.896 — slight backwardation (near-term vol mildly elevated vs deferred)
+- Put/Call ratio: 0.90 — neutral sentiment
+- Regime score: 0.717
+
+**Regime Assessment:** A — LOW_VOL_TREND (confirmed live, unchanged from Apr 26)
+- Active universe: SPY, QQQ, AAPL, MSFT, NVDA, AMZN, META, TSLA, AMD (Regime A momentum)
+- Size factor: 1.00× (full sizing — VVIX <100)
+- Crisis alpha: disabled
+- Sector rotation leader: XLK (0.90 score), then XLF, QUAL, XLE, XLV
+- VVIX filter: PASS — no entry restriction
+- Note: VIX at 19.0 is 5% below Regime B threshold. One bad print or Iran escalation flips us to B.
+
+**Market Context:**
+- S&P 500 futures: +0.03% | Nasdaq 100: +0.21% | Dow: -0.16% — flat open
+- Iran/Strait of Hormuz: Iran submitted new proposal to reopen strait; oil climbed on stalled talks; partial de-escalation signal but risk not cleared
+- FOMC: Meeting Tue/Wed next week — 100% probability of hold; gasoline spike limiting cut optionality
+- Mega-cap earnings: AAPL, AMZN, GOOGL, META, MSFT all report Wed–Thu — major binary event risk
+- AM earnings today (Apr 27): VZ (Verizon), DPZ (Domino's) — low systemic impact
+- Friday movers: NVDA +4.45% (sustained AI chip demand), AMZN +3.18%, CRM +2.33%
+- Defensive rotation: XLU and XLP >3 SD above MA — institutional caution signal despite Regime A
+
+**Trade Ideas:**
+1. NVDA — AI chip demand momentum, sector leader, +4.45% Friday close; entry: ORB above 9:30 high with volume >1.5× avg, stop -1.5×ATR, target 2R; regime fit: ✓ (top Regime A momentum name); risk: earnings overhang Wed-Thu = overnight gap risk, do not hold overnight
+2. QQQ — XLK sector leader in Regime A, Nasdaq futures slightly positive; entry: VWAP bounce or ORB breakout, stop -1×ATR, target 2R; regime fit: ✓; cleaner than single-stock risk pre-earnings
+3. GLD — Iran/Strait geopolitical uncertainty not resolved; negative VIX beta; entry: above prior session high on volume, stop -1×ATR, target 2R; regime fit: ✓ borderline (better fit if VIX flips to 20+)
+
+**Risk Factors:**
+- VIX at 19.0 — single catalyst from Regime B flip (20 threshold); monitor intraday
+- Term structure inverted (0.896) — near-term vol concern, not crisis but worth watching
+- FOMC + mega-cap earnings this week: do NOT hold momentum positions overnight Wed/Thu
+- Iran/Strait: proposal emerged but not resolved — energy price volatility remains
+- AM earnings VZ/DPZ: minor, but any miss in telecom/consumer adds to cautious tone
+- Defensive sector overextension (XLU, XLP >3 SD) suggests institutional hedging = not a pure bull tape
+
+**VIX Beta Rankings (top 5 — Regime A, prefer low VIX beta for momentum):**
+| Symbol | VIX Beta | Fear Resilience |
+|--------|----------|-----------------|
+| GLD    | Negative | High            |
+| XLU    | Negative | High            |
+| XLV    | Low      | High            |
+| MSFT   | Low-med  | Medium          |
+| NVDA   | High     | Low (momentum)  |
+
+**Decision:** HOLD at open — reassess 9:35 ET
+- Regime A confirmed live. But flat futures + inverted term structure + earnings binary risk this week = patience.
+- If VIX holds <19.5 and VVIX stays <100 at 9:35: NVDA ORB is primary watch (intraday only, no overnight).
+- If VIX spikes above 20 at open → flip to Regime B, shift universe to XLU/XLP/XLV/GLD, reduce to 0.5× size.
+
+*Alpaca keys confirmed live this run (paper endpoint). VVIX/VIX data via Python regime-status.*
