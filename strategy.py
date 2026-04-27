@@ -96,7 +96,7 @@ def check_entry_signal(
     if current_time >= config.LAST_ENTRY_TIME:
         return None
     if config.ENABLE_LUNCH_FILTER and config.LUNCH_BLOCK_START <= current_time < config.LUNCH_BLOCK_END:
-        logger.debug(f"{symbol}: lunch chop window — no entries {config.LUNCH_BLOCK_START}–{config.LUNCH_BLOCK_END}")
+        logger.info(f"{symbol}: lunch chop window — no entries {config.LUNCH_BLOCK_START}–{config.LUNCH_BLOCK_END}")
         return None
 
     # ── 2. Kill switch / daily limits ─────────────────────────────────────
