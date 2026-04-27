@@ -113,7 +113,7 @@ DAILY_MAX_LOSS_PCT: float = 0.02
 KILL_SWITCH_LOSS_PCT: float = 0.03    # hard stop all trading
 
 VOLUME_LOOKBACK_BARS: int = 20
-VOLUME_MULTIPLIER: float = 2.5
+VOLUME_MULTIPLIER: float = 1.5
 MIN_ORB_RANGE_PCT: float = 0.003   # skip flat opens (ORB range < 0.3% of price)
 VWAP_VOL_MULTIPLIER: float = 2.0   # volume threshold for VWAP reclaim entries
 
@@ -130,7 +130,7 @@ ENABLE_GAP_FILTER: bool = True
 GAP_FILTER_PCT: float = 0.007         # 0.7% gap vs prior close = skip day
 
 # Time-of-day filter — block entries during lunch chop window
-ENABLE_LUNCH_FILTER: bool = True
+ENABLE_LUNCH_FILTER: bool = False
 LUNCH_BLOCK_START: str = "11:00"      # stop entries at 11:00
 LUNCH_BLOCK_END: str = "12:15"        # resume entries at 12:15 PM (after midday routine completes)
 
