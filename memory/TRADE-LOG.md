@@ -20,3 +20,12 @@ No positions. Paper trading mode.
 |--------|--------|-------|-------|-----|------|--------|---|
 
 **Notes:** ...
+
+---
+
+=== EOD 2026-04-27 ===
+Equity: $100,000.00 (day P&L: $0.00, day return: 0.00%)
+Trades: 0 (W:0 / L:0) | Win rate: N/A | P/F: N/A
+Regime: A (LOW_VOL_TREND, score 0.716) | Kill switch: NO
+Open overnight: NONE
+Notes: No ORB signals triggered on watchlist (NVDA, QQQ, SPY). VIX 19.1, VVIX 96.9 — clean Regime A all session. No entries, no risk taken.
