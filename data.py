@@ -201,5 +201,5 @@ def get_symbol_daily_returns(client, symbol: str, start_date: str, end_date: str
     if bars.empty:
         return pd.Series(dtype=float, name=symbol)
     daily_close = bars.groupby(bars.index.date)["close"].last()
-    daily_close.index = pd.to_datetime(daily_close.index).tz_localize(ET)
+    daily_close.index = pd.to_datetime(daily_close.index).tz_localize("UTC").tz_convert(ET)
     return daily_close.pct_change().dropna().rename(symbol)

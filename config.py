@@ -90,7 +90,7 @@ REGIME_B_THRESHOLD: float = 0.40
 # ── VIX beta factor ───────────────────────────────────────────────────────────
 VIX_BETA_LOOKBACK: int = 60
 VIX_BETA_MIN_OBS: int = 30
-TOP_SYMBOLS_FRACTION: float = 0.33   # trade top ~33% by fear resilience (top 3 of 9)
+TOP_SYMBOLS_FRACTION: float = 0.50   # trade top ~50% by fear resilience (top 4-5 of 9)
 
 # ── Risk management ───────────────────────────────────────────────────────────
 RISK_PER_TRADE_PCT: float = 0.005     # 0.5% base
@@ -131,8 +131,8 @@ GAP_FILTER_PCT: float = 0.007         # 0.7% gap vs prior close = skip day
 
 # Time-of-day filter — block entries during lunch chop window
 ENABLE_LUNCH_FILTER: bool = True
-LUNCH_BLOCK_START: str = "10:30"      # stop entries at 10:30
-LUNCH_BLOCK_END: str = "13:00"        # resume entries at 1:00 PM
+LUNCH_BLOCK_START: str = "11:00"      # stop entries at 11:00
+LUNCH_BLOCK_END: str = "12:00"        # resume entries at 12:00 PM
 
 # ── Backtest ──────────────────────────────────────────────────────────────────
 SLIPPAGE_PCT: float = 0.0003

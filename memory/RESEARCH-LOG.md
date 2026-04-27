@@ -4,6 +4,51 @@ Daily pre-market research entries appended here.
 
 ---
 
+### 2026-04-27 — Pre-market Research (inline — no prior entry)
+
+**Account:** Equity $100,000.00 | Cash $100,000.00 (100%) | Buying Power $200,000.00
+
+**Volatility Snapshot:**
+- VIX: 19.1 (trending: flat — near prior Apr average ~19.3)
+- VVIX: 96.9 (normal range — no risk reduction triggered)
+- VIX3M: 21.3 | Term ratio: 0.897 (backwardation — slight concern, spot > 3M)
+- Put/Call ratio: 0.90 | Sentiment: neutral
+
+**Regime Assessment:** A — LOW_VOL_TREND | score=0.716
+- Active universe: SPY, QQQ, AAPL, MSFT, NVDA, AMZN, META, TSLA, AMD
+- Size factor: 1.0× (full)
+- Crisis alpha: disabled
+- Sector rotation priority: XLK > XLF > QUAL > XLE > XLV
+
+**Market Context:**
+- Quotes at 9:43 ET: SPY $713.82, QQQ $662.52, NVDA $209.78, GLD $430.94
+- Big earnings week (Apr 28: KO, V, SBUX, UPS, BP pre-market)
+- VIX3M term ratio 0.897 indicates slight backwardation — mild structural caution
+
+**Trade Ideas:**
+1. NVDA — AI momentum, top Regime A name, XLK sector leader; ORB entry above 9:30-9:45 range high, stop -1.5×ATR, target 2R; regime fit: ✓
+2. QQQ — Regime A momentum ETF; ORB/VWAP breakout, stop below ORB low, target 2R; regime fit: ✓
+3. SPY — Broad market, regime-aligned; VWAP breakout entry; regime fit: ✓
+
+**Risk Factors:**
+- VIX3M backwardation (term ratio 0.897) — elevated mean-reversion risk
+- P/C 0.90 — slightly above neutral, watch for put hedging increase
+- Apr 28 earnings gap risk (V, KO, SBUX, UPS)
+- No entries after 3:30 PM; close all by 3:55 PM
+
+**VIX Beta Rankings (top 5):**
+| Symbol | VIX Beta | Fear Resilience |
+|--------|----------|-----------------|
+| GLD    | Negative | High            |
+| QQQ    | Low-med  | Medium          |
+| SPY    | Low-med  | Medium          |
+| MSFT   | Low-med  | Medium-high     |
+| NVDA   | High     | Low             |
+
+**Decision:** TRADE — Regime A confirmed, VVIX clean, accounts live. Watch NVDA and QQQ for ORB signals at 9:45.
+
+---
+
 ## Template
 
 ### YYYY-MM-DD — Pre-market Research

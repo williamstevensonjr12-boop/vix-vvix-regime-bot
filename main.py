@@ -16,7 +16,7 @@ from __future__ import annotations
 import argparse
 import logging
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import config  # safety check happens at import
@@ -128,7 +128,7 @@ def cmd_paper(debug: bool = False):
     logger.info("Computing pre-market regime...")
     snapshot = mkt_data.get_current_vol_snapshot()
     today = datetime.now(ET).date()
-    start_str = (today.replace(day=max(1, today.day - 90))).isoformat()
+    start_str = (today - timedelta(days=90)).isoformat()
     end_str = today.isoformat()
 
     vol_df = mkt_data.get_vix_history(start_str, end_str)
@@ -311,6 +311,11 @@ def cmd_tracker(days: int = 30):
     tracker.run_dashboard(window_days=days)
 
 
+def cmd_dashboard():
+    import dashboard
+    dashboard.build_dashboard()
+
+
 def cmd_backtest(start: str, end: str, equity: float, debug: bool = False):
     import pandas as pd
     import os
@@ -363,6 +368,7 @@ def main():
 
     sub.add_parser("paper", help="Live paper trading")
     sub.add_parser("regime-status", help="Print current regime and exit")
+    sub.add_parser("dashboard", help="Generate HTML dashboard and open in browser")
 
     tr = sub.add_parser("tracker", help="Paper trading performance dashboard")
     tr.add_argument("--days", type=int, default=30, help="Rolling window in trading days")
@@ -380,6 +386,8 @@ def main():
         cmd_regime_status(args.debug)
     elif args.mode == "tracker":
         cmd_tracker(args.days)
+    elif args.mode == "dashboard":
+        cmd_dashboard()
     elif args.mode == "backtest":
         cmd_backtest(args.start, args.end, args.equity, args.debug)
 
