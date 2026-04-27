@@ -575,6 +575,24 @@ def cmd_research(debug: bool = False):
         except Exception:
             pass
 
+    # FinancialJuice RSS — real-time market headlines
+    try:
+        url = "https://www.financialjuice.com/feed.ashx"
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            root = ET_xml.fromstring(resp.read())
+        fj_items = []
+        for item in root.findall(".//item")[:10]:
+            title = (item.findtext("title") or "").strip()
+            link = (item.findtext("link") or "").strip()
+            if title and title not in seen_titles:
+                seen_titles.add(title)
+                fj_items.append(f"- [{title}]({link})" if link else f"- {title}")
+        if fj_items:
+            sections["FinancialJuice"] = fj_items
+    except Exception:
+        pass
+
     # Current regime snapshot
     try:
         snapshot = mkt_data.get_current_vol_snapshot()
