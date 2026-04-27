@@ -502,6 +502,8 @@ def cmd_research(debug: bool = False):
     sections: dict = {}
 
     headers = {"User-Agent": "Mozilla/5.0"}
+
+    # Yahoo Finance RSS for stocks/ETFs in universe
     for ticker in rss_tickers:
         try:
             url = f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={ticker}&region=US&lang=en-US"
@@ -519,6 +521,30 @@ def cmd_research(debug: bool = False):
                     items.append(f"- [{title}]({link}) — *{source}*")
             if items:
                 sections[ticker] = items
+        except Exception:
+            pass
+
+    # Google News RSS for private companies and special topics
+    google_topics = {
+        "SpaceX IPO": "SpaceX+IPO",
+        "OpenAI": "OpenAI",
+    }
+    for label, query in google_topics.items():
+        try:
+            url = f"https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en"
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                root = ET_xml.fromstring(resp.read())
+            items = []
+            for item in root.findall(".//item")[:4]:
+                title = (item.findtext("title") or "").strip()
+                link = (item.findtext("link") or "").strip()
+                source = (item.findtext("source") or "Google News").strip()
+                if title and title not in seen_titles:
+                    seen_titles.add(title)
+                    items.append(f"- [{title}]({link}) — *{source}*")
+            if items:
+                sections[label] = items
         except Exception:
             pass
 
