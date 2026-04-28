@@ -1043,3 +1043,57 @@ Daily pre-market research entries appended here.
   - SPY: watch for chop/pullback if crude moves sharply
 - Bot action: live VIX/VVIX gates handle regime shift automatically; if VIX approaches 21+ consider Regime B rules
 - Qualitative bias: lean BP over NVDA if oil spike confirms at open
+
+---
+
+### MIDDAY SCAN — 2026-04-28 (11:46 ET)
+
+**Regime check:** A_LOW_VOL_TREND — NO CHANGE | score=0.742 | VIX=18.6 | VVIX=94.5 | P/C=0.90 | size=1.00x
+**Positions:** Flat (3 trades closed) | **Slots remaining:** 2 of 5 | **Equity:** $99,713.67
+**Exposure cap available:** ~$49,857 (50%) — split evenly = ~$24,900 per position
+
+**Afternoon watchlist (live quotes):**
+| Symbol | Bid | Ask | Mid | Notes |
+|--------|-----|-----|-----|-------|
+| NVDA | $209.29 | $209.32 | $209.30 | Top pick — tight spread, holding gap gains |
+| AAPL | $270.05 | $270.08 | $270.07 | Regime A name, XLK sector, clean |
+| MSFT | $426.55 | $426.66 | $426.60 | Strong but high price, sizing constrained |
+| SPY | $709.75 | $709.89 | $709.82 | Gap-and-run, broad market holding |
+| QQQ | $654.49 | $654.55 | $654.52 | Tech broad, following SPY |
+| BP | $46.79 | $46.81 | $46.80 | Already traded 2x today — SKIP |
+| KO | $80.03 | $80.04 | $80.04 | Already traded today — SKIP |
+| NUE | $209.76 | $224.43 | — | Wide spread, illiquid — SKIP |
+| AMD | $318.09 | $330.00 | — | Wide spread + morning AVOID — SKIP |
+
+**Top 2 afternoon setups (enter after 12:15 ET):**
+
+1. **NVDA — $209.30** | XLK sector #1 | BofA bullish + call buying still active
+   - Entry trigger: VWAP reclaim + hold above $209.50 on volume after lunch lull
+   - Stop: ~$207.50 (1.5x ATR, est.) | Target: $212.50+ (2R)
+   - Size: ~119 shares (~$24,900, 25% exposure)
+
+2. **AAPL — $270.07** | Clean Regime A momentum, no negative catalysts
+   - Entry trigger: VWAP reclaim + hold above $270.50 after 12:15
+   - Stop: ~$268.00 (1.5x ATR, est.) | Target: $273.50+ (2R)
+   - Size: ~92 shares (~$24,900, 25% exposure)
+
+**Gates to confirm at entry time:**
+- [ ] VVIX still <110?
+- [ ] Price above VWAP (check live at 12:15)?
+- [ ] Volume picking up from lunch lull?
+- [ ] Both positions together ≤ 50% exposure cap?
+
+---
+
+### MIDDAY SCAN (scheduled re-check) — 2026-04-28 (12:01 ET)
+
+**Regime:** A_LOW_VOL_TREND — NO CHANGE | score=0.742 | VIX=18.6 | VVIX=94.5 | term=0.886 | P/C=0.90 | size=1.00x
+**Positions:** FLAT | **Open orders:** NONE | **Equity:** $99,713.67
+
+**Risk gates:**
+- VVIX <110: ✅ (94.5)
+- VVIX <120: ✅ (no entry block)
+- No VVIX +10% intraday spike: ✅
+- No regime shift since open: ✅
+
+**Action taken:** NONE. No positions to manage; no stop triggers; no regime-driven rotation needed. Afternoon plan from 11:46 scan (NVDA/AAPL after 12:15 ET) remains valid pending live VWAP/volume confirmation at entry time.
