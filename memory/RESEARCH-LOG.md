@@ -1031,3 +1031,15 @@ Daily pre-market research entries appended here.
 - TSLA (no catalyst, likely to chop)
 
 ---
+
+### INTRADAY UPDATE — 2026-04-28 09:35 ET
+
+**Trump Truth Social post — Iran/Strait of Hormuz collapse warning**
+- Posted ~9:30 ET open; geopolitical escalation on top of existing Brent $110+ tension
+- Crude futures risk: Strait of Hormuz closure = ~20% global oil supply disruption
+- Impact on watchlist:
+  - BP: double catalyst (earnings beat + oil spike tailwind) — priority elevated
+  - NVDA/tech: risk-off headwind if crude rips; don't chase further pre-market gains
+  - SPY: watch for chop/pullback if crude moves sharply
+- Bot action: live VIX/VVIX gates handle regime shift automatically; if VIX approaches 21+ consider Regime B rules
+- Qualitative bias: lean BP over NVDA if oil spike confirms at open
