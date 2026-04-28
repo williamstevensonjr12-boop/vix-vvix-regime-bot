@@ -107,3 +107,13 @@ Regime: A_LOW_VOL_TREND all day (VIX ~18.8, VVIX ~94-96). Bot ORB signals did no
 | **Total** | | **-$298.96** |
 
 Account equity: ~$99,701. 4 of 5 trade slots used. 1 remaining.
+
+=== EOD 2026-04-28 ===
+Equity: $99,674.64 (day P&L: -$325.36, day return: -0.33%)
+Trades: 4 (W:2 / L:2) | Win rate: 50% | P/F: 0.30
+  - Avg win: $64.51 | Avg loss: $213.99
+  - Wins: KO (+$118.37), BP re-entry (+$10.65)
+  - Losses: BP first (-$389.60), NVDA (-$38.38)
+Regime: A_LOW_VOL_TREND all session (VIX ~18.6-19.1, VVIX ~94-96) | Kill switch: NO
+Open overnight: NONE (all flat at close, 0 open orders)
+Notes: Gap-and-run day — bot ORB signals never fired; all 4 trades were manual qualitative overrides. KO earnings thesis played out cleanly (only structural win); BP first entry was the day's worst lesson (qualitative override on Iran/oil catalyst without ORB confirmation). Account variance vs trade-log sum (-$325.36 actual vs -$298.96 logged) = ~$26 slippage/fees. Day trade count 4/4 — 1 trade slot unused, well under 5 cap. Loss 0.33% — well below 2% halt and 3% kill switch.
