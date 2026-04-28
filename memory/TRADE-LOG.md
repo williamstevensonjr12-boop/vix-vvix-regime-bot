@@ -54,3 +54,11 @@ Notes: No ORB signals triggered on watchlist (NVDA, QQQ, SPY). VIX 19.1, VVIX 96
 - Exit: ~$80.15 (trailing stop hit) | P&L: +$118.37 | Result: WIN
 - Trailing stop raised from $79.42 → $80.05 → $80.10 → $80.15 as price climbed
 - Earnings beat + raised guidance thesis played out cleanly
+
+### 2026-04-28 — OPEN POSITION (Re-entry)
+
+| Symbol | Shares | Entry | Stop | Target | R:R | Regime | Catalyst |
+|--------|--------|-------|------|--------|-----|--------|----------|
+| BP | 1065 | $46.76 | $46.48 | $47.25 | 2R | A | Iran/oil tailwind — re-entry after VWAP reclaim |
+
+**Trade notes:** Re-entry after first BP trade stopped out at VWAP. Price reclaimed VWAP ($46.53), UP trend confirmed, holding $46.74+. Risk=$298, cost=$49,799.
