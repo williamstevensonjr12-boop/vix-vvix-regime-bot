@@ -62,3 +62,48 @@ Notes: No ORB signals triggered on watchlist (NVDA, QQQ, SPY). VIX 19.1, VVIX 96
 | BP | 1065 | $46.76 | $46.48 | $47.25 | 2R | A | Iran/oil tailwind — re-entry after VWAP reclaim |
 
 **Trade notes:** Re-entry after first BP trade stopped out at VWAP. Price reclaimed VWAP ($46.53), UP trend confirmed, holding $46.74+. Risk=$298, cost=$49,799.
+
+**BP RE-ENTRY CLOSED — 2026-04-28 15:37 ET**
+- Exit: $46.77 (market — manual close on chop concern) | P&L: +$10.65 | Result: SCRATCH WIN
+- Stop raised to $46.70 before manual close. Exited ahead of EOD choppiness.
+- Lesson: Re-entry clawed back partial losses from Trade 1. Small green beats giving it back.
+
+---
+
+## Day Summary — 2026-04-28
+
+| Trade | Symbol | P&L |
+|-------|--------|-----|
+| 1 | BP (first entry) | -$389.60 |
+| 2 | KO | +$118.37 |
+| 3 | BP (re-entry) | +$10.65 |
+| **Total** | | **-$260.58** |
+
+Regime: A_LOW_VOL_TREND all day (VIX ~18.8, VVIX ~94-96). Bot ORB signals did not fire — gap-and-run day. All 3 trades were manual qualitative overrides. Account equity: $99,713.67.
+
+### 2026-04-28 — OPEN POSITION (Trade 4)
+
+| Symbol | Shares | Entry | Stop | Target | R:R | Regime | Catalyst |
+|--------|--------|-------|------|--------|-----|--------|----------|
+| NVDA | 202 | $210.09 | $207.50 | $212.50 | 2R | A | BofA bullish reset + XLK #1 sector + gap-and-run continuation |
+
+**Trade notes:** Afternoon entry after lunch block lifted (12:15 ET). XLK sector ranked #1 (0.90) all day. BofA reset + institutional call buying confirmed pre-market. Price grinding higher all session ($209.30 → $210.09). Cost=$42,439 (42.5% exposure). Risk=$519 (0.52% equity).
+
+**NVDA CLOSED — 2026-04-28 12:38 ET**
+- Exit: $209.90 (stop hit) | P&L: -$38.38 | Result: CONTROLLED LOSS
+- SPY rolled over into the close, dragged NVDA with it. Thesis didn't play out intraday.
+- Stop did its job — capped the loss at $38 vs a potential larger drawdown.
+
+---
+
+## Final Day Summary — 2026-04-28
+
+| Trade | Symbol | P&L |
+|-------|--------|-----|
+| 1 | BP (first entry) | -$389.60 |
+| 2 | KO | +$118.37 |
+| 3 | BP (re-entry) | +$10.65 |
+| 4 | NVDA | -$38.38 |
+| **Total** | | **-$298.96** |
+
+Account equity: ~$99,701. 4 of 5 trade slots used. 1 remaining.

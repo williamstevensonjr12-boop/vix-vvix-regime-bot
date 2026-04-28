@@ -35,7 +35,8 @@ ORB_DURATION_MINUTES = 15
 # ── Asset universes ──────────────────────────────────────────────────────────
 # Regime A: momentum / trend-following
 MOMENTUM_UNIVERSE: list = [
-    "SPY", "QQQ", "AAPL", "MSFT", "NVDA", "AMZN", "META", "TSLA", "AMD"
+    "SPY", "QQQ", "AAPL", "MSFT", "NVDA", "AMZN", "META", "TSLA", "AMD",
+    "KO", "BP", "NUE"
 ]
 # Regime B: fear-resilient (low VIX-beta, quality)
 FEAR_RESILIENT_UNIVERSE: list = [

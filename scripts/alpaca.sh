@@ -63,11 +63,11 @@ case "$cmd" in
     ;;
   regime)
     # Run the Python regime-status command
-    cd "$ROOT" && python main.py regime-status
+    cd "$ROOT" && python3 main.py regime-status
     ;;
   vix)
     # Quick VIX snapshot via Python
-    cd "$ROOT" && python -c "
+    cd "$ROOT" && python3 -c "
 from data import get_current_vol_snapshot
 s = get_current_vol_snapshot()
 print(f'VIX={s[\"vix\"]:.1f} VVIX={s[\"vvix\"]:.1f} VIX3M={s[\"vix3m\"]:.1f} PC={s[\"put_call_ratio\"]:.2f}')
