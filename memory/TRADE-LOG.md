@@ -41,3 +41,11 @@ Notes: No ORB signals triggered on watchlist (NVDA, QQQ, SPY). VIX 19.1, VVIX 96
 **BP CLOSED — 2026-04-28 10:44 ET**
 - Exit: ~$46.45 (market) | P&L: -$389.60 | Reason: VWAP broken, momentum reversed, early exit to preserve capital vs hard stop (-$497)
 - Lesson: Iran/oil catalyst didn't sustain intraday. Qualitative override without ORB confirmation = higher risk.
+
+### 2026-04-28 — OPEN POSITION
+
+| Symbol | Shares | Entry | Stop | Target | R:R | Regime | Catalyst |
+|--------|--------|-------|------|--------|-----|--------|----------|
+| KO | 623 | $79.96 | $79.42 | $80.91 | 2R | A | Q1 earnings beat + raised FY guidance |
+
+**Trade notes:** Manual entry — above VWAP ($79.64), above ORB high ($78.30). Earnings catalyst confirmed. Risk=$344 (0.34% equity), cost=$49,816 (50% cap).
