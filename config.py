@@ -124,6 +124,10 @@ MIN_ORB_RANGE_PCT: float = 0.003   # skip flat opens (ORB range < 0.3% of price)
 GAP_SKIP_PCT: float = 0.02        # skip day entirely if SPY gaps >2% up or down
 GAP_REDUCE_PCT: float = 0.01      # cut position size 50% if SPY gaps 1-2%
 
+# ── Gap alignment filter ─────────────────────────────────────────────────────
+GAP_ALIGNMENT_REQUIRED: bool = True
+GAP_ALIGNMENT_LONG_MIN: float = 0.005   # stock must gap up >= +0.5% for long entry
+
 # ── Optional filters ──────────────────────────────────────────────────────────
 ENABLE_BREADTH_FILTER: bool = False
 ENABLE_ATR_EXPANSION_FILTER: bool = True

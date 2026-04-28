@@ -140,6 +140,24 @@ def check_entry_signal(
     orb_high = opening_range["high"]
     orb_low = opening_range["low"]
 
+    # ── 7a. Gap alignment filter ──────────────────────────────────────────
+    if config.GAP_ALIGNMENT_REQUIRED:
+        try:
+            today_open = float(bars.iloc[0]["open"])
+            prev_close = float(bars.iloc[0].get("prev_close", 0)) if "prev_close" in bars.columns else None
+            if prev_close is None:
+                import yfinance as yf
+                hist = yf.Ticker(symbol).history(period="2d", interval="1d")
+                if len(hist) >= 2:
+                    prev_close = float(hist["Close"].iloc[-2])
+            if prev_close and prev_close > 0:
+                gap_pct = (today_open - prev_close) / prev_close
+                if gap_pct < config.GAP_ALIGNMENT_LONG_MIN:
+                    logger.debug(f"{symbol}: gap {gap_pct:.2%} < {config.GAP_ALIGNMENT_LONG_MIN:.1%} required — skip")
+                    return None
+        except Exception:
+            pass
+
     # ── 7. ORB + VWAP + volume conditions ────────────────────────────────
     # Skip flat opens — not enough range to trade
     orb_range_pct = (orb_high - orb_low) / orb_low if orb_low > 0 else 0
