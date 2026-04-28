@@ -849,3 +849,185 @@ Daily pre-market research entries appended here.
 - **AAPL** — No catalyst, -1.27% drag; dead money today
 
 ---
+
+---
+## 2026-04-28 — Pre-Market Research
+
+**Volatility**
+- VIX: 18.87 (+4.72%)
+- VVIX: 93.86 (-3.42%)
+- VIX3M: 20.77
+
+**Universe Prices**
+  SPY: $715.17 (+0.17%)
+  QQQ: $664.23 (+0.05%)
+  NVDA: $216.61 (+4.00%)
+  AMD: $334.63 (-3.79%)
+  AMZN: $261.12 (-1.09%)
+  META: $678.62 (+0.53%)
+  MSFT: $424.82 (+0.05%)
+  AAPL: $267.61 (-1.27%)
+  TSLA: $378.67 (+0.63%)
+
+**Headlines**
+
+**GOOGLE_NEWS_MARKET**
+- S&P 500 futures slip as oil rises, Nasdaq futures slide on OpenAI report: Live updates - CNBC
+- Stock Market Today: Nasdaq Futures Fall, Oil Extends Gains — Live Updates - WSJ
+- Stock Market Today: Futures Point Mostly Lower to Start Busy Day of Earnings; Oil Rises Further; 2-Day Fed Meeting Kicks Off Today - Investopedia
+- US Stock Market Today S&P 500 Futures Dip On Rising Inflation And Oil Concerns - Yahoo Finance
+- Nasdaq Set to Open Down Amid Iran Peace Fears - Barron's
+- Stock Market Today: S&P 500, Dow and Nasdaq set for mixed start as AI-linked stocks slip on OpenAI concerns, and after reports that Trump is unhappy with Iran's proposal to end war - MarketWatch
+- Stock Market Today: Dow Dips But Nasdaq, Nvidia Gain; Microsoft Up After This OpenAI Deal (Live Coverage) - Investor's Business Daily
+- Warren Buffett has stark message for investors on stock market - thestreet.com
+- Stocks are back at records, but one CIO says investors are overlooking a major change in the post-Iran-war market - Business Insider
+- Stock Market Today, April 27: Rally Stalls at Midday as Iran Talks Falter - The Motley Fool
+
+**GOOGLE_NVDA**
+- Why Nvidia (NVDA) Stock Is Trading Up Today - Yahoo Finance
+- Bank of America resets Nvidia stock forecast - thestreet.com
+- Nvidia Stock Falls. What’s Hitting AMD, Broadcom and the AI Chip Players. - Barron's
+- Stocks Inch to New Records as Nvidia Strength Overcomes Consumer Weakness - WSJ
+- Nvidia, Intel call buyers defy the dip in chip stocks - CNBC
+
+**GOOGLE_AMD**
+- AMD Is Surging Into Earnings. Is This Your Last Chance to Buy Before May 5? - The Motley Fool
+- Top Analyst Downgrades AMD Stock Despite Strong Near-Term Outlook — Here’s Why - TipRanks
+- Nvidia Stock Falls. What’s Hitting AMD, Broadcom and the AI Chip Players. - Barron's
+- Oracle, AMD, Intel, BP, Bed Bath & Beyond, and More Stock Market Movers - Barron's
+- Advanced Micro Devices (AMD) Stock Sinks As Market Gains: Here's Why - Yahoo Finance
+
+**GOOGLE_AMZN**
+- Amazon Is About to Report Q1 Earnings. Do Options Traders Expect a Major Move in AMZN Stock? - Yahoo Finance
+- Amazon (AMZN) Reports Earnings Tomorrow: What To Expect - StockStory
+- Should You Buy, Sell or Hold Amazon Stock Before Q1 Earnings? - Zacks Investment Research
+- AMD Stock Sold by Cathie Wood’s Ark. It Buys Amazon in Strategy Shift. - Barron's
+- Where Will Amazon Stock Be in 5 Years? - The Motley Fool
+
+**GOOGLE_META**
+- Meta's Stock May Plunge Following Results (NASDAQ:META) - Seeking Alpha
+- Prediction: This Will Be Meta's Stock Price in 5 Years - Yahoo Finance
+- Evercore Stays Bullish on Meta Platforms Stock, Expects ‘Very Modest Beat & Bracket Q1’ - TipRanks
+- Meta Q1: AI Ad Thesis Getting Stronger (NASDAQ:META) - Seeking Alpha
+- China Halts Meta’s $2 Billion Deal for Manus - Yahoo Finance
+
+**GOOGLE_SPY**
+- S&P 500 Movers | Winners: | Losers: - Trefis
+- Stock Market Today: SPY Hits Record High as U.S.-Iran Talks Stall ahead of Busy Earnings Week - TipRanks
+- SPY 260427 710.00P (SPY260427P710000) Stock Options Chain | Quotes & News - Moomoo
+- Breadth Stays Positive, but Monday Shows Some Fatigue - ChartMill
+- Stock Outperformance Isn’t About Value, Growth, Biz Model, Or Execution (NYSEARCA:SPY) - Seeking Alpha
+
+**YAHOO_NVDA**
+- The only number that matters for 'Magnificent 7' earnings this week: Morning Brief
+- Nvidia could be undervalued by at least 30%: BofA analyst on Mag 7
+- Stocks' strong April gains come with 1 potential downside
+- Microsoft in the Crosshairs as the Musk-Altman Courtroom Battle Gets Underway
+- OpenAI Hit a Speed Bump. Here’s Why Nvidia’s Long-Term Story Is Still Intact
+- The Mag 7 Earnings Gauntlet Begins: Four Reports That Could Reset the Market
+
+**YAHOO_AMD**
+- Google, Meta, Microsoft, Amazon, Apple earnings: What to expect
+- Will Nvidia's explosive rally end soon?
+- Tech’s ‘New Normal’ Trade Pair: Long Chip Stock, Short Software
+- OpenAI Worries Spark Tech Stocks Selloff
+- These Stocks Are Today’s Movers: Oracle, AMD, Intel, BP, Bed Bath & Beyond, and More
+- OpenAI-Linked Stocks Slump on Report of Startup Missing Targets
+
+**YAHOO_AMZN**
+- The only number that matters for 'Magnificent 7' earnings this week: Morning Brief
+- Elon Musk vs. Sam Altman: What to know about the OpenAI case
+- Amazon's 2026 CapEx spend: What Polymarket is predicting
+- Stocks' strong April gains come with 1 potential downside
+- OpenAI Hit a Speed Bump. Here’s Why Nvidia’s Long-Term Story Is Still Intact
+- The Mag 7 Earnings Gauntlet Begins: Four Reports That Could Reset the Market
+
+**YAHOO_META**
+- The only number that matters for 'Magnificent 7' earnings this week: Morning Brief
+- Amazon's 2026 CapEx spend: What Polymarket is predicting
+- OpenAI Hit a Speed Bump. Here’s Why Nvidia’s Long-Term Story Is Still Intact
+- The Mag 7 Earnings Gauntlet Begins: Four Reports That Could Reset the Market
+- The $600 Billion Question Hanging Over Big Tech This Earnings Season
+- Reliance and Meta's joint venture signals India's shift from AI ambition to enterprise deployment
+
+**YAHOO_SPY**
+- Investors Worry About Mounting Debt — 7 S&P 500 Companies Owe Most
+- S&P 500 Holding Pattern: Mag 7 Earnings Collide With Oil Surge and Fed Fears
+- Exchange-Traded Funds Down, Equity Futures Mixed Pre-Bell Monday Amid Hormuz Uncertainty, Corporate Earnings
+- EXCLUSIVE: Ryan Detrick Shares A Political Trend For 2026 That Has Produced 'Some Really Solid Returns'
+- Gunman likely targeted Trump administration, acting US attorney general says
+- Buy, Hold, or Sell VOO at $650?
+
+**MARKETWATCH**
+- Watch for these 21 best-in-class stocks to keep powering the tech rally, analysts advise
+- UPS leaves full-year outlook intact even as quarterly earnings top target, and stock falls
+- ‘I hope to retire early’: I’m 56 and have 80% in a traditional IRA and 20% in a Roth. Am I in trouble?
+- Bill Ackman is placing a bet on individual investors with dual Pershing Square public offerings
+- ‘We believe it’s real’: My mom received a check from a class-action lawsuit. It bounced. Could this be a scam?
+- SoftBank shares dive, U.S. tech stocks under pressure on report of missed goals at OpenAI
+- A second China shock is hitting Europe. These stocks are most vulnerable, strategist says.
+- Global oil contract tops $110 after reports that Trump unhappy with proposal from Iran to end war
+
+**SEEKING_ALPHA**
+- Hope Bancorp GAAP EPS of $0.23 beats by $0.01, revenue of $141.02M misses by $4.28M
+- Ping An Insurance reports Q1 results
+- Ares Capital in charts: Strong Q1 dividends offset fee contraction; interest income from investments rises Y/Y
+- Kiniksa Pharmaceuticals International, plc GAAP EPS of $0.27 beats by $0.09, revenue of $214.3M beats by $8.21M
+- Earnings Snapshot: Corning beats Q1 expectations, but guidance disappoints
+- Wave Life Sciences GAAP EPS of -$0.13 beats by $0.19, revenue of $38.25M beats by $30.33M
+- Rithm Capital stock edges up on strong Q1 segment revenues
+
+**WSJ_MARKETS**
+- Stocks Sink in Broad AI Rout Sparked by China's DeepSeek
+- Comex Gold, Silver Settle Lower
+- DeepSeek Won't Sink U.S. AI Titans
+- Financial Services Roundup: Market Talk
+- Arabica Coffee Prices Hit Record on U.S., Colombia Tariff Spat
+- Swiss franc, Japanese yen Rise as DeepSeek News Boosts Safe Havens
+- Natural Gas Falls on Shifting Weather Forecasts
+- Building-Products Distributor QXO Launches Hostile Bid for Beacon
+
+
+### 🤖 AI TRADING INTELLIGENCE BRIEF
+# AI TRADING INTELLIGENCE BRIEF
+**Date: April 28, 2025 | Pre-Market**
+
+---
+
+## 1. MARKET SENTIMENT
+**Neutral-to-Bearish** — Mixed futures with rising oil ($110+ on Iran deal rejection), OpenAI concerns dragging AI names, and elevated VIX (+4.72%) signal caution despite SPY near record highs.
+
+---
+
+## 2. KEY MACRO RISKS
+- **Oil spike / Iran uncertainty**: Trump reportedly unhappy with Iran proposal; Hormuz concerns could escalate and pressure risk assets
+- **Mag 7 earnings gauntlet**: AMZN, META reporting this week — high IV, potential for violent moves
+- **OpenAI negative headlines**: SoftBank -7%, spillover selling hitting AI/chip complex pre-market
+
+---
+
+## 3. CATALYSTS BY SYMBOL
+- **NVDA**: Positive — BofA reset with bullish outlook; call buying despite sector weakness; +4% pre-market strength
+- **AMD**: Negative — Analyst downgrade despite near-term outlook; -3.79% pre-market; earnings May 5 overhang
+- **AMZN**: Earnings tomorrow — Options pricing major move; Cathie Wood rotation into name signals institutional positioning
+- **META**: Earnings this week — Seeking Alpha warns of potential plunge; China halted $2B Manus deal
+
+---
+
+## 4. REGIME RECOMMENDATION
+**Regime B (Elevated Volatility)** — VIX 18.87 above 15 threshold with rising trend (+4.72%), VVIX declining suggests vol-of-vol compression; favor tighter stops and reduced position sizing.
+
+---
+
+## 5. PRIORITY LIST
+
+**TRADE:**
+- NVDA (positive momentum, strong pre-market, clear institutional support)
+- SPY (range-bound near highs, clean ORB setups likely)
+
+**AVOID:**
+- AMD (downgrade overhang, negative pre-market gap, earnings uncertainty)
+- AMZN, META (binary earnings risk within 48hrs — ORB signals unreliable with elevated IV)
+- TSLA (no catalyst, likely to chop)
+
+---
