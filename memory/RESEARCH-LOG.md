@@ -1097,3 +1097,195 @@ Daily pre-market research entries appended here.
 - No regime shift since open: ✅
 
 **Action taken:** NONE. No positions to manage; no stop triggers; no regime-driven rotation needed. Afternoon plan from 11:46 scan (NVDA/AAPL after 12:15 ET) remains valid pending live VWAP/volume confirmation at entry time.
+
+---
+## 2026-04-29 — Pre-Market Research
+
+**Volatility**
+- VIX: 17.95 (+0.67%)
+- VVIX: 91.03 (-3.02%)
+- VIX3M: 20.49
+
+**Universe Prices + Pre-Market Gaps**
+  SPY: $711.69 (-0.49%) | pre=$711.69 gap=0.0%
+  QQQ: $657.55 (-1.01%) | pre=$657.55 gap=0.0%
+  NVDA: $213.17 (-1.59%) | pre=$213.17 gap=0.0%
+  AMD: $323.21 (-3.41%) | pre=$323.21 gap=0.0%
+  AMZN: $259.7 (-0.54%) | pre=$259.7 gap=0.0%
+  META: $671.34 (-1.07%) | pre=$671.34 gap=0.0%
+  MSFT: $429.25 (+1.04%) | pre=$429.25 gap=0.0%
+  AAPL: $270.71 (+1.16%) | pre=$270.71 gap=0.0%
+  TSLA: $376.02 (-0.70%) | pre=$376.02 gap=0.0%
+  XLK: $157.85 (-1.69%) | pre=$157.85 gap=0.0%
+
+**Gap-Aligned Candidates (≥0.5% threshold)**
+- Gap UP (long ORB pairing): (none)
+- Gap DOWN (short ORB pairing, B/C only): (none)
+
+**Headlines**
+
+**GOOGLE_NEWS_MARKET**
+- S&P 500 pulls back from record Tuesday, Nasdaq closes lower as chip stocks sell off: Live updates - CNBC
+- S&P 500 futures edge higher as Wall Street looks ahead to ‘Mag 7’ earnings and Fed decision: Live updates - CNBC
+- Stock market today: Dow, S&P 500, Nasdaq drop as chip stocks sink on OpenAI report, oil rises - Yahoo Finance
+- Stock Market Today: Futures Little Changed Ahead of Tech Earnings, Fed Decision; Oil Jumps on Report Trump Says to Prepare for Extended Iran Blockade - Investopedia
+- US Stock Market Today S&P 500 Futures Edge Higher As Fed Decision Looms - simplywall.st
+- US Stock Market Today S&P 500 Futures Flat As Traders Await Fed Decision - Yahoo Finance
+- Stock Market News From April 28, 2026: Dow, S&P 500, Nasdaq Down; Nvidia, Oracle, AMD, Intel, More Movers - Barron's
+- Stock Market Today: Dow, S&P 500 and Nasdaq set to rise ahead of host of tech earnings; Fed interest-rate decision due - MarketWatch
+- Stock Market Today: Nasdaq Beat Up After OpenAI Report; Nvidia, Palantir Drop (Live Coverage) - Investor's Business Daily
+- Stock Market Today, April 28: BigBear.ai Rises on Heavy Volume Ahead of Earnings as AI Defense Stocks See Increased Trading Activity - The Motley Fool
+
+**GOOGLE_NVDA**
+- Traders bet Nvidia's stock will return to record highs soon - CNBC
+- Bank of America resets Nvidia stock forecast - thestreet.com
+- Nvidia (NVDA) Stock Trades Down, Here Is Why - Yahoo Finance
+- Stock Market Today: Nasdaq Beat Up After OpenAI Report; Nvidia, Palantir Drop (Live Coverage) - Investor's Business Daily
+- Will Nvidia's explosive rally end soon? - Yahoo Finance
+
+**GOOGLE_AMD**
+- Arm Holdings, AMD, Intel Crater in CPU Stock Shock - 24/7 Wall St.
+- Advanced Micro Devices (AMD) Stock Sinks As Market Gains: Here's Why - Yahoo Finance
+- Nvidia Stock Struggles After OpenAI Panic. How AMD, Broadcom Are Trading. - Barron's
+- Oracle, AMD, and CoreWeave stocks sink after report says OpenAI missed sales, user targets - Yahoo Finance
+- AMD Supplier Up 65% This Month Soars On Earnings Beat - Investor's Business Daily
+
+**GOOGLE_AMZN**
+- Amazon Reports Earnings on Wednesday—Here's How Much the Stock Is Expected to Move - Investopedia
+- AMD Stock Sold by Cathie Wood’s Ark. It Buys Amazon in Strategy Shift. - Barron's
+- Amazon To Rally More Than 24%? Here Are 10 Top Analyst Forecasts For Tuesday - Benzinga
+- At $265: How Amazon Stock Is Getting Rerated - Trefis
+- Amazon Earnings Preview: All Eyes on AWS As Investors Want AI Payoff - Business Insider
+
+**GOOGLE_META**
+- Meta shares look 'iffy' into earnings. How to trade it - CNBC
+- How Much Is Meta Stock Expected to Move After Earnings? - Investopedia
+- Meta's Stock May Plunge Following Results (NASDAQ:META) - Seeking Alpha
+- Prediction: This Will Be Meta's Stock Price in 5 Years - Yahoo Finance
+- META Stock Earns Hold Rating ahead of Q1 Earnings as Analyst Flags Higher Future Spending - TipRanks
+
+**GOOGLE_SPY**
+- Goldman’s Flood Says Brace for Near-Term Selloff, Buy Stocks Dip - Bloomberg.com
+- Stock Market Today: SPY, QQQ Lose Steam on AI Jitters ahead of Fed Rate Decision - TipRanks
+- Morgan Stanley’s Slimmon Says Be Ready to Buy Short-Term Pullback in Stocks - Bloomberg.com
+- Stock Outperformance Isn’t About Value, Growth, Biz Model, Or Execution (NYSEARCA:SPY) - Seeking Alpha
+- A Stock Pullback May Be Coming – Goldman Sachs Strategist Explains Why - TipRanks
+
+**YAHOO_NVDA**
+- Big Tech: What this strategist is looking for on earnings calls
+- OpenAI miss sparks sell-off for Oracle, Nvidia, CoreWeave stocks
+- 4 Dates for Disney Stock Investors to Circle in May
+- Billionaire Gold Bug Eric Sprott Just Extended His Hycroft Mining Buying Spree
+- Social Buzz: Wallstreetbets Stocks Mixed Pre-Bell Wednesday; Micron to Rise, Robinhood to Fall
+- 2 Top Bargain Stocks Ready for a Bull Run
+
+**YAHOO_AMD**
+- Tech stocks today: Oracle, AMD, and other AI-driven names sink, with Big Tech earnings on deck
+- Social Buzz: Wallstreetbets Stocks Mixed Pre-Bell Wednesday; Micron to Rise, Robinhood to Fall
+- Nvidia Stock Struggles to Recover From OpenAI Panic. How AMD, Broadcom Are Trading.
+- AMD (AMD) Stock Trades Down, Here Is Why
+- Northland Securities Flags Rising Competition for Advanced Micro Devices (AMD)
+- Nasdaq, S&P 500 end lower on renewed AI growth worries
+
+**YAHOO_AMZN**
+- Market mayhem? Powell's last stand, Big Tech earnings in focus
+- Mag 7 earnings, Fed day, Warsh confirmation vote: What to Watch
+- I'll die with my Apple stock: Polcari
+- Brace for eye-popping AI spending plans when 'Magnificent 7' earnings roll in
+- A blue-collar worker says he makes $10,000 per month from Amazon in just 20 hours of work — how you can do it, too
+- Dow Jones Futures: Seagate, Bloom Energy, Teradyne Lead Earnings Movers; Tech Titans On Tap
+
+**YAHOO_META**
+- Market mayhem? Powell's last stand, Big Tech earnings in focus
+- Big Tech: What this strategist is looking for on earnings calls
+- Dow Jones Futures: Seagate, Bloom Energy, Teradyne Lead Earnings Movers; Tech Titans On Tap
+- Market Rally Rides OpenAI Shock Ahead of Fed Decision, Big Tech Earnings. Stock Futures Rise.
+- Hyperscaler results pose major test for AI-driven US stock market
+- US Has More Natural Gas Than It Can Use as War Chokes Global Supply
+
+**YAHOO_SPY**
+- Intel Stock Is Up 92% in April. How to Safeguard Your Gains.
+- ETF Fund Flows as of April 28, 2026
+- When April Delivers 5% Gains, the Rest of the Year Has Never Been Negative. Here’s What History Says About May
+- Exchange-Traded Funds Lower, Equity Futures Mixed Pre-Bell Tuesday Amid Higher Oil Prices, Earnings Deluge
+- Investors Worry About Mounting Debt — 7 S&P 500 Companies Owe Most
+- S&P 500 Holding Pattern: Mag 7 Earnings Collide With Oil Surge and Fed Fears
+
+**MARKETWATCH**
+- ‘I’m not interested in long-term care insurance’: I’d like to retire at 55. How much will I have to pay for healthcare?
+- SoFi just set a slew of lending records, but here’s why its stock is falling
+- Why this Soros alum is betting on copper and cables over AI chips
+- Can Shake Shack’s new sandwich challenge the McRib, one of the most celebrated items in fast-food history?
+- $200 oil – and two other scenarios – could tip the world into a recession, says this global bank
+- The key reasons why one bank now says U.S. stocks will outperform European equities
+- ‘I am her scapegoat’: My mother-in-law squandered all her money. Do we buy her a house so she’s not homeless?
+- Actor Patrick Dempsey recalls fond memories of his tiny home town in Maine
+
+**SEEKING_ALPHA**
+- Garmin Non-GAAP EPS of $2.08 beats by $0.24, revenue of $1.75B beats by $40M
+- Luckin Coffee Non-GAAP EPS of $0.32, revenue of $1.74B
+- Vulcan Materials Non-GAAP EPS of $1.35 beats by $0.25, revenue of $1.75B beats by $130M
+- Ionis Pharmaceuticals beats top-line and bottom-line estimates; introduces FY26 outlook
+- Yum! Brands Non-GAAP EPS of $1.50 beats by $0.11, revenue of $2.06B beats by $20M
+- Avis Budget GAAP EPS of -$8.01 misses by $0.51, revenue of $2.53B beats by $90M
+- Humana 2026 outlook unchanged due to Star ratings decline
+
+**WSJ_MARKETS**
+- Stocks Sink in Broad AI Rout Sparked by China's DeepSeek
+- Comex Gold, Silver Settle Lower
+- DeepSeek Won't Sink U.S. AI Titans
+- Financial Services Roundup: Market Talk
+- Arabica Coffee Prices Hit Record on U.S., Colombia Tariff Spat
+- Swiss franc, Japanese yen Rise as DeepSeek News Boosts Safe Havens
+- Natural Gas Falls on Shifting Weather Forecasts
+- Building-Products Distributor QXO Launches Hostile Bid for Beacon
+
+
+### 🤖 AI TRADING INTELLIGENCE BRIEF
+# AI TRADING INTELLIGENCE BRIEF
+**Date:** April 29, 2026 | **Pre-Market**
+
+---
+
+## 1. MARKET SENTIMENT
+**Bearish-to-Neutral** — Chip stocks sold off hard on OpenAI revenue miss headlines; Fed decision looms today alongside Mag 7 earnings (META, MSFT after close), creating two-way headline risk.
+
+---
+
+## 2. KEY MACRO RISKS
+- **Fed Decision Today:** No cut expected, but Powell's tone on tariff inflation vs. growth slowdown will drive volatility
+- **OpenAI Revenue Miss Contagion:** AI capex narrative under pressure; semis and hyperscalers vulnerable to further de-rating
+- **Oil Spike:** Trump Iran blockade comments pushing crude higher; stagflation fears resurface
+
+---
+
+## 3. CATALYSTS BY SYMBOL
+| Symbol | Prior Close Δ | Catalyst |
+|--------|---------------|----------|
+| **AMD** | -3.41% | Direct hit from OpenAI miss report; competition concerns (Northland downgrade) |
+| **NVDA** | -1.59% | OpenAI panic spillover; BofA reset forecast |
+| **XLK** | -1.69% | Sector drag from semi weakness |
+| **QQQ** | -1.01% | Broad tech de-risking ahead of earnings/Fed |
+| **META** | -1.07% | Pre-earnings jitters; analyst flags spending concerns |
+| **MSFT** | +1.04% | Relative safety bid; earnings tonight |
+| **AAPL** | +1.16% | Defensive rotation within tech |
+
+---
+
+## 4. GAP-UP WATCH (Long ORB Pairing)
+**No qualifying gaps (≥0.5%)** — MSFT and AAPL closed green but show 0% pre-market gap. No actionable long setups via gap criteria.
+
+---
+
+## 5. GAP-DOWN WATCH (Short ORB Pairing — Regime B/C Only)
+**No qualifying gaps (≥0.5%)** — Prior session moves are NOT reflected in pre-market gaps. AMD's -3.41% was yesterday's close, not today's gap. Pre-market data shows flat gaps across board.
+
+⚠️ **Data Integrity Flag:** Pre-market prices equal prior close for all symbols — likely stale/placeholder data. Verify live gaps at 9:00 AM ET.
+
+---
+
+## 6. PRIORITY LIST
+
+**LONG TRADE:**
+
+---
