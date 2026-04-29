@@ -11,3 +11,4 @@ trading_bot.log
 backtest_results/
 DAILY-SUMMARY.md
 .DS_Store
+dashboard.html
