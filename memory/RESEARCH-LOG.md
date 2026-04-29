@@ -1289,3 +1289,336 @@ Daily pre-market research entries appended here.
 **LONG TRADE:**
 
 ---
+
+---
+## 2026-04-29 — Pre-Market Research
+
+**Volatility**
+- VIX: 18.81 (+5.50%)
+- VVIX: 96.02 (+5.48%)
+- VIX3M: 21.19
+
+**Universe Prices + Pre-Market Gaps**
+  SPY: $711.58 (-0.02%) | pre=$711.58 gap=0.0%
+  QQQ: $661.57 (+0.61%) | pre=$661.57 gap=0.0%
+  NVDA: $209.25 (-1.84%) | pre=$209.25 gap=0.0%
+  AMD: $337.11 (+4.30%) | pre=$337.11 gap=0.0%
+  AMZN: $263.04 (+1.29%) | pre=$263.04 gap=0.0%
+  META: $669.12 (-0.33%) | pre=$669.12 gap=0.0%
+  MSFT: $424.46 (-1.12%) | pre=$424.46 gap=0.0%
+  AAPL: $270.17 (-0.20%) | pre=$270.17 gap=0.0%
+  TSLA: $372.8 (-0.86%) | pre=$372.8 gap=0.0%
+  XLK: $159.11 (+0.80%) | pre=$159.11 gap=0.0%
+
+**Gap-Aligned Candidates (≥0.5% threshold)**
+- Gap UP (long ORB pairing): (none)
+- Gap DOWN (short ORB pairing, B/C only): (none)
+
+**Headlines**
+
+**GOOGLE_NEWS_MARKET**
+- S&P 500 is little changed as oil jumps and traders brace for Big Tech earnings: Live updates - CNBC
+- Stock market today: Dow, S&P 500 fall as Fed votes to keep rates steady, markets brace for 'Magnificent 7' earnings - Yahoo Finance
+- Stock Market Today: Powell to Stay on Fed Board; Tech Giants Report Earnings — Live Updates - WSJ
+- Stock Market Today: Dow logs five-session skid, S&P 500 and Nasdaq mixed as oil and bond yields jump and tech earnings loom - MarketWatch
+- Stock Market Today: Dow Slips, Yields Rise Ahead of Big Tech Earnings - Barron's
+- Stock Market Today: Major Indexes End Mostly Lower Ahead of Tech Results After Fed Holds Interest Rates Intact; Oil Jumps - Investopedia
+- S&P 500 pulls back from record Tuesday, Nasdaq closes lower as chip stocks sell off: Live updates - CNBC
+- 80 Seconds of Big Tech Earnings Will Decide Stock Market’s Fate - Bloomberg.com
+- Morning News Wrap-Up, 4/29/26: Today’s Biggest Stock Market Stories! - TipRanks
+- Stock Market Today: Dow Jones, Nasdaq Futures Gain Ahead Of Powell's Last Speech As Fed Chair— Robinhood - Benzinga
+
+**GOOGLE_NVDA**
+- Traders bet Nvidia's stock will return to record highs soon - CNBC
+- Why Nvidia (NVDA) and Oracle (ORCL) Stocks Are Down Today, 4/29/26 - TipRanks
+- How ON Semiconductor More Than Doubled NVIDIA’s Gains in April - Yahoo Finance
+- Will Nvidia's explosive rally end soon? - Yahoo Finance
+- Bank of America resets Nvidia stock forecast - thestreet.com
+
+**GOOGLE_AMD**
+- Where Do Analysts Stand on AMD Stock Ahead of Earnings? - TipRanks
+- Intel, AMD stock rally on fresh bullish coverage - Invezz
+- Advanced Micro Devices (AMD): Among the Best Fundamental Stocks to Invest In According to Billionaires - Yahoo Finance
+- Why is Advanced Micro Devices stock rallying today? - Investing.com
+- This Super Semiconductor Stock Is Obliterating Nvidia, AMD, and Broadcom in 2026 - The Motley Fool
+
+**GOOGLE_AMZN**
+- Amazon Beats Expectations, Reports Strong Cloud Growth. But Stock Slides. - Investor's Business Daily
+- Alphabet's stock pops while Amazon, Meta and Microsoft shares fall - MarketWatch
+- Amazon Stock Slips Despite Earnings Beat - Barron's
+- AMZN Stock Quote Price and Forecast - CNN
+- AMZN hits record high ahead of Q1 report – retail expects stock to hit the $300 mark - MSN
+
+**GOOGLE_META**
+- Meta shares plummet despite beat on earnings and revenue, raises capex guidance - CNBC
+- Meta Platforms, Inc. $META Shares Purchased by First Horizon Corp - MarketBeat
+- Meta Stock Edges Lower With Q1 Results Due. Here Are 2 Earnings Numbers To Watch. - Investor's Business Daily
+- Meta (NASDAQ:META) Exceeds Q1 CY2026 Expectations But Stock Drops - StockStory
+- META Earnings: Meta Platforms Stock Sinks as AI Capital Expenditures Raised to $145 Billion - TipRanks
+
+**GOOGLE_SPY**
+- SPY is down 0.2% today, on TER stock price movement - Quiver Quantitative
+- Morgan Stanley’s Slimmon Says Be Ready to Buy Short-Term Pullback in Stocks - Bloomberg.com
+- Stock Market Today: SPY, QQQ Mixed as Fed Maintains Rates; Oil Climbs to 4-Year High - TipRanks
+- (SPY) Volatility Zones as Tactical Triggers - Stock Traders Daily
+- S&P 500 Stocks Trading At 52-Week High - Trefis
+
+**YAHOO_NVDA**
+- Why data storage stocks are a key AI play
+- Why OpenAI whiffs should still worry Oracle and CoreWeave investors
+- Dow Jones Futures: Google, Amazon, Meta, Microsoft Are Big Earnings Movers After Oil Prices Spike, Fed's Powell Stays
+- Why Visa Stock Popped Today
+- Does This Potential Acquisition Make Sirius XM Stock a Buy?
+- This Hydrogen Stock Is Soaring on Earnings. The Iran Blockade Could Give It a Lasting Tailwind
+
+**YAHOO_AMD**
+- Why OpenAI whiffs should still worry Oracle and CoreWeave investors
+- Riot Platforms (RIOT) Beyond Bitcoin: You Want to Watch This Space
+- Advanced Micro Devices (AMD): Among the Best Fundamental Stocks to Invest In According to Billionaires
+- AMD Rises as Susquehanna Lifts Price Target
+- AMD moves higher as AI growth expectations build
+- Don’t Call It a Laggard: Why NVIDIA Is Up 20% in April
+
+**YAHOO_AMZN**
+- Qualcomm reports better-than-anticipated Q2 earnings, stock rises 13%
+- Oil prices surge as Trump rejects Iran offer, Disney to keep ESPN
+- Why data storage stocks are a key AI play
+- Dow Jones Futures: Google, Amazon, Meta, Microsoft Are Big Earnings Movers After Oil Prices Spike, Fed's Powell Stays
+- Amazon Q1 2026 earnings beat as AWS growth hits 15-quarter high
+- Amazon tops Q1 estimates as AWS growth hits fastest pace in 15 quarters
+
+**YAHOO_META**
+- Meta raises AI capex forecast, stock drops despite Q1 earnings beat
+- All eyes on Big Tech: Meta, Alphabet, Microsoft, Amazon report earnings
+- Microsoft earnings preview: The key to the Mag 7 tech rally
+- Entergy Corporation Q1 2026 Earnings Call Summary
+- Dow Jones Futures: Google, Amazon, Meta, Microsoft Are Big Earnings Movers After Oil Prices Spike, Fed's Powell Stays
+- Meta Posts Fastest Revenue Growth Since 2021. The Stock Is Sliding Anyway.
+
+**YAHOO_SPY**
+- OpenAI’s $122 Billion Burn Rate Sparks Debate on AI Spending Excesses
+- That $95,000 Retirement Income Only Looks Stable Until Year 15 When the Pension Runs Out
+- Real Yields Are Crushing Gold in Short Term but Long-Term Picture Remains Intact
+- S&P 500 Holds Steady as Big Tech Earnings, Fed Decision and Oil Prices Collide
+- Exchange-Traded Funds Higher, Equity Futures Mixed Pre-Bell Wednesday Ahead of Fed Policy Decision
+- Intel Stock Is Up 92% in April. How to Play It With Options Now.
+
+**MARKETWATCH**
+- Iran war fuels bond-market selloff, as inflation fears put future Fed rate cuts in doubt
+- The U.S. produces the most oil in the world. So why are gasoline prices so high?
+- Powell won’t leave the Fed, in a blow to Trump
+- Ford’s profit jumps as carmaker powers through an EV slowdown
+- Stocks may be missing this looming danger in the oil market
+- Bill Ackman’s Pershing Square USA flops on first day of trading
+- No kids, no care: Solo agers are hiring professional ‘next-of-kin’ for major life decisions
+- Can Shake Shack’s new sandwich challenge the McRib, one of the most celebrated menu items in fast-food history?
+
+**SEEKING_ALPHA**
+- Independence Realty Trust FFO of $0.26 in-line
+- National Fuel Gas Non-GAAP EPS of $2.71 misses by $0.13, revenue of $858.37M beats by $1.8M
+- Empire State Realty Trust FFO of $0.20 beats by $0.01, revenue of $190.33M beats by $1.15M
+- Chipotle rallies after posting a surprise positive comp for Q1
+- MVB Financial Non-GAAP EPS of $0.39 beats by $0.02, revenue of $36.6M misses by $0.8M
+- Four Corners Property Trust FFO of $0.42 in-line, revenue of $78.16M beats by $1.91M
+- FMC Non-GAAP EPS of $0.23 beats by $0.61, revenue of $759M beats by $16.59M
+
+**WSJ_MARKETS**
+- Stocks Sink in Broad AI Rout Sparked by China's DeepSeek
+- Comex Gold, Silver Settle Lower
+- DeepSeek Won't Sink U.S. AI Titans
+- Financial Services Roundup: Market Talk
+- Arabica Coffee Prices Hit Record on U.S., Colombia Tariff Spat
+- Swiss franc, Japanese yen Rise as DeepSeek News Boosts Safe Havens
+- Natural Gas Falls on Shifting Weather Forecasts
+- Building-Products Distributor QXO Launches Hostile Bid for Beacon
+
+
+### 🤖 AI TRADING INTELLIGENCE BRIEF
+⚠️ ANTHROPIC_API_KEY not set — skipping AI brief.
+
+---
+
+---
+## 2026-04-29 — Pre-Market Research
+
+**Volatility**
+- VIX: 18.81 (+5.50%)
+- VVIX: 96.02 (+5.48%)
+- VIX3M: 21.19
+
+**Universe Prices + Pre-Market Gaps**
+  SPY: $711.58 (-0.02%) | pre=$711.58 gap=0.0%
+  QQQ: $661.57 (+0.61%) | pre=$661.57 gap=0.0%
+  NVDA: $209.25 (-1.84%) | pre=$209.25 gap=0.0%
+  AMD: $337.11 (+4.30%) | pre=$337.11 gap=0.0%
+  AMZN: $263.04 (+1.29%) | pre=$263.04 gap=0.0%
+  META: $669.12 (-0.33%) | pre=$669.12 gap=0.0%
+  MSFT: $424.46 (-1.12%) | pre=$424.46 gap=0.0%
+  AAPL: $270.17 (-0.20%) | pre=$270.17 gap=0.0%
+  TSLA: $372.8 (-0.86%) | pre=$372.8 gap=0.0%
+  XLK: $159.11 (+0.80%) | pre=$159.11 gap=0.0%
+
+**Gap-Aligned Candidates (≥0.5% threshold)**
+- Gap UP (long ORB pairing): (none)
+- Gap DOWN (short ORB pairing, B/C only): (none)
+
+**Headlines**
+
+**GOOGLE_NEWS_MARKET**
+- S&P 500 is little changed as oil jumps and traders brace for Big Tech earnings: Live updates - CNBC
+- Stock market today: Dow, S&P 500 fall as Fed votes to keep rates steady, markets brace for 'Magnificent 7' earnings - Yahoo Finance
+- Stock Market Today: Powell to Stay on Fed Board; Tech Giants Report Earnings — Live Updates - WSJ
+- Stock Market Today: Dow logs five-session skid, S&P 500 and Nasdaq mixed as oil and bond yields jump and tech earnings loom - MarketWatch
+- Stock Market Today: Dow Slips, Yields Rise Ahead of Big Tech Earnings - Barron's
+- Stock Market Today: Major Indexes End Mostly Lower Ahead of Tech Results After Fed Holds Interest Rates Intact; Oil Jumps - Investopedia
+- S&P 500 pulls back from record Tuesday, Nasdaq closes lower as chip stocks sell off: Live updates - CNBC
+- 80 Seconds of Big Tech Earnings Will Decide Stock Market’s Fate - Bloomberg.com
+- Morning News Wrap-Up, 4/29/26: Today’s Biggest Stock Market Stories! - TipRanks
+- Stock Market Today: Dow Jones, Nasdaq Futures Gain Ahead Of Powell's Last Speech As Fed Chair— Robinhood - Benzinga
+
+**GOOGLE_NVDA**
+- Traders bet Nvidia's stock will return to record highs soon - CNBC
+- Why Nvidia (NVDA) and Oracle (ORCL) Stocks Are Down Today, 4/29/26 - TipRanks
+- How ON Semiconductor More Than Doubled NVIDIA’s Gains in April - Yahoo Finance
+- Will Nvidia's explosive rally end soon? - Yahoo Finance
+- Bank of America resets Nvidia stock forecast - thestreet.com
+
+**GOOGLE_AMD**
+- Where Do Analysts Stand on AMD Stock Ahead of Earnings? - TipRanks
+- Intel, AMD stock rally on fresh bullish coverage - Invezz
+- Advanced Micro Devices (AMD): Among the Best Fundamental Stocks to Invest In According to Billionaires - Yahoo Finance
+- Why is Advanced Micro Devices stock rallying today? - Investing.com
+- This Super Semiconductor Stock Is Obliterating Nvidia, AMD, and Broadcom in 2026 - The Motley Fool
+
+**GOOGLE_AMZN**
+- Amazon Beats Expectations, Reports Strong Cloud Growth. But Stock Slides. - Investor's Business Daily
+- Alphabet's stock pops while Amazon, Meta and Microsoft shares fall - MarketWatch
+- Amazon Stock Slips Despite Earnings Beat - Barron's
+- AMZN Stock Quote Price and Forecast - CNN
+- AMZN hits record high ahead of Q1 report – retail expects stock to hit the $300 mark - MSN
+
+**GOOGLE_META**
+- Meta shares plummet despite beat on earnings and revenue, raises capex guidance - CNBC
+- Meta Platforms, Inc. $META Shares Purchased by First Horizon Corp - MarketBeat
+- Meta Stock Edges Lower With Q1 Results Due. Here Are 2 Earnings Numbers To Watch. - Investor's Business Daily
+- Meta (NASDAQ:META) Exceeds Q1 CY2026 Expectations But Stock Drops - StockStory
+- META Earnings: Meta Platforms Stock Sinks as AI Capital Expenditures Raised to $145 Billion - TipRanks
+
+**GOOGLE_SPY**
+- SPY is down 0.2% today, on TER stock price movement - Quiver Quantitative
+- Morgan Stanley’s Slimmon Says Be Ready to Buy Short-Term Pullback in Stocks - Bloomberg.com
+- Stock Market Today: SPY, QQQ Mixed as Fed Maintains Rates; Oil Climbs to 4-Year High - TipRanks
+- (SPY) Volatility Zones as Tactical Triggers - Stock Traders Daily
+- S&P 500 Stocks Trading At 52-Week High - Trefis
+
+**YAHOO_NVDA**
+- Why data storage stocks are a key AI play
+- Why OpenAI whiffs should still worry Oracle and CoreWeave investors
+- Dow Jones Futures: Google, Amazon, Meta, Microsoft Are Big Earnings Movers After Oil Prices Spike, Fed's Powell Stays
+- Why Visa Stock Popped Today
+- Does This Potential Acquisition Make Sirius XM Stock a Buy?
+- This Hydrogen Stock Is Soaring on Earnings. The Iran Blockade Could Give It a Lasting Tailwind
+
+**YAHOO_AMD**
+- Why OpenAI whiffs should still worry Oracle and CoreWeave investors
+- Riot Platforms (RIOT) Beyond Bitcoin: You Want to Watch This Space
+- Advanced Micro Devices (AMD): Among the Best Fundamental Stocks to Invest In According to Billionaires
+- AMD Rises as Susquehanna Lifts Price Target
+- AMD moves higher as AI growth expectations build
+- Don’t Call It a Laggard: Why NVIDIA Is Up 20% in April
+
+**YAHOO_AMZN**
+- Qualcomm reports better-than-anticipated Q2 earnings, stock rises 13%
+- Oil prices surge as Trump rejects Iran offer, Disney to keep ESPN
+- Why data storage stocks are a key AI play
+- Dow Jones Futures: Google, Amazon, Meta, Microsoft Are Big Earnings Movers After Oil Prices Spike, Fed's Powell Stays
+- Amazon Q1 2026 earnings beat as AWS growth hits 15-quarter high
+- Amazon tops Q1 estimates as AWS growth hits fastest pace in 15 quarters
+
+**YAHOO_META**
+- Meta raises AI capex forecast, stock drops despite Q1 earnings beat
+- All eyes on Big Tech: Meta, Alphabet, Microsoft, Amazon report earnings
+- Microsoft earnings preview: The key to the Mag 7 tech rally
+- Entergy Corporation Q1 2026 Earnings Call Summary
+- Dow Jones Futures: Google, Amazon, Meta, Microsoft Are Big Earnings Movers After Oil Prices Spike, Fed's Powell Stays
+- Meta Posts Fastest Revenue Growth Since 2021. The Stock Is Sliding Anyway.
+
+**YAHOO_SPY**
+- OpenAI’s $122 Billion Burn Rate Sparks Debate on AI Spending Excesses
+- That $95,000 Retirement Income Only Looks Stable Until Year 15 When the Pension Runs Out
+- Real Yields Are Crushing Gold in Short Term but Long-Term Picture Remains Intact
+- S&P 500 Holds Steady as Big Tech Earnings, Fed Decision and Oil Prices Collide
+- Exchange-Traded Funds Higher, Equity Futures Mixed Pre-Bell Wednesday Ahead of Fed Policy Decision
+- Intel Stock Is Up 92% in April. How to Play It With Options Now.
+
+**MARKETWATCH**
+- Iran war fuels bond-market selloff, as inflation fears put future Fed rate cuts in doubt
+- The U.S. produces the most oil in the world. So why are gasoline prices so high?
+- Powell won’t leave the Fed, in a blow to Trump
+- Ford’s profit jumps as carmaker powers through an EV slowdown
+- Stocks may be missing this looming danger in the oil market
+- Bill Ackman’s Pershing Square USA flops on first day of trading
+- No kids, no care: Solo agers are hiring professional ‘next-of-kin’ for major life decisions
+- Can Shake Shack’s new sandwich challenge the McRib, one of the most celebrated menu items in fast-food history?
+
+**SEEKING_ALPHA**
+- Provident Financial GAAP EPS of $0.61 beats by $0.06, revenue of $225.7M beats by $0.5M
+- Teladoc falls following Q1 EPS miss; 2026 guidance ranges include consensus
+- Bel Fuse Non-GAAP EPS of $1.81 beats by $0.16, revenue of $178.5M beats by $6.43M
+- Murphy USA GAAP EPS of $7.28 beats by $1.95, revenue of $4.82B beats by $120M
+- GBank Financial Holdings Non-GAAP EPS of $0.31 misses by $0.21, revenue of $19.6M
+- Independence Realty Trust FFO of $0.26 in-line
+- National Fuel Gas Non-GAAP EPS of $2.71 misses by $0.13, revenue of $858.37M beats by $1.8M
+
+**WSJ_MARKETS**
+- Stocks Sink in Broad AI Rout Sparked by China's DeepSeek
+- Comex Gold, Silver Settle Lower
+- DeepSeek Won't Sink U.S. AI Titans
+- Financial Services Roundup: Market Talk
+- Arabica Coffee Prices Hit Record on U.S., Colombia Tariff Spat
+- Swiss franc, Japanese yen Rise as DeepSeek News Boosts Safe Havens
+- Natural Gas Falls on Shifting Weather Forecasts
+- Building-Products Distributor QXO Launches Hostile Bid for Beacon
+
+
+### 🤖 AI TRADING INTELLIGENCE BRIEF
+# AI TRADING INTELLIGENCE BRIEF
+**Date:** 2026-04-30 | **VIX:** 18.81 (+5.5%) | **VVIX:** 96.02 (+5.5%)
+
+---
+
+## 1. MARKET SENTIMENT
+**Neutral-to-Bearish** — VIX spiking 5.5% with oil-driven inflation fears, mixed mega-cap earnings reactions (META/AMZN down post-beat, GOOGL up), and Fed holding rates amid Iran geopolitical risk creating a choppy, headline-driven tape.
+
+---
+
+## 2. KEY MACRO RISKS
+- **Oil price surge / Iran tensions** — crude at 4-year highs, inflation fears pressuring bonds and rate-cut expectations
+- **Big Tech earnings volatility** — META -5% and AMZN sliding despite beats; capex guidance spooked markets
+- **Powell staying at Fed** — reduces policy uncertainty but hawkish hold keeping yields elevated
+
+---
+
+## 3. CATALYSTS BY SYMBOL
+| Symbol | Prior Close Move | Catalyst |
+|--------|------------------|----------|
+| AMD | +4.30% | Susquehanna PT raise + bullish analyst coverage ahead of earnings |
+| QQQ | +0.61% | Mixed tech earnings; GOOGL strength offset by META/AMZN weakness |
+| AMZN | +1.29% | Q1 beat, AWS 15-quarter high growth — BUT stock sliding after-hours |
+| NVDA | -1.84% | Chip sector softness, BofA forecast reset, DeepSeek AI overhang |
+| MSFT | -1.12% | Pre-earnings positioning, AI capex scrutiny sector-wide |
+| META | -0.33% | Q1 beat BUT $145B capex guidance crushed shares after-hours |
+| TSLA | -0.86% | No specific catalyst — likely sympathy weakness with risk-off tone |
+
+---
+
+## 4. GAP-UP WATCH (Long ORB Pairing)
+**No gaps ≥0.5% qualifying.** All names showing 0.0% pre-market gaps — likely stale data or pre-market not yet active. **No actionable long setups at this time.**
+
+---
+
+## 5. GAP-DOWN WATCH (Short ORB Pairing — Regime B/C Only)
+**No gaps ≥0.5% qualifying.** However, watch for potential opening gaps:
+- **META** — High conviction short IF opens down 3%
+
+---
