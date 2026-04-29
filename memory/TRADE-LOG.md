@@ -117,3 +117,10 @@ Trades: 4 (W:2 / L:2) | Win rate: 50% | P/F: 0.30
 Regime: A_LOW_VOL_TREND all session (VIX ~18.6-19.1, VVIX ~94-96) | Kill switch: NO
 Open overnight: NONE (all flat at close, 0 open orders)
 Notes: Gap-and-run day — bot ORB signals never fired; all 4 trades were manual qualitative overrides. KO earnings thesis played out cleanly (only structural win); BP first entry was the day's worst lesson (qualitative override on Iran/oil catalyst without ORB confirmation). Account variance vs trade-log sum (-$325.36 actual vs -$298.96 logged) = ~$26 slippage/fees. Day trade count 4/4 — 1 trade slot unused, well under 5 cap. Loss 0.33% — well below 2% halt and 3% kill switch.
+
+## Trades — 2026-04-29
+
+| # | Time (ET) | Sym | Side | Qty | Entry | Stop | Target | R:R | Regime | Catalyst |
+|---|-----------|-----|------|-----|-------|------|--------|-----|--------|----------|
+| 1 | 12:23 | GLD | LONG | 59 | $418.84 | $417.20 | $422.40 | 2.0R | A_LOW_VOL_TREND | FOMC-day discretionary override; ORB-H breakout + above VWAP, gold catching macro bid (Iran blockade headlines + stagflation talk + two-way Fed insurance). Hard exit by 1:55 PM ET regardless. Bracket order: stop ~0.39% / target ~0.85%. Risk: 59 × $1.64 = $96.76. Notional $24,711 (within 50% per-trade exposure cap). |
+
