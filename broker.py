@@ -104,6 +104,33 @@ class AlpacaBroker:
             logger.error(f"Order failed {symbol}: {e}")
             return None
 
+    def submit_short_bracket_order(
+        self,
+        symbol: str,
+        qty: int,
+        stop_price: float,
+        take_profit_price: float,
+    ):
+        """Short entry: SELL to open with stop above entry and target below."""
+        try:
+            order = self.client.submit_order(MarketOrderRequest(
+                symbol=symbol,
+                qty=qty,
+                side=OrderSide.SELL,
+                time_in_force=TimeInForce.DAY,
+                order_class=OrderClass.BRACKET,
+                stop_loss=StopLossRequest(stop_price=round(stop_price, 2)),
+                take_profit=TakeProfitRequest(limit_price=round(take_profit_price, 2)),
+            ))
+            logger.info(
+                f"SHORT ▶ {symbol} qty={qty} stop={stop_price:.2f} "
+                f"target={take_profit_price:.2f} | id={order.id}"
+            )
+            return order
+        except Exception as e:
+            logger.error(f"Short order failed {symbol}: {e}")
+            return None
+
     def close_position(self, symbol: str) -> bool:
         try:
             self.client.close_position(symbol)

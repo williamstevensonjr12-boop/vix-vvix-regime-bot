@@ -62,15 +62,21 @@ def calculate_position_size(
     sentiment_size_factor: float = 1.0,
     realized_vol: float | None = None,
     take_profit_r: float = None,
+    side: str = "long",
 ) -> SizingResult:
     """
     Full vol-adjusted, regime-aware position sizing.
-    Returns qty = 0 if stop_price >= entry_price or sizing conditions fail.
+    For longs: stop_price < entry_price, target above entry.
+    For shorts: stop_price > entry_price, target below entry.
+    Returns qty = 0 if risk_per_share is non-positive or sizing fails.
     """
     if take_profit_r is None:
         take_profit_r = config.TAKE_PROFIT_R
 
-    risk_per_share = entry_price - stop_price
+    if side == "short":
+        risk_per_share = stop_price - entry_price
+    else:
+        risk_per_share = entry_price - stop_price
     if risk_per_share <= 0:
         return SizingResult(0, 0, 0, stop_price, entry_price, 0, 1.0, {})
 
@@ -93,7 +99,10 @@ def calculate_position_size(
     if qty <= 0:
         return SizingResult(0, 0, final_risk_pct, stop_price, entry_price, risk_per_share, vol_mult, {})
 
-    target_price = round(entry_price + take_profit_r * risk_per_share, 2)
+    if side == "short":
+        target_price = round(entry_price - take_profit_r * risk_per_share, 2)
+    else:
+        target_price = round(entry_price + take_profit_r * risk_per_share, 2)
 
     return SizingResult(
         qty=qty,
@@ -170,13 +179,20 @@ def validate_order(
     stop: float,
     target: float,
     qty: int,
+    side: str = "long",
 ) -> tuple[bool, str]:
     if qty <= 0:
         return False, f"qty={qty} not positive"
     if any(p <= 0 for p in [entry, stop, target]):
         return False, "all prices must be positive"
-    if stop >= entry:
-        return False, f"stop {stop:.2f} >= entry {entry:.2f}"
-    if target <= entry:
-        return False, f"target {target:.2f} <= entry {entry:.2f}"
+    if side == "short":
+        if stop <= entry:
+            return False, f"short stop {stop:.2f} <= entry {entry:.2f}"
+        if target >= entry:
+            return False, f"short target {target:.2f} >= entry {entry:.2f}"
+    else:
+        if stop >= entry:
+            return False, f"stop {stop:.2f} >= entry {entry:.2f}"
+        if target <= entry:
+            return False, f"target {target:.2f} <= entry {entry:.2f}"
     return True, ""

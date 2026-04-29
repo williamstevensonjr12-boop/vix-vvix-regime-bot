@@ -39,6 +39,93 @@ class StrategyMode(Enum):
     ORB_VIX_BETA = "orb_vix_beta"
     FULL_SYSTEM = "full_system"
     VWAP_FULL_SYSTEM = "vwap_full_system"
+    LONG_SHORT_FULL_SYSTEM = "long_short_full_system"             # full_system + ORB shorts in B/C
+    LONG_SHORT_GAP_ALIGNED = "long_short_gap_aligned"             # above + gap-direction filter (all regimes)
+    LONG_SHORT_GAP_REGIME = "long_short_gap_regime_aware"         # above + gap filter only in GAP_ALIGNMENT_REGIMES
+    LONG_SHORT_GAP_A_SHORTS = "long_short_gap_a_shorts"           # regime-aware + shorts ALSO fire in Regime A (experiment)
+    LONG_SHORT_MTF_TREND = "long_short_mtf_trend"                 # regime-aware + per-symbol daily trend filter
+
+
+def _is_long_short_mode(mode: "StrategyMode") -> bool:
+    return mode in (
+        StrategyMode.LONG_SHORT_FULL_SYSTEM,
+        StrategyMode.LONG_SHORT_GAP_ALIGNED,
+        StrategyMode.LONG_SHORT_GAP_REGIME,
+        StrategyMode.LONG_SHORT_GAP_A_SHORTS,
+        StrategyMode.LONG_SHORT_MTF_TREND,
+    )
+
+
+def _is_full_system_mode(mode: "StrategyMode") -> bool:
+    return mode in (
+        StrategyMode.FULL_SYSTEM,
+        StrategyMode.VWAP_FULL_SYSTEM,
+        StrategyMode.LONG_SHORT_FULL_SYSTEM,
+        StrategyMode.LONG_SHORT_GAP_ALIGNED,
+        StrategyMode.LONG_SHORT_GAP_REGIME,
+        StrategyMode.LONG_SHORT_GAP_A_SHORTS,
+        StrategyMode.LONG_SHORT_MTF_TREND,
+    )
+
+
+def _is_vix_beta_mode(mode: "StrategyMode") -> bool:
+    return mode in (
+        StrategyMode.ORB_VIX_BETA,
+        StrategyMode.FULL_SYSTEM,
+        StrategyMode.VWAP_FULL_SYSTEM,
+        StrategyMode.LONG_SHORT_FULL_SYSTEM,
+        StrategyMode.LONG_SHORT_GAP_ALIGNED,
+        StrategyMode.LONG_SHORT_GAP_REGIME,
+        StrategyMode.LONG_SHORT_GAP_A_SHORTS,
+        StrategyMode.LONG_SHORT_MTF_TREND,
+    )
+
+
+# ── MTF helpers ───────────────────────────────────────────────────────────────
+
+SYMBOL_TREND_MA_PERIOD: int = 20  # days
+
+
+def _precompute_symbol_trends(bars_by_symbol: dict, period: int = SYMBOL_TREND_MA_PERIOD) -> dict:
+    """
+    For each symbol, return a Series indexed by trading_day with True/False:
+    True = symbol's prior daily close was above its N-day SMA (i.e. uptrend at open today).
+    Shift by 1 so trading_day's value reflects information from before the open.
+    """
+    trends: dict[str, pd.Series] = {}
+    for sym, bars in bars_by_symbol.items():
+        if bars.empty:
+            continue
+        daily_close = bars.groupby(bars.index.date)["close"].last()
+        if daily_close.empty:
+            continue
+        daily_close.index = pd.to_datetime(daily_close.index)
+        ma = daily_close.rolling(period, min_periods=max(5, period // 2)).mean()
+        uptrend = (daily_close > ma).shift(1).fillna(False)
+        trends[sym] = uptrend
+    return trends
+
+
+def _symbol_in_uptrend(trends: dict, sym: str, trading_day) -> bool:
+    """Look up the precomputed uptrend bool for a symbol on a given day. Default True if missing."""
+    s = trends.get(sym)
+    if s is None or s.empty:
+        return True
+    key = pd.Timestamp(trading_day)
+    if key in s.index:
+        return bool(s.loc[key])
+    # Fallback: take most recent value <= trading_day
+    sub = s[s.index <= key]
+    if sub.empty:
+        return True
+    return bool(sub.iloc[-1])
+
+
+def _short_regimes_for_mode(mode: "StrategyMode") -> tuple:
+    """LONG_SHORT_GAP_A_SHORTS lets shorts fire in A too; everyone else uses config.SHORT_REGIMES."""
+    if mode == StrategyMode.LONG_SHORT_GAP_A_SHORTS:
+        return ("A", "B", "C")
+    return tuple(config.SHORT_REGIMES)
 
 
 @dataclass
@@ -64,6 +151,7 @@ class BacktestEngine:
         self._regime_engine = RegimeEngine()
         self._vix_ranker = VIXBetaRanker()
         self._earnings_cal = EarningsCalendar()
+        self._symbol_trends: dict = {}
 
     # ── Public API ────────────────────────────────────────────────────────────
 
@@ -91,10 +179,15 @@ class BacktestEngine:
         self._earnings_cal.prefetch(list(bars_by_symbol.keys()))
 
         # Pre-compute full rolling VIX beta history once — avoids O(n²) refit per day
-        if self.cfg.mode in (StrategyMode.ORB_VIX_BETA, StrategyMode.FULL_SYSTEM, StrategyMode.VWAP_FULL_SYSTEM):
+        if _is_vix_beta_mode(self.cfg.mode):
             if not vol_df.empty and "vix" in vol_df.columns:
                 logger.info("Pre-computing VIX beta history...")
                 self._vix_ranker.precompute(daily_returns_by_sym, vol_df["vix"])
+
+        # Pre-compute per-symbol daily trends for MTF mode
+        if self.cfg.mode == StrategyMode.LONG_SHORT_MTF_TREND:
+            logger.info(f"Pre-computing per-symbol daily {SYMBOL_TREND_MA_PERIOD}d trends (MTF filter)...")
+            self._symbol_trends = _precompute_symbol_trends(bars_by_symbol)
 
         for day in trading_days:
             self._simulate_day(
@@ -170,7 +263,7 @@ class BacktestEngine:
         # ── Regime detection (end-of-previous-day data only) ──────────────
         as_of = pd.Timestamp(trading_day, tz=ET) - pd.Timedelta(minutes=1)
 
-        if self.cfg.mode in (StrategyMode.ORB_VIX_BETA, StrategyMode.FULL_SYSTEM, StrategyMode.VWAP_FULL_SYSTEM):
+        if _is_vix_beta_mode(self.cfg.mode):
             regime_state = self._regime_engine.compute_from_dataframes(
                 vol_df, spy_daily, pc_series, as_of
             )
@@ -180,8 +273,8 @@ class BacktestEngine:
         else:
             regime_state = self._regime_engine._fallback_regime()
 
-        # ── VIX beta ranking (full_system + orb_vix_beta + vwap_full_system) ──
-        if self.cfg.mode in (StrategyMode.ORB_VIX_BETA, StrategyMode.FULL_SYSTEM, StrategyMode.VWAP_FULL_SYSTEM):
+        # ── VIX beta ranking (long universe) ──────────────────────────────
+        if _is_vix_beta_mode(self.cfg.mode):
             active_universe = self._vix_ranker.rank_at_date(
                 regime_state.active_universe,
                 as_of_date=as_of,
@@ -191,8 +284,22 @@ class BacktestEngine:
         else:
             active_universe = config.MOMENTUM_UNIVERSE[:]
 
+        # ── Short universe (long_short modes, regime gated by mode) ───────
+        short_universe: list = []
+        active_short_regimes = _short_regimes_for_mode(self.cfg.mode)
+        if (
+            _is_long_short_mode(self.cfg.mode)
+            and regime_state.regime.value[0] in active_short_regimes
+        ):
+            short_universe = self._vix_ranker.rank_at_date(
+                config.SHORT_UNIVERSE,
+                as_of_date=as_of,
+                top_fraction=config.TOP_SYMBOLS_FRACTION,
+                regime_mode="short",
+            )
+
         # ── VVIX filter ───────────────────────────────────────────────────
-        if self.cfg.mode in (StrategyMode.FULL_SYSTEM, StrategyMode.VWAP_FULL_SYSTEM) and not vol_df.empty:
+        if _is_full_system_mode(self.cfg.mode) and not vol_df.empty:
             vvix_val = float(vol_df[vol_df.index <= as_of]["vvix"].dropna().iloc[-1]) if "vvix" in vol_df else 100.0
             vvix_f = regime_filter(vvix_val)
         else:
@@ -200,7 +307,7 @@ class BacktestEngine:
             vvix_f = VVIXFilterResult(True, 1.0, False, 100.0, 100.0, 0.0, "backtest_disabled")
 
         # ── Sentiment filter ──────────────────────────────────────────────
-        if self.cfg.mode in (StrategyMode.FULL_SYSTEM, StrategyMode.VWAP_FULL_SYSTEM):
+        if _is_full_system_mode(self.cfg.mode):
             pc_slice = pc_series[pc_series.index <= as_of] if not pc_series.empty else pd.Series([0.9])
             sent = classify_put_call(pc_slice)
         else:
@@ -213,7 +320,7 @@ class BacktestEngine:
         # ── SPY daily trend filter (full_system only) ─────────────────────
         spy_uptrend = True
         if (
-            self.cfg.mode in (StrategyMode.FULL_SYSTEM, StrategyMode.VWAP_FULL_SYSTEM)
+            _is_full_system_mode(self.cfg.mode)
             and config.SPY_TREND_FILTER
             and not spy_daily.empty
             and "close" in spy_daily.columns
@@ -222,6 +329,26 @@ class BacktestEngine:
             if len(spy_slice) >= config.SPY_TREND_MA_PERIOD:
                 spy_ma = float(spy_slice.tail(config.SPY_TREND_MA_PERIOD).mean())
                 spy_uptrend = float(spy_slice.iloc[-1]) > spy_ma
+
+        # ── Prior closes per symbol (for gap alignment) ───────────────────
+        # Strict mode: gap filter on every day. Regime-aware mode: only when current regime
+        # is in config.GAP_ALIGNMENT_REGIMES (default Regime A — gap continuation thesis).
+        if self.cfg.mode == StrategyMode.LONG_SHORT_GAP_ALIGNED:
+            gap_required = True
+        elif self.cfg.mode in (
+            StrategyMode.LONG_SHORT_GAP_REGIME,
+            StrategyMode.LONG_SHORT_GAP_A_SHORTS,
+            StrategyMode.LONG_SHORT_MTF_TREND,
+        ):
+            gap_required = regime_state.regime.value[0] in config.GAP_ALIGNMENT_REGIMES
+        else:
+            gap_required = False
+        prior_closes: dict = {}
+        if gap_required:
+            for sym, all_b in bars_by_symbol.items():
+                prior = all_b[all_b.index.date < trading_day]
+                if not prior.empty:
+                    prior_closes[sym] = float(prior.iloc[-1]["close"])
 
         # ── Build day bars dict ──────────────────────────────────────────
         day_bars: dict = {}
@@ -242,24 +369,46 @@ class BacktestEngine:
                     continue
                 bar = day_bars[sym].loc[ts]
                 pos = open_positions[sym]
+                pos_side = pos.get("side", "long")
+                slip = self.cfg.slippage_pct
 
-                if float(bar["low"]) <= pos["stop_price"]:
-                    fill = pos["stop_price"] * (1 - self.cfg.slippage_pct)
-                    t = self._close(pos, fill, "STOP_LOSS", ts)
-                    day_trades.append(t); daily_pnl += t["pnl"]; self.equity += t["pnl"]
-                    del open_positions[sym]; log_trade_close(t); continue
+                if pos_side == "short":
+                    # Short stop hit when price rallies >= stop
+                    if float(bar["high"]) >= pos["stop_price"]:
+                        fill = pos["stop_price"] * (1 + slip)
+                        t = self._close(pos, fill, "STOP_LOSS", ts)
+                        day_trades.append(t); daily_pnl += t["pnl"]; self.equity += t["pnl"]
+                        del open_positions[sym]; log_trade_close(t); continue
 
-                if float(bar["high"]) >= pos["target_price"]:
-                    fill = pos["target_price"] * (1 - self.cfg.slippage_pct)
-                    t = self._close(pos, fill, "TAKE_PROFIT", ts)
-                    day_trades.append(t); daily_pnl += t["pnl"]; self.equity += t["pnl"]
-                    del open_positions[sym]; log_trade_close(t); continue
+                    if float(bar["low"]) <= pos["target_price"]:
+                        fill = pos["target_price"] * (1 + slip)
+                        t = self._close(pos, fill, "TAKE_PROFIT", ts)
+                        day_trades.append(t); daily_pnl += t["pnl"]; self.equity += t["pnl"]
+                        del open_positions[sym]; log_trade_close(t); continue
 
-                if current_time >= config.CLOSE_ALL_TIME:
-                    fill = float(bar["close"]) * (1 - self.cfg.slippage_pct)
-                    t = self._close(pos, fill, "EOD_CLOSE", ts)
-                    day_trades.append(t); daily_pnl += t["pnl"]; self.equity += t["pnl"]
-                    del open_positions[sym]; log_trade_close(t); continue
+                    if current_time >= config.CLOSE_ALL_TIME:
+                        fill = float(bar["close"]) * (1 + slip)
+                        t = self._close(pos, fill, "EOD_CLOSE", ts)
+                        day_trades.append(t); daily_pnl += t["pnl"]; self.equity += t["pnl"]
+                        del open_positions[sym]; log_trade_close(t); continue
+                else:
+                    if float(bar["low"]) <= pos["stop_price"]:
+                        fill = pos["stop_price"] * (1 - slip)
+                        t = self._close(pos, fill, "STOP_LOSS", ts)
+                        day_trades.append(t); daily_pnl += t["pnl"]; self.equity += t["pnl"]
+                        del open_positions[sym]; log_trade_close(t); continue
+
+                    if float(bar["high"]) >= pos["target_price"]:
+                        fill = pos["target_price"] * (1 - slip)
+                        t = self._close(pos, fill, "TAKE_PROFIT", ts)
+                        day_trades.append(t); daily_pnl += t["pnl"]; self.equity += t["pnl"]
+                        del open_positions[sym]; log_trade_close(t); continue
+
+                    if current_time >= config.CLOSE_ALL_TIME:
+                        fill = float(bar["close"]) * (1 - slip)
+                        t = self._close(pos, fill, "EOD_CLOSE", ts)
+                        day_trades.append(t); daily_pnl += t["pnl"]; self.equity += t["pnl"]
+                        del open_positions[sym]; log_trade_close(t); continue
 
             # Entry scan
             if current_time < config.ORB_END_TIME or current_time >= config.LAST_ENTRY_TIME:
@@ -281,7 +430,7 @@ class BacktestEngine:
 
             # Block Regime A momentum entries when SPY is below its 20d MA
             if (
-                self.cfg.mode in (StrategyMode.FULL_SYSTEM, StrategyMode.VWAP_FULL_SYSTEM)
+                _is_full_system_mode(self.cfg.mode)
                 and regime_state.regime == Regime.A
                 and not spy_uptrend
             ):
@@ -347,6 +496,19 @@ class BacktestEngine:
                     c3 = avg_vol > 0 and volume > config.VOLUME_MULTIPLIER * avg_vol
                     if not (c1 and c2 and c3):
                         continue
+                    # MTF daily trend filter — long only if symbol above its 20d MA
+                    if self.cfg.mode == StrategyMode.LONG_SHORT_MTF_TREND:
+                        if not _symbol_in_uptrend(self._symbol_trends, sym, trading_day):
+                            continue
+                    # Gap-alignment filter (long_short_gap_aligned mode only)
+                    if gap_required:
+                        sym_open = float(day_bars[sym].iloc[0]["open"])
+                        prior_c = prior_closes.get(sym)
+                        if prior_c is None or prior_c <= 0:
+                            continue
+                        gap = (sym_open - prior_c) / prior_c
+                        if gap < config.GAP_ALIGNMENT_THRESHOLD:
+                            continue
                     stop = min(
                         vwap,
                         orb_high * (1 - config.STOP_BUFFER_PCT),
@@ -384,14 +546,110 @@ class BacktestEngine:
                     "qty": qty, "risk_per_share": max(entry_fill - stop, 0.0001),
                     "regime": regime_state.regime.value,
                     "vix_beta": self._vix_ranker.get_beta(sym),
+                    "side": "long",
+                    "setup": "orb",
                 }
                 entered_today.add(sym)
                 trades_today += 1
 
+            # ── Short entry scan (long_short modes only) ─────────────────
+            if _is_long_short_mode(self.cfg.mode) and short_universe:
+                for sym in short_universe:
+                    if sym in entered_today or sym in open_positions:
+                        continue
+                    if len(open_positions) >= config.MAX_OPEN_POSITIONS:
+                        break
+                    if trades_today >= config.MAX_TRADES_PER_DAY:
+                        break
+                    if self._earnings_cal.is_earnings_day(sym, trading_day):
+                        continue
+                    if sym not in day_bars or ts not in day_bars[sym].index:
+                        continue
+                    bars_so_far = day_bars[sym][day_bars[sym].index <= ts]
+                    if len(bars_so_far) < 5:
+                        continue
+                    opening_range = ind.calculate_opening_range(bars_so_far, trading_day)
+                    if opening_range is None:
+                        continue
+                    vwap_s = ind.calculate_vwap(bars_so_far)
+                    avg_vol_s = ind.calculate_avg_volume(bars_so_far)
+                    atr_s = ind.calculate_atr(bars_so_far)
+                    if vwap_s.empty or avg_vol_s.empty or atr_s.empty:
+                        continue
+                    bar = day_bars[sym].loc[ts]
+                    price = float(bar["close"])
+                    volume = float(bar["volume"])
+                    vwap = float(vwap_s.iloc[-1])
+                    avg_vol = float(avg_vol_s.iloc[-1])
+                    atr = float(atr_s.iloc[-1])
+                    orb_high = opening_range["high"]
+                    orb_low = opening_range["low"]
+                    orb_range_pct = (orb_high - orb_low) / orb_low if orb_low > 0 else 0
+                    if orb_range_pct < config.MIN_ORB_RANGE_PCT:
+                        continue
+                    # VIX beta gate — only short fragile names
+                    sym_beta = self._vix_ranker.get_beta(sym)
+                    if sym_beta < config.SHORT_VIX_BETA_MIN:
+                        continue
+                    c1 = price < orb_low
+                    c2 = price < vwap
+                    c3 = avg_vol > 0 and volume > config.VOLUME_MULTIPLIER * avg_vol
+                    if not (c1 and c2 and c3):
+                        continue
+                    # MTF daily trend filter — short only if symbol BELOW its 20d MA (downtrend)
+                    if self.cfg.mode == StrategyMode.LONG_SHORT_MTF_TREND:
+                        if _symbol_in_uptrend(self._symbol_trends, sym, trading_day):
+                            continue
+                    if gap_required:
+                        sym_open = float(day_bars[sym].iloc[0]["open"])
+                        prior_c = prior_closes.get(sym)
+                        if prior_c is None or prior_c <= 0:
+                            continue
+                        gap = (sym_open - prior_c) / prior_c
+                        if gap > -config.GAP_ALIGNMENT_THRESHOLD:
+                            continue
+                    stop = max(
+                        vwap,
+                        orb_low * (1 + config.STOP_BUFFER_PCT),
+                        price + atr * config.ATR_STOP_MULTIPLIER,
+                    )
+                    if stop <= price:
+                        continue
+                    rps = stop - price
+                    target = round(price - config.TAKE_PROFIT_R * rps, 2)
+                    if target >= price or target <= 0:
+                        continue
+                    realized_vol = ind.calculate_realized_vol(
+                        daily_returns.get(sym, pd.Series(dtype=float)).dropna()
+                    )
+                    vol_mult = ind.vol_adjusted_size_multiplier(realized_vol)
+                    risk_pct = (
+                        config.RISK_PER_TRADE_PCT
+                        * regime_state.size_factor * vvix_f.size_multiplier
+                        * sent.size_multiplier * vol_mult
+                    )
+                    risk_amount = self.equity * risk_pct
+                    qty = int(risk_amount / rps) if rps > 0 else 0
+                    if qty <= 0:
+                        continue
+                    entry_fill = price * (1 - self.cfg.slippage_pct)
+                    open_positions[sym] = {
+                        "symbol": sym, "date": trading_day, "entry_time": ts,
+                        "entry_price": entry_fill, "stop_price": stop, "target_price": target,
+                        "qty": qty, "risk_per_share": max(stop - entry_fill, 0.0001),
+                        "regime": regime_state.regime.value,
+                        "vix_beta": sym_beta,
+                        "side": "short",
+                        "setup": "short_orb",
+                    }
+                    entered_today.add(sym)
+                    trades_today += 1
+
         # Force close any remaining positions at EOD
         for sym, pos in list(open_positions.items()):
             db = day_bars.get(sym, pd.DataFrame())
-            fill = float(db.iloc[-1]["close"]) * (1 - self.cfg.slippage_pct) if not db.empty else pos["entry_price"]
+            slip_dir = 1 if pos.get("side") == "short" else -1   # short cover pays slippage; long sell loses it
+            fill = float(db.iloc[-1]["close"]) * (1 + slip_dir * self.cfg.slippage_pct) if not db.empty else pos["entry_price"]
             exit_ts = db.index[-1] if not db.empty else None
             t = self._close(pos, fill, "EOD_CLOSE", exit_ts)
             day_trades.append(t); daily_pnl += t["pnl"]; self.equity += t["pnl"]
@@ -427,11 +685,18 @@ class BacktestEngine:
 
     @staticmethod
     def _close(pos: dict, exit_price: float, reason: str, exit_time) -> dict:
-        pnl = (exit_price - pos["entry_price"]) * pos["qty"]
-        r = (exit_price - pos["entry_price"]) / pos["risk_per_share"]
+        side = pos.get("side", "long")
+        if side == "short":
+            pnl = (pos["entry_price"] - exit_price) * pos["qty"]
+            r = (pos["entry_price"] - exit_price) / pos["risk_per_share"]
+        else:
+            pnl = (exit_price - pos["entry_price"]) * pos["qty"]
+            r = (exit_price - pos["entry_price"]) / pos["risk_per_share"]
         return {
             "date": str(pos["date"]),
             "symbol": pos["symbol"],
+            "side": side,
+            "setup": pos.get("setup", "orb"),
             "entry_time": str(pos["entry_time"]),
             "exit_time": str(exit_time),
             "entry_price": round(pos["entry_price"], 4),
@@ -456,6 +721,29 @@ class BacktestEngine:
 
 # ── Three-way comparison runner ───────────────────────────────────────────────
 
+DEFAULT_COMPARISON_MODES: list = [
+    StrategyMode.PLAIN_ORB,
+    StrategyMode.ORB_VIX_BETA,
+    StrategyMode.FULL_SYSTEM,
+    StrategyMode.VWAP_FULL_SYSTEM,
+]
+
+LONG_SHORT_COMPARISON_MODES: list = [
+    StrategyMode.FULL_SYSTEM,                # baseline: long-only
+    StrategyMode.LONG_SHORT_FULL_SYSTEM,     # +shorts in B/C
+    StrategyMode.LONG_SHORT_GAP_ALIGNED,     # +shorts +gap-direction filter (all regimes)
+    StrategyMode.LONG_SHORT_GAP_REGIME,      # +shorts +gap filter only in GAP_ALIGNMENT_REGIMES (default A)
+    StrategyMode.LONG_SHORT_GAP_A_SHORTS,    # regime-aware + shorts ALSO fire in Regime A
+    StrategyMode.LONG_SHORT_MTF_TREND,       # regime-aware + per-symbol daily trend filter (MTF)
+]
+
+# Focused 2-way head-to-head — does MTF stack add value on top of regime-aware?
+MTF_HEAD_TO_HEAD_MODES: list = [
+    StrategyMode.LONG_SHORT_GAP_REGIME,      # current best
+    StrategyMode.LONG_SHORT_MTF_TREND,       # current best + MTF trend filter
+]
+
+
 def run_three_way_comparison(
     bars_by_symbol: dict,
     vol_df: pd.DataFrame,
@@ -464,16 +752,22 @@ def run_three_way_comparison(
     daily_returns_by_sym: dict,
     initial_equity: float = config.INITIAL_EQUITY,
     save_to_dir: str = None,
+    modes: list = None,
 ) -> dict:
     """
-    Run all four strategies on the same data and print a side-by-side comparison.
+    Run a set of strategies on the same data and print a side-by-side comparison.
+    Defaults to the four long-only strategies; pass `modes=LONG_SHORT_COMPARISON_MODES`
+    to compare long-only vs long+short vs long+short+gap-aligned.
     Returns dict of {strategy_name: metrics}.
     """
     if save_to_dir:
         os.makedirs(save_to_dir, exist_ok=True)
 
+    if modes is None:
+        modes = DEFAULT_COMPARISON_MODES
+
     results = {}
-    for mode in StrategyMode:
+    for mode in modes:
         trades_file = os.path.join(save_to_dir, f"trades_{mode.value}.csv") if save_to_dir else ""
         bt_cfg = BacktestConfig(
             mode=mode,
@@ -493,10 +787,15 @@ def _print_comparison_table(results: dict, initial_equity: float):
     """Print a side-by-side comparison of all strategies (dynamic column count)."""
     cols = list(results.keys())
     labels = {
-        "plain_orb":         "1. Plain ORB",
-        "orb_vix_beta":      "2. ORB+VIX Beta",
-        "full_system":       "3. ORB Full Sys",
-        "vwap_full_system":  "4. VWAP Full Sys",
+        "plain_orb":                       "1. Plain ORB",
+        "orb_vix_beta":                    "2. ORB+VIX Beta",
+        "full_system":                     "3. ORB Full Sys",
+        "vwap_full_system":                "4. VWAP Full Sys",
+        "long_short_full_system":          "5. L+S Full Sys",
+        "long_short_gap_aligned":          "6. L+S Gap All",
+        "long_short_gap_regime_aware":     "7. L+S Gap A-only",
+        "long_short_gap_a_shorts":         "8. L+S +A-Shorts",
+        "long_short_mtf_trend":            "9. L+S +MTF Trend",
     }
     name_w = 18
     col_w = 17

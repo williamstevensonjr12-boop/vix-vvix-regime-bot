@@ -168,10 +168,29 @@ def cmd_paper(debug: bool = False):
     logger.info(f"Active universe: {active_universe}")
     logger.info(rotation_summary(regime_state))
 
+    # Short universe (Regime B/C only, ranked by highest VIX beta)
+    short_universe: list = []
+    if config.ENABLE_SHORT_SLEEVE and regime_state.regime.value[0] in config.SHORT_REGIMES:
+        short_universe = vix_ranker.rank(
+            config.SHORT_UNIVERSE,
+            regime_mode="short",
+        )
+        logger.info(f"Short universe: {short_universe}")
+
+    # Prior closes for gap-alignment / gap-continuation
+    prior_close_universe = list(dict.fromkeys(active_universe + short_universe))
+    prior_closes: dict = mkt_data.get_prior_closes(prior_close_universe)
+    logger.info(
+        f"Prior closes loaded: {len(prior_closes)}/{len(prior_close_universe)} "
+        f"symbols (gap-alignment={'on' if config.GAP_ALIGNMENT_REQUIRED else 'off'}, "
+        f"gap-continuation={'on' if config.ENABLE_GAP_CONTINUATION else 'off'})"
+    )
+
     # Daily state
     account = broker.get_account()
     daily_start_equity = float(account.equity)
     trades_today = 0
+    spy_uptrend = _compute_spy_uptrend(spy_s)
     rsk.reset_kill_switch()
 
     logger.info(f"Market OPEN | equity=${daily_start_equity:,.2f} | regime={regime_state.regime.value}")
@@ -232,7 +251,7 @@ def cmd_paper(debug: bool = False):
             current_prices = {sym: float(broker.get_account().equity) for sym in config.CRISIS_ALPHA_LONG}
             neutral_overlay.build_portfolio(regime_state, equity, current_prices)
 
-        # Scan symbols
+        # Scan long universe (ORB + optional gap-continuation)
         for sym in active_universe:
             try:
                 bars = mkt_data.get_today_bars(data_client, sym)
@@ -241,20 +260,43 @@ def cmd_paper(debug: bool = False):
 
                 sym_daily_ret = daily_returns.get(sym, pd.Series(dtype=float))
 
-                sig = strategy.check_entry_signal(
-                    symbol=sym,
-                    bars=bars,
-                    account_equity=equity,
-                    open_positions=open_positions,
-                    trades_today=trades_today,
-                    daily_pnl=daily_pnl,
-                    daily_start_equity=daily_start_equity,
-                    regime_state=regime_state,
-                    vvix_filter=vvix_filter_result,
-                    sentiment_state=sent_state,
-                    vix_beta=vix_ranker.get_beta(sym),
-                    daily_returns=sym_daily_ret,
-                )
+                # Try gap-continuation first (fires before ORB window closes)
+                sig = None
+                if config.ENABLE_GAP_CONTINUATION and prior_closes.get(sym):
+                    sig = strategy.check_gap_continuation_signal(
+                        symbol=sym,
+                        bars=bars,
+                        prior_close=prior_closes.get(sym),
+                        account_equity=equity,
+                        open_positions=open_positions,
+                        trades_today=trades_today,
+                        daily_pnl=daily_pnl,
+                        daily_start_equity=daily_start_equity,
+                        regime_state=regime_state,
+                        vvix_filter=vvix_filter_result,
+                        sentiment_state=sent_state,
+                        vix_beta=vix_ranker.get_beta(sym),
+                        daily_returns=sym_daily_ret,
+                        spy_uptrend=spy_uptrend,
+                    )
+
+                if sig is None:
+                    sig = strategy.check_entry_signal(
+                        symbol=sym,
+                        bars=bars,
+                        account_equity=equity,
+                        open_positions=open_positions,
+                        trades_today=trades_today,
+                        daily_pnl=daily_pnl,
+                        daily_start_equity=daily_start_equity,
+                        regime_state=regime_state,
+                        vvix_filter=vvix_filter_result,
+                        sentiment_state=sent_state,
+                        vix_beta=vix_ranker.get_beta(sym),
+                        daily_returns=sym_daily_ret,
+                        spy_uptrend=spy_uptrend,
+                        prior_close=prior_closes.get(sym),
+                    )
 
                 if sig is None:
                     continue
@@ -277,7 +319,64 @@ def cmd_paper(debug: bool = False):
             except Exception as e:
                 logger.error(f"Error processing {sym}: {e}", exc_info=True)
 
+        # Scan short universe (Regime B/C only)
+        for sym in short_universe:
+            try:
+                bars = mkt_data.get_today_bars(data_client, sym)
+                if bars.empty:
+                    continue
+
+                sym_daily_ret = daily_returns.get(sym, pd.Series(dtype=float))
+
+                sig = strategy.check_short_signal(
+                    symbol=sym,
+                    bars=bars,
+                    account_equity=equity,
+                    open_positions=open_positions,
+                    trades_today=trades_today,
+                    daily_pnl=daily_pnl,
+                    daily_start_equity=daily_start_equity,
+                    regime_state=regime_state,
+                    vvix_filter=vvix_filter_result,
+                    sentiment_state=sent_state,
+                    vix_beta=vix_ranker.get_beta(sym),
+                    daily_returns=sym_daily_ret,
+                    prior_close=prior_closes.get(sym),
+                )
+
+                if sig is None:
+                    continue
+
+                journal.log_signal(sym, sig, taken=True)
+                order = broker.submit_short_bracket_order(
+                    symbol=sym,
+                    qty=sig.qty,
+                    stop_price=sig.stop_price,
+                    take_profit_price=sig.target_price,
+                )
+
+                if order:
+                    trades_today += 1
+                    journal.log_trade_open(sig)
+                    journal.save_trade(
+                        journal.build_trade_record(sig, str(order.id), today, now.strftime("%H:%M:%S"))
+                    )
+
+            except Exception as e:
+                logger.error(f"Error processing short {sym}: {e}", exc_info=True)
+
         time.sleep(60)
+
+
+def _compute_spy_uptrend(spy_close_series) -> bool:
+    """SPY > N-day MA → uptrend (gates Regime A entries)."""
+    s = spy_close_series.dropna()
+    if s.empty:
+        return True
+    period = config.SPY_TREND_MA_PERIOD
+    if len(s) < period:
+        return True
+    return float(s.iloc[-1]) > float(s.tail(period).mean())
 
 
 def _save_daily_summary(broker, daily_start_equity, today, regime):
@@ -316,14 +415,19 @@ def cmd_dashboard():
     dashboard.build_dashboard()
 
 
-def cmd_backtest(start: str, end: str, equity: float, debug: bool = False):
+def cmd_backtest(start: str, end: str, equity: float, debug: bool = False, suite: str = "default"):
     import pandas as pd
     import os
-    from backtest import run_three_way_comparison
+    from backtest import (
+        run_three_way_comparison,
+        DEFAULT_COMPARISON_MODES,
+        LONG_SHORT_COMPARISON_MODES,
+        MTF_HEAD_TO_HEAD_MODES,
+    )
 
     setup_logging(debug)
     print(BANNER)
-    logger.info(f"Mode: BACKTEST | {start} → {end} | equity=${equity:,.0f}")
+    logger.info(f"Mode: BACKTEST [{suite}] | {start} → {end} | equity=${equity:,.0f}")
 
     data_client = mkt_data.get_data_client()
     all_symbols = list(dict.fromkeys(config.ALL_SYMBOLS + ["SPY"]))
@@ -347,6 +451,12 @@ def cmd_backtest(start: str, end: str, equity: float, debug: bool = False):
     }
 
     os.makedirs(config.BACKTEST_RESULTS_DIR, exist_ok=True)
+    if suite == "long_short":
+        modes = LONG_SHORT_COMPARISON_MODES
+    elif suite == "mtf_head_to_head":
+        modes = MTF_HEAD_TO_HEAD_MODES
+    else:
+        modes = DEFAULT_COMPARISON_MODES
     run_three_way_comparison(
         bars_by_symbol=bars_by_symbol,
         vol_df=vol_df,
@@ -355,6 +465,7 @@ def cmd_backtest(start: str, end: str, equity: float, debug: bool = False):
         daily_returns_by_sym=daily_returns,
         initial_equity=equity,
         save_to_dir=config.BACKTEST_RESULTS_DIR,
+        modes=modes,
     )
     logger.info(f"Results saved to {config.BACKTEST_RESULTS_DIR}/")
 
@@ -373,10 +484,16 @@ def main():
     tr = sub.add_parser("tracker", help="Paper trading performance dashboard")
     tr.add_argument("--days", type=int, default=30, help="Rolling window in trading days")
 
-    bt = sub.add_parser("backtest", help="Historical 4-strategy comparison backtest")
+    bt = sub.add_parser("backtest", help="Historical strategy comparison backtest")
     bt.add_argument("--start", required=True, metavar="YYYY-MM-DD")
     bt.add_argument("--end", required=True, metavar="YYYY-MM-DD")
     bt.add_argument("--equity", type=float, default=config.INITIAL_EQUITY)
+    bt.add_argument(
+        "--suite",
+        choices=["default", "long_short", "mtf_head_to_head"],
+        default="default",
+        help="default = 4 long-only; long_short = full long+short comparison; mtf_head_to_head = regime-aware vs +MTF (2-way)",
+    )
 
     args = parser.parse_args()
 
@@ -389,7 +506,7 @@ def main():
     elif args.mode == "dashboard":
         cmd_dashboard()
     elif args.mode == "backtest":
-        cmd_backtest(args.start, args.end, args.equity, args.debug)
+        cmd_backtest(args.start, args.end, args.equity, args.debug, args.suite)
 
 
 if __name__ == "__main__":

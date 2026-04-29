@@ -206,6 +206,9 @@ class VIXBetaRanker:
 
         if regime_mode == "defensive":
             ranked = sorted(available, key=lambda s: self._resilience[s], reverse=True)
+        elif regime_mode == "short":
+            # short: prefer names with highest VIX beta (most fragile in vol spikes)
+            ranked = sorted(available, key=lambda s: self._betas[s], reverse=True)
         else:
             # momentum: prefer names with moderate positive VIX beta (ride the trend)
             ranked = sorted(available, key=lambda s: self._betas[s])

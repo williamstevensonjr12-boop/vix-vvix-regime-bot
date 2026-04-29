@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 ET = ZoneInfo(config.TIMEZONE)
 
 TRADE_FIELDS = [
-    "date", "symbol", "entry_time", "exit_time",
+    "date", "symbol", "side", "setup", "entry_time", "exit_time",
     "entry_price", "stop_price", "target_price", "exit_price",
     "qty", "pnl", "r_multiple", "result",
     "regime", "vix_beta", "regime_size", "vol_mult",
@@ -90,6 +90,8 @@ def build_trade_record(signal, order_id: str, today, entry_time: str) -> dict:
     return {
         "date": str(today),
         "symbol": signal.symbol,
+        "side": getattr(signal, "side", "long"),
+        "setup": getattr(signal, "setup", "orb"),
         "entry_time": entry_time,
         "exit_time": "",
         "entry_price": signal.entry_price,

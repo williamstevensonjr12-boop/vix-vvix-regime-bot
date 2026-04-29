@@ -195,6 +195,49 @@ def get_current_vol_snapshot() -> dict:
     return defaults
 
 
+def get_prior_closes(symbols: list[str], lookback_days: int = 5) -> dict:
+    """
+    Return prior trading-day close for each symbol via yfinance.
+    Used by the gap-continuation signal to compute the gap vs prior close.
+    """
+    if not symbols:
+        return {}
+    end = datetime.now(ET).date()
+    start = end - pd.Timedelta(days=lookback_days)
+    try:
+        df = yf.download(
+            tickers=" ".join(symbols),
+            start=start.isoformat(),
+            end=end.isoformat(),
+            interval="1d",
+            progress=False,
+            group_by="ticker",
+            auto_adjust=False,
+        )
+    except Exception as e:
+        logger.warning(f"prior closes fetch failed: {e}")
+        return {}
+
+    closes: dict[str, float] = {}
+    if df.empty:
+        return closes
+    if len(symbols) == 1:
+        col = df["Close"] if "Close" in df else df.iloc[:, 3]
+        s = col.dropna()
+        if not s.empty:
+            closes[symbols[0]] = float(s.iloc[-1])
+        return closes
+
+    for sym in symbols:
+        try:
+            s = df[sym]["Close"].dropna()
+            if not s.empty:
+                closes[sym] = float(s.iloc[-1])
+        except Exception:
+            continue
+    return closes
+
+
 def get_symbol_daily_returns(client, symbol: str, start_date: str, end_date: str) -> pd.Series:
     """Daily percentage returns derived from 5-minute bars (last close of each day)."""
     bars = get_historical_bars(client, symbol, start_date, end_date)

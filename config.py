@@ -49,6 +49,9 @@ DEFENSIVE_UNIVERSE: list = ["XLU", "XLP", "XLV", "GLD"]
 CRISIS_ALPHA_LONG: list = ["XLU", "XLP", "XLV", "GLD"]
 CRISIS_ALPHA_SHORT_BACKTEST: list = ["XLK", "QQQ", "AMD", "NVDA"]  # backtest only
 
+# Short sleeve (live paper) — high-VIX-beta names for ORB-breakdown shorts in Regime B/C
+SHORT_UNIVERSE: list = ["QQQ", "XLK", "NVDA", "AMD", "TSLA", "META", "AMZN"]
+
 # Sector ETF map
 SECTOR_ETF_MAP: dict = {
     "utilities": "XLU",
@@ -61,7 +64,7 @@ SECTOR_ETF_MAP: dict = {
     "quality": "QUAL",
 }
 ALL_SYMBOLS: list = list(dict.fromkeys(
-    MOMENTUM_UNIVERSE + FEAR_RESILIENT_UNIVERSE + DEFENSIVE_UNIVERSE
+    MOMENTUM_UNIVERSE + FEAR_RESILIENT_UNIVERSE + DEFENSIVE_UNIVERSE + SHORT_UNIVERSE
 ))
 
 # ── Volatility regime thresholds ─────────────────────────────────────────────
@@ -134,6 +137,26 @@ GAP_FILTER_PCT: float = 0.007         # 0.7% gap vs prior close = skip day
 ENABLE_LUNCH_FILTER: bool = False
 LUNCH_BLOCK_START: str = "11:00"      # stop entries at 11:00
 LUNCH_BLOCK_END: str = "12:15"        # resume entries at 12:15 PM (after midday routine completes)
+
+# Short sleeve (intraday ORB-breakdown shorts in Regime B/C)
+ENABLE_SHORT_SLEEVE: bool = True
+SHORT_REGIMES: tuple = ("B", "C")     # regimes that allow short entries
+SHORT_VIX_BETA_MIN: float = 0.0       # only short symbols with positive VIX beta (fragile in vol spikes)
+
+# Gap-continuation signal (off by default — pending end-of-week review)
+ENABLE_GAP_CONTINUATION: bool = False
+GAP_CONTINUATION_MIN_PCT: float = 0.010    # 1.0% gap vs prior close to qualify
+GAP_CONTINUATION_VOL_MULTIPLIER: float = 2.0
+GAP_CONTINUATION_HOLD_BARS: int = 2        # bars after open price must hold above gap level
+
+# Gap-aligned ORB — gap direction must match trade direction
+# Long ORB requires gap >= +threshold; short ORB requires gap <= -threshold.
+# Strict mode: flat opens (within threshold) skipped entirely.
+# Regime-aware: only enforce in regimes listed in GAP_ALIGNMENT_REGIMES (default: A only).
+# In B/C the market mean-reverts after shocks — gap continuation thesis breaks.
+GAP_ALIGNMENT_REQUIRED: bool = True
+GAP_ALIGNMENT_THRESHOLD: float = 0.005     # 0.5% gap threshold
+GAP_ALIGNMENT_REGIMES: tuple = ("A",)      # regime letters where gap filter applies
 
 # ── Backtest ──────────────────────────────────────────────────────────────────
 SLIPPAGE_PCT: float = 0.0003

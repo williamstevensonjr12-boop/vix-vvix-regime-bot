@@ -20,12 +20,14 @@ Stocks only — no options, ever. Paper trading until edge is proven.
 - Trade fear-resilient universe: XLU, XLP, XLV, GLD, MSFT, JNJ, PG, COST
 - Reduce sizing 50% (0.5× base)
 - Avoid pure momentum breakouts
+- **Short sleeve enabled** — ORB-breakdown shorts on high-VIX-beta names
 
 ### Regime C — Stress / Crisis (VIX >25 or VVIX >120)
 - Rotate into defensive: XLU, XLP, XLV, GLD
 - Reduce sizing 75% (0.25× base)
 - Enable crisis alpha sleeve (long defensives)
 - No new momentum breakout entries
+- **Short sleeve enabled** — ORB-breakdown shorts on high-VIX-beta names
 
 ## VVIX Rules
 - VVIX >110: reduce risk 50%
@@ -45,7 +47,7 @@ Stocks only — no options, ever. Paper trading until edge is proven.
 10. Close everything by 3:55 PM ET
 11. Portfolio exposure cap: 50% equity
 
-## Entry Checklist
+## Entry Checklist (Long ORB)
 - Regime determined?
 - Symbol in active universe?
 - VVIX filter passed?
@@ -57,6 +59,26 @@ Stocks only — no options, ever. Paper trading until edge is proven.
 - ATR stop calculated and valid?
 - Sizing respects vol-adjustment?
 - Exposure cap respected?
+
+## Short Entry Checklist (Regime B/C only)
+- Regime is B or C?
+- Symbol is in SHORT_UNIVERSE (high-VIX-beta names: QQQ, XLK, NVDA, AMD, TSLA, META, AMZN)?
+- Symbol VIX beta > 0 (fragile in vol spikes)?
+- VVIX filter passed?
+- ORB low broken (price < ORB low)?
+- Price below VWAP?
+- Volume >1.5× 20-bar average?
+- ATR-based stop ABOVE entry (max of VWAP, ORB low + buffer, entry + ATR×1.5)?
+- Target = entry − 2R (below entry)?
+- Same 0.5% base risk × regime size factor (B=0.5×, C=0.25×)?
+
+## Gap Continuation Long (off by default — pending EOW review)
+- Flag: `ENABLE_GAP_CONTINUATION` in config
+- Regime A only
+- Open price gaps >1.0% above prior close
+- Last 2 bars close above the open (gap level held)
+- Volume >2.0× avg (higher bar than ORB)
+- Stop = lower of gap level or ATR stop; Target = 2R
 
 ## VIX Beta Factor
 Rank symbols daily by rolling 60-day VIX beta.
