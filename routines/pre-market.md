@@ -44,8 +44,10 @@ STEP 4 — Write dated entry to memory/RESEARCH-LOG.md:
   - Volatility snapshot (VIX, VVIX, VIX3M, P/C ratio)
   - Regime assessment (A/B/C) with reasoning
   - Market context
-  - 2-3 actionable trade ideas with catalyst, entry/stop/target, regime fit
-  - Risk factors
+  - **Gap-up watch** (long ORB pairing): pre-market gap-up names ≥0.5%, with catalyst + conviction (High/Med/Low)
+  - **Gap-down watch** (short ORB pairing, B/C only): pre-market gap-down names ≤−0.5%, with catalyst + conviction
+  - 2-3 actionable trade ideas with catalyst, side (LONG/SHORT), entry/stop/target, regime fit
+  - Risk factors (incl. names where the gap is likely a fade or short-squeeze risk)
   - Decision: TRADE or HOLD (default HOLD)
 
 STEP 5 — Notification: silent unless urgent.
