@@ -127,3 +127,20 @@ Notes: Gap-and-run day — bot ORB signals never fired; all 4 trades were manual
 **Trade 1 outcome:** GLD scratched manually at 12:34 ET @ $417.89. **P&L: -$56.13** (-0.23R, -0.06% equity).
 Reason: Pre-Fed positioning pushed yields up (TLT -0.20%) → gold faded back through $418 from intraday HOD $419.12 on dying volume. Manual scratch beat full-stop by ~$40. Setup invalidated when GLD lost VWAP momentum and broader market drifted bid-less into Fed decision. Lesson: low-volume mid-day breakout on Fed day = compression risk; pre-Fed yield drift is the gold killer regardless of macro narrative.
 
+| Trade | Symbol | P&L |
+|-------|--------|-----|
+| 1 | GLD | -$56.13 |
+| **Total** | | **-$56.13** |
+
+Account equity: $99,618.07. 1 of 5 trade slots used. 4 remaining.
+
+=== EOD 2026-04-29 ===
+Equity: $99,618.07 (day P&L: -$56.57, day return: -0.06%)
+Trades: 1 (W:0 / L:1) | Win rate: 0% | P/F: 0.00
+  - Avg win: N/A | Avg loss: $56.13
+  - Wins: NONE
+  - Losses: GLD (-$56.13)
+Regime: A_LOW_VOL_TREND all session (VIX 17.95, VVIX 91.03) | Kill switch: NO
+Open overnight: NONE (all flat at close, 0 open orders)
+Notes: FOMC day — single discretionary GLD long ahead of 2 PM Fed decision; pre-Fed yield drift faded gold off HOD on dying volume, manual scratch at -$56.13 vs full-stop ~$96.76 risk (saved ~$40). Account variance vs trade-log sum: -$56.57 actual vs -$56.13 logged = ~$0.44 slippage/fees. 1 of 5 trade slots used; bot ORB signals never fired (no qualifying gaps pre-market, FOMC compression suppressed momentum). Loss 0.06% — far below 2% halt and 3% kill switch. Day trade count at 5 (PDT cap reached on rolling 5-day window).
+
