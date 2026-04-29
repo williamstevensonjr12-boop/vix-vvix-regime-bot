@@ -124,3 +124,6 @@ Notes: Gap-and-run day — bot ORB signals never fired; all 4 trades were manual
 |---|-----------|-----|------|-----|-------|------|--------|-----|--------|----------|
 | 1 | 12:23 | GLD | LONG | 59 | $418.84 | $417.20 | $422.40 | 2.0R | A_LOW_VOL_TREND | FOMC-day discretionary override; ORB-H breakout + above VWAP, gold catching macro bid (Iran blockade headlines + stagflation talk + two-way Fed insurance). Hard exit by 1:55 PM ET regardless. Bracket order: stop ~0.39% / target ~0.85%. Risk: 59 × $1.64 = $96.76. Notional $24,711 (within 50% per-trade exposure cap). |
 
+**Trade 1 outcome:** GLD scratched manually at 12:34 ET @ $417.89. **P&L: -$56.13** (-0.23R, -0.06% equity).
+Reason: Pre-Fed positioning pushed yields up (TLT -0.20%) → gold faded back through $418 from intraday HOD $419.12 on dying volume. Manual scratch beat full-stop by ~$40. Setup invalidated when GLD lost VWAP momentum and broader market drifted bid-less into Fed decision. Lesson: low-volume mid-day breakout on Fed day = compression risk; pre-Fed yield drift is the gold killer regardless of macro narrative.
+
