@@ -144,3 +144,33 @@ Regime: A_LOW_VOL_TREND all session (VIX 17.95, VVIX 91.03) | Kill switch: NO
 Open overnight: NONE (all flat at close, 0 open orders)
 Notes: FOMC day — single discretionary GLD long ahead of 2 PM Fed decision; pre-Fed yield drift faded gold off HOD on dying volume, manual scratch at -$56.13 vs full-stop ~$96.76 risk (saved ~$40). Account variance vs trade-log sum: -$56.57 actual vs -$56.13 logged = ~$0.44 slippage/fees. 1 of 5 trade slots used; bot ORB signals never fired (no qualifying gaps pre-market, FOMC compression suppressed momentum). Loss 0.06% — far below 2% halt and 3% kill switch. Day trade count at 5 (PDT cap reached on rolling 5-day window).
 
+## Trades — 2026-04-30
+
+| # | Time (ET) | Sym | Side | Qty | Entry | Stop | Target | R:R | Regime | Catalyst |
+|---|-----------|-----|------|-----|-------|------|--------|-----|--------|----------|
+| 1 | 14:22 | RUN | LONG | 332 | $12.68 | $12.27 | $13.39 | ~1.7R | A_LOW_VOL_TREND | Bot ORB-H breakout long w/ bracket. Notional $4,210 (4.2% exposure). Risk: 332 × $0.41 = $136.12. |
+| 2 | 15:04 | RKLB | LONG | 58 | $82.50 | $80.45 | $86.79 | ~2.1R | A_LOW_VOL_TREND | Bot ORB-H breakout long w/ bracket. Notional $4,785 (4.8% exposure). Risk: 58 × $2.05 = $118.90. |
+
+**Trade 1 outcome (RUN):** EOD close-all at 15:55 ET @ $12.73 (bracket legs auto-canceled). **P&L: +$16.60** (+0.12R).
+**Trade 2 outcome (RKLB):** EOD close-all at 15:55 ET @ $82.27 (bracket legs auto-canceled). **P&L: -$13.35** (-0.11R).
+
+Neither hit stop or target — both closed by EOD risk routine. RUN edged green; RKLB edged red.
+
+| Trade | Symbol | P&L |
+|-------|--------|-----|
+| 1 | RUN | +$16.60 |
+| 2 | RKLB | -$13.35 |
+| **Total** | | **+$3.25** |
+
+Account equity: $99,621.31. 2 of 5 trade slots used. 3 remaining.
+
+=== EOD 2026-04-30 ===
+Equity: $99,621.31 (day P&L: +$3.25, day return: +0.003%)
+Trades: 2 (W:1 / L:1) | Win rate: 50% | P/F: 1.24
+  - Avg win: $16.60 | Avg loss: $13.35
+  - Wins: RUN (+$16.60)
+  - Losses: RKLB (-$13.35)
+Regime: A_LOW_VOL_TREND all session (VIX 18.81, VVIX 96.02) | Kill switch: NO
+Open overnight: NONE (all flat at close, 0 open positions, 0 open orders)
+Notes: First day post-universe-switch (small/mid-cap basket active since 2026-04-29) where bot ORB signals actually fired — both trades were systematic, not discretionary. RUN entry 14:22 ET, RKLB entry 15:04 ET. Neither setup had time to mature: both closed at 15:55 ET EOD close-all rather than hitting bracket stop/target. Net $3.25 — essentially flat (one tick each direction). Account variance vs trade-log sum: matches exactly. No-gap pre-market environment (no qualifying gaps ≥0.5%) did not suppress the bot — afternoon ORB-H breakouts triggered on intraday range expansion. Equity unchanged at risk-floor — far below 2% halt and 3% kill switch.
+
