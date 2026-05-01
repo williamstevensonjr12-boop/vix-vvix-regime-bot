@@ -16,7 +16,7 @@ from __future__ import annotations
 import argparse
 import logging
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import config  # safety check happens at import
@@ -128,7 +128,7 @@ def cmd_paper(debug: bool = False):
     logger.info("Computing pre-market regime...")
     snapshot = mkt_data.get_current_vol_snapshot()
     today = datetime.now(ET).date()
-    start_str = (today.replace(day=max(1, today.day - 90))).isoformat()
+    start_str = (today - timedelta(days=90)).isoformat()
     end_str = today.isoformat()
 
     vol_df = mkt_data.get_vix_history(start_str, end_str)
@@ -167,6 +167,26 @@ def cmd_paper(debug: bool = False):
     )
     logger.info(f"Active universe: {active_universe}")
     logger.info(rotation_summary(regime_state))
+
+    # SPY trend gate (computed once at pre-market)
+    spy_uptrend = True
+    if config.SPY_TREND_FILTER and not spy_s.empty and len(spy_s) >= config.SPY_TREND_MA_PERIOD:
+        spy_ma = float(spy_s.tail(config.SPY_TREND_MA_PERIOD).mean())
+        spy_uptrend = float(spy_s.iloc[-1]) > spy_ma
+        logger.info(f"SPY trend: {'above' if spy_uptrend else 'below'} {config.SPY_TREND_MA_PERIOD}d MA (ma={spy_ma:.2f})")
+
+    # Pre-fetch previous closes for gap alignment (once per day, not per-symbol per loop)
+    prev_closes: dict = {}
+    if config.GAP_ALIGNMENT_REQUIRED:
+        import yfinance as yf
+        for sym in active_universe:
+            try:
+                hist = yf.Ticker(sym).history(period="2d", interval="1d")
+                if len(hist) >= 2:
+                    prev_closes[sym] = float(hist["Close"].iloc[-2])
+            except Exception:
+                pass
+        logger.info(f"Gap alignment: prev_close fetched for {len(prev_closes)}/{len(active_universe)} symbols")
 
     # Daily state
     account = broker.get_account()
@@ -254,6 +274,8 @@ def cmd_paper(debug: bool = False):
                     sentiment_state=sent_state,
                     vix_beta=vix_ranker.get_beta(sym),
                     daily_returns=sym_daily_ret,
+                    prev_close=prev_closes.get(sym),
+                    spy_uptrend=spy_uptrend,
                 )
 
                 if sig is None:
@@ -323,7 +345,7 @@ def cmd_scan(debug: bool = False):
     vix_ranker = VIXBetaRanker()
 
     today = datetime.now(ET).date()
-    start_str = (today.replace(day=max(1, today.day - 90))).isoformat()
+    start_str = (today - timedelta(days=90)).isoformat()
     end_str = today.isoformat()
 
     snapshot = mkt_data.get_current_vol_snapshot()
@@ -380,6 +402,26 @@ def cmd_scan(debug: bool = False):
 
     logger.info(f"Scan start | equity=${daily_start_equity:,.2f} | regime={regime_state.regime.value} | universe={active_universe}")
 
+    # SPY trend gate (computed once — spy_s available from pre-market data fetch)
+    spy_uptrend = True
+    if config.SPY_TREND_FILTER and not spy_s.empty and len(spy_s) >= config.SPY_TREND_MA_PERIOD:
+        spy_ma = float(spy_s.tail(config.SPY_TREND_MA_PERIOD).mean())
+        spy_uptrend = float(spy_s.iloc[-1]) > spy_ma
+        logger.info(f"SPY trend: {'above' if spy_uptrend else 'below'} {config.SPY_TREND_MA_PERIOD}d MA (ma={spy_ma:.2f})")
+
+    # Pre-fetch previous closes for gap alignment (once per day, not per-symbol per loop)
+    prev_closes: dict = {}
+    if config.GAP_ALIGNMENT_REQUIRED:
+        import yfinance as yf
+        for sym in active_universe:
+            try:
+                hist = yf.Ticker(sym).history(period="2d", interval="1d")
+                if len(hist) >= 2:
+                    prev_closes[sym] = float(hist["Close"].iloc[-2])
+            except Exception:
+                pass
+        logger.info(f"Gap alignment: prev_close fetched for {len(prev_closes)}/{len(active_universe)} symbols")
+
     # Wait for ORB to complete
     while datetime.now(ET).strftime("%H:%M") < config.ORB_END_TIME:
         logger.info("Waiting for ORB window to close...")
@@ -432,6 +474,8 @@ def cmd_scan(debug: bool = False):
                     sentiment_state=sent_state,
                     vix_beta=vix_ranker.get_beta(sym),
                     daily_returns=daily_returns.get(sym, pd.Series(dtype=float)),
+                    prev_close=prev_closes.get(sym),
+                    spy_uptrend=spy_uptrend,
                 )
                 if sig is None:
                     continue
@@ -593,6 +637,35 @@ def cmd_research(debug: bool = False):
     except Exception:
         pass
 
+    # ForexFactory economic calendar — high-impact events this week
+    try:
+        url = "https://www.forexfactory.com/ff_calendar_thisweek.xml"
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            root = ET_xml.fromstring(resp.read())
+        ff_items = []
+        for event in root.findall(".//event"):
+            impact = (event.findtext("impact") or "").strip()
+            if impact.lower() != "high":
+                continue
+            title = (event.findtext("title") or "").strip()
+            country = (event.findtext("country") or "").strip()
+            date = (event.findtext("date") or "").strip()
+            time = (event.findtext("time") or "").strip()
+            forecast = (event.findtext("forecast") or "").strip()
+            previous = (event.findtext("previous") or "").strip()
+            if title:
+                line = f"- **{country}** {date} {time} — {title}"
+                if forecast:
+                    line += f" | Forecast: {forecast}"
+                if previous:
+                    line += f" | Prev: {previous}"
+                ff_items.append(line)
+        if ff_items:
+            sections["ForexFactory (High Impact)"] = ff_items
+    except Exception:
+        pass
+
     # Tavily web search — deep current intelligence on key topics
     if config.TAVILY_API_KEY:
         try:
@@ -661,7 +734,7 @@ def cmd_research(debug: bool = False):
             client_ai = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
             prompt = (
                 f"You are a quantitative trading analyst. Today is {today}.\n\n"
-                f"Below is today's market research pulled from Yahoo Finance, Google News, and FinancialJuice.\n\n"
+                f"Below is today's market research pulled from Yahoo Finance, Google News, FinancialJuice, and ForexFactory (high-impact economic events).\n\n"
                 f"{report}\n\n"
                 f"Based on this research, provide a concise trading intelligence brief covering:\n"
                 f"1. **Overall Market Sentiment** (bullish / neutral / bearish) and why\n"
@@ -1003,6 +1076,40 @@ def cmd_backtest(start: str, end: str, equity: float, debug: bool = False):
     logger.info(f"Results saved to {config.BACKTEST_RESULTS_DIR}/")
 
 
+def cmd_vwap_backtest(start: str, end: str, equity: float, debug: bool = False):
+    import pandas as pd
+    import os
+    from backtest import run_vwap_comparison
+
+    setup_logging(debug)
+    print(BANNER)
+    logger.info(f"Mode: VWAP BACKTEST | {start} → {end} | equity=${equity:,.0f}")
+
+    data_client = mkt_data.get_data_client()
+    all_symbols = list(dict.fromkeys(config.ALL_SYMBOLS + ["SPY"]))
+
+    logger.info(f"Downloading bars for {len(all_symbols)} symbols...")
+    bars_by_symbol = mkt_data.get_multiple_symbols_bars(data_client, all_symbols, start, end)
+
+    logger.info("Downloading volatility data...")
+    vol_df = mkt_data.get_vix_history(start, end)
+    spy_daily = mkt_data.get_spy_daily(start, end)
+    pc_series = mkt_data.get_put_call_history(start, end)
+    daily_returns = {
+        sym: mkt_data.get_symbol_daily_returns(data_client, sym, start, end)
+        for sym in config.ALL_SYMBOLS
+    }
+
+    run_vwap_comparison(
+        bars_by_symbol=bars_by_symbol,
+        vol_df=vol_df,
+        spy_daily=spy_daily,
+        pc_series=pc_series,
+        daily_returns_by_sym=daily_returns,
+        initial_equity=equity,
+    )
+
+
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
 def main():
@@ -1023,6 +1130,11 @@ def main():
     bt.add_argument("--end", required=True, metavar="YYYY-MM-DD")
     bt.add_argument("--equity", type=float, default=config.INITIAL_EQUITY)
 
+    vt = sub.add_parser("vwap-backtest", help="VWAP strategy comparison backtest")
+    vt.add_argument("--start", required=True, metavar="YYYY-MM-DD")
+    vt.add_argument("--end", required=True, metavar="YYYY-MM-DD")
+    vt.add_argument("--equity", type=float, default=config.INITIAL_EQUITY)
+
     args = parser.parse_args()
 
     if args.mode == "paper":
@@ -1041,6 +1153,8 @@ def main():
         cmd_regime_status(args.debug)
     elif args.mode == "backtest":
         cmd_backtest(args.start, args.end, args.equity, args.debug)
+    elif args.mode == "vwap-backtest":
+        cmd_vwap_backtest(args.start, args.end, args.equity, args.debug)
 
 
 if __name__ == "__main__":
