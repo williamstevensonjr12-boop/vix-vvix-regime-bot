@@ -174,3 +174,10 @@ Regime: A_LOW_VOL_TREND all session (VIX 18.81, VVIX 96.02) | Kill switch: NO
 Open overnight: NONE (all flat at close, 0 open positions, 0 open orders)
 Notes: First day post-universe-switch (small/mid-cap basket active since 2026-04-29) where bot ORB signals actually fired — both trades were systematic, not discretionary. RUN entry 14:22 ET, RKLB entry 15:04 ET. Neither setup had time to mature: both closed at 15:55 ET EOD close-all rather than hitting bracket stop/target. Net $3.25 — essentially flat (one tick each direction). Account variance vs trade-log sum: matches exactly. No-gap pre-market environment (no qualifying gaps ≥0.5%) did not suppress the bot — afternoon ORB-H breakouts triggered on intraday range expansion. Equity unchanged at risk-floor — far below 2% halt and 3% kill switch.
 
+
+=== EOD 2026-05-01 ===
+Equity: $99,621.24 (day P&L: -$0.07, day return: 0.000%)
+Trades: 0 (W:0 / L:0) | Win rate: N/A | P/F: N/A
+Regime: A_LOW_VOL_TREND all session (VIX 16.77, VVIX ~93.7) | Kill switch: NO
+Open overnight: NONE (0 positions, 0 open orders, 0 trades)
+Notes: No bot entries despite a heavy gap-up tape (16 universe symbols ≥0.8% gap; ROKU +9.3%, RIOT +4.9%, MSTR +2.9%, FSLR +2.5%, RKLB +2.5%). Bot ran the full session but no ORB-H breakouts cleared the volume + VWAP + ATR gates — gap-and-go open faded into chop, stuck in opening ranges. No discretionary overrides taken. Equity flat at $99,621.24 (-$0.07 vs prior close, rounding/fees). May best month since 2020 backdrop, S&P closed at record highs 04-30; tape strong but bot's intraday breakout setup didn't trigger. Loss far below 2% halt and 3% kill switch. Day trade count 7 on rolling 5-day window (PDT-tagged but well within paper-account margin).
