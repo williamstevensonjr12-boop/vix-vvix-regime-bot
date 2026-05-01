@@ -12,7 +12,12 @@ Stocks only — no options, ever. Paper trading until edge is proven.
 ## Regime Rules
 
 ### Regime A — Low Vol Trend (VIX <20, VVIX <100, SPY above 50d MA)
-- Trade momentum universe: SPY, QQQ, AAPL, MSFT, NVDA, AMZN, META, TSLA, AMD
+- Trade momentum universe (30-ticker small/mid-cap basket, switched 2026-04-29 after 4-period backtest validation):
+  SOFI, PLTR, RIOT, UPST, HOOD, DKNG, AFRM, PLUG, RKLB, IONQ, RIVN, LCID, NIO,
+  ENPH, RUN, FSLR, MRNA, CRSP, BEAM, TDOC, SMCI, AI, BBAI, MARA, COIN, MSTR,
+  ROKU, OPEN, ASTS, ACHR
+- Mega-cap basket (SPY, QQQ, AAPL, MSFT, NVDA, AMZN, META, TSLA, AMD) is preserved in config as MEGA_CAP_UNIVERSE — not active
+- Source of truth = `config.py` MOMENTUM_UNIVERSE; this doc must mirror it
 - Full position sizing (1.0× base)
 - ORB + VWAP breakouts with volume confirmation
 
