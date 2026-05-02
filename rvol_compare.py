@@ -13,6 +13,7 @@ Output: a single side-by-side table.
 Usage:  python rvol_compare.py
 """
 from __future__ import annotations
+import argparse
 import logging
 import os
 import sys
@@ -22,7 +23,7 @@ import config
 import data as mkt_data
 from backtest import BacktestConfig, BacktestEngine, StrategyMode
 
-WINDOWS = [
+ALL_WINDOWS = [
     ("2023H1", "2023-01-03", "2023-06-30"),
     ("2023H2", "2023-07-03", "2023-12-29"),
     ("2024H1", "2024-01-02", "2024-06-28"),
@@ -72,11 +73,32 @@ def run_one(mode, rvol_on, data_tuple, equity):
         trades_file="",
     )
     engine = BacktestEngine(bt_cfg)
-    metrics = engine.run(bars, vol, spy, pc, dr)
-    return metrics or {}
+    metrics = engine.run(bars, vol, spy, pc, dr) or {}
+    # Engine returns total_pnl + max_drawdown_pnl (not pre-computed pct).
+    # Compute return % from total_pnl / initial_equity for consistency with
+    # how other backtest scripts (limit_order_backtest, slippage_stress) report.
+    metrics["return_pct"] = (metrics.get("total_pnl", 0) / equity * 100) if equity > 0 else 0.0
+    return metrics
 
 
 def main():
+    parser = argparse.ArgumentParser(description="RVOL legacy-vs-time-of-day backtest comparison")
+    parser.add_argument(
+        "--windows",
+        nargs="+",
+        choices=[w[0] for w in ALL_WINDOWS],
+        default=[w[0] for w in ALL_WINDOWS],
+        help="Subset of windows to run (default: all 4). Use a single window like '2023H1' for a fast sanity check.",
+    )
+    parser.add_argument(
+        "--out",
+        default=OUT_LOG,
+        help="Output log path (default: backtest_results/rvol_compare.log)",
+    )
+    args = parser.parse_args()
+
+    selected = [w for w in ALL_WINDOWS if w[0] in args.windows]
+
     # Suppress noisy backtest internals — we only want the summary
     logging.getLogger().setLevel(logging.WARNING)
     for noisy in ("backtest", "regime", "vix_factor", "vvix_filter", "data", "calendar_filter",
@@ -90,7 +112,7 @@ def main():
     os.makedirs(config.BACKTEST_RESULTS_DIR, exist_ok=True)
 
     # Open the log file in line-buffered mode, mirror to stdout
-    logf = open(OUT_LOG, "w", buffering=1)
+    logf = open(args.out, "w", buffering=1)
     def out(msg=""):
         print(msg)
         logf.write(msg + "\n")
@@ -98,7 +120,7 @@ def main():
     started = datetime.now()
     out("=" * 100)
     out(f"RVOL COMPARE — same-time-of-day median vs legacy rolling-20 avg")
-    out(f"  windows : {[w[0] for w in WINDOWS]}")
+    out(f"  windows : {[w[0] for w in selected]}")
     out(f"  modes   : {[m.value for m in MODES]}")
     out(f"  slippage: {SLIPPAGE * 100:.2f}% per side")
     out(f"  equity  : ${equity:,.0f}")
@@ -108,7 +130,7 @@ def main():
     # results[(mode, window_label, rvol_on)] = metrics dict
     results: dict = {}
 
-    for label, start, end in WINDOWS:
+    for label, start, end in selected:
         out(f"\n── Window {label}  ({start} → {end}) ─────────────────────────────")
         out("  fetching data...")
         data_tuple = fetch_window(start, end)
@@ -121,10 +143,10 @@ def main():
                 out(
                     f"    → trades={m.get('total_trades', 0):4d}  "
                     f"win_rate={m.get('win_rate', 0):.1%}  "
-                    f"return={m.get('total_return_pct', 0):+.2f}%  "
+                    f"return={m.get('return_pct', 0):+.2f}%  "
                     f"Sharpe={m.get('sharpe', 0):+.2f}  "
                     f"PF={m.get('profit_factor', 0):.2f}  "
-                    f"maxDD=${m.get('max_drawdown', 0):,.0f}"
+                    f"maxDD=${m.get('max_drawdown_pnl', 0):,.0f}"
                 )
 
     # ── Summary table ────────────────────────────────────────────────────────
@@ -144,16 +166,16 @@ def main():
                     f"{label:<8} {tag:<10} "
                     f"{m.get('total_trades', 0):>7d} "
                     f"{m.get('win_rate', 0):>6.1%} "
-                    f"{m.get('total_return_pct', 0):>+8.2f}% "
+                    f"{m.get('return_pct', 0):>+8.2f}% "
                     f"{m.get('sharpe', 0):>+7.2f} "
                     f"{m.get('profit_factor', 0):>6.2f} "
-                    f"${m.get('max_drawdown', 0):>+9,.0f}"
+                    f"${m.get('max_drawdown_pnl', 0):>+9,.0f}"
                 )
         out("-" * 80)
-        # 24-month aggregate (sum returns is approximate — these are per-window % of starting equity)
-        agg_off = sum(results.get((mode, w[0], False), {}).get("total_return_pct", 0) for w in WINDOWS)
-        agg_on = sum(results.get((mode, w[0], True), {}).get("total_return_pct", 0) for w in WINDOWS)
-        out(f"  24-mo sum (approx): OFF {agg_off:+.2f}%   ON {agg_on:+.2f}%   Δ {agg_on - agg_off:+.2f}pp")
+        # Aggregate over selected windows (sum of per-window returns is approximate)
+        agg_off = sum(results.get((mode, w[0], False), {}).get("return_pct", 0) for w in selected)
+        agg_on = sum(results.get((mode, w[0], True), {}).get("return_pct", 0) for w in selected)
+        out(f"  Σ over {len(selected)} window(s): OFF {agg_off:+.2f}%   ON {agg_on:+.2f}%   Δ {agg_on - agg_off:+.2f}pp")
 
     finished = datetime.now()
     out("\n" + "=" * 100)
