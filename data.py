@@ -23,6 +23,25 @@ ET = ZoneInfo(config.TIMEZONE)
 _data_client: StockHistoricalDataClient | None = None
 
 
+class _SilenceYFinance:
+    """Context manager that suppresses yfinance's noisy ERROR-level output.
+
+    yfinance emits ERROR logs for benign cases (e.g., a same-day request before
+    a daily bar exists) which spammed our log on every restart. Callers handle
+    empty DataFrames already, so the ERROR is misleading.
+    """
+
+    def __enter__(self):
+        self._yf_log = logging.getLogger("yfinance")
+        self._prev_level = self._yf_log.level
+        self._yf_log.setLevel(logging.CRITICAL)
+        return self
+
+    def __exit__(self, *exc):
+        self._yf_log.setLevel(self._prev_level)
+        return False
+
+
 def get_data_client() -> StockHistoricalDataClient:
     global _data_client
     if _data_client is None:
@@ -116,19 +135,20 @@ def get_vix_history(start_date: str, end_date: str) -> pd.DataFrame:
     """Download VIX, VVIX, VIX3M daily closes into a combined DataFrame."""
     ticker_map = {"vix": "^VIX", "vvix": "^VVIX", "vix3m": "^VIX3M"}
     series = {}
-    for col, ticker in ticker_map.items():
-        try:
-            raw = yf.download(ticker, start=start_date, end=end_date, progress=False, auto_adjust=True)
-            if not raw.empty:
-                close = raw["Close"]
-                if isinstance(close, pd.DataFrame):
-                    close = close.iloc[:, 0]
-                series[col] = close.rename(col)
-                logger.info(f"  {ticker}: {len(raw)} daily bars")
-            else:
-                logger.warning(f"  {ticker}: no data returned")
-        except Exception as e:
-            logger.warning(f"  {ticker} fetch failed: {e}")
+    with _SilenceYFinance():
+        for col, ticker in ticker_map.items():
+            try:
+                raw = yf.download(ticker, start=start_date, end=end_date, progress=False, auto_adjust=True)
+                if not raw.empty:
+                    close = raw["Close"]
+                    if isinstance(close, pd.DataFrame):
+                        close = close.iloc[:, 0]
+                    series[col] = close.rename(col)
+                    logger.info(f"  {ticker}: {len(raw)} daily bars")
+                else:
+                    logger.warning(f"  {ticker}: no data returned")
+            except Exception as e:
+                logger.warning(f"  {ticker} fetch failed: {e}")
 
     if not series:
         return pd.DataFrame()
@@ -140,21 +160,17 @@ def get_vix_history(start_date: str, end_date: str) -> pd.DataFrame:
 
 def get_put_call_history(start_date: str, end_date: str) -> pd.Series:
     """CBOE Equity Put/Call ratio. Returns daily series. Falls back to empty (0.9 proxy)."""
-    yf_log = logging.getLogger("yfinance")
-    prev_level = yf_log.level
-    yf_log.setLevel(logging.CRITICAL)  # suppress known delisted-ticker noise
-    try:
-        raw = yf.download("^PCALL", start=start_date, end=end_date, progress=False, auto_adjust=True)
-        if not raw.empty:
-            s = raw["Close"]
-            if isinstance(s, pd.DataFrame):
-                s = s.iloc[:, 0]
-            s = s.rename("put_call_ratio")
-            return _yf_to_et(s.to_frame()).iloc[:, 0].sort_index().ffill()
-    except Exception as e:
-        logger.debug(f"^PCALL unavailable: {e}")
-    finally:
-        yf_log.setLevel(prev_level)
+    with _SilenceYFinance():
+        try:
+            raw = yf.download("^PCALL", start=start_date, end=end_date, progress=False, auto_adjust=True)
+            if not raw.empty:
+                s = raw["Close"]
+                if isinstance(s, pd.DataFrame):
+                    s = s.iloc[:, 0]
+                s = s.rename("put_call_ratio")
+                return _yf_to_et(s.to_frame()).iloc[:, 0].sort_index().ffill()
+        except Exception as e:
+            logger.debug(f"^PCALL unavailable: {e}")
 
     # KNOWN ISSUE 2026-04-30: yfinance dropped all CBOE P/C tickers (^PCALL, ^CPC,
     # ^CPCE etc. all return empty). The sentiment filter is silently inert, using
@@ -180,15 +196,16 @@ def get_iwm_daily(start_date: str, end_date: str) -> pd.DataFrame:
 
 
 def _get_index_daily(symbol: str, start_date: str, end_date: str) -> pd.DataFrame:
-    try:
-        raw = yf.download(symbol, start=start_date, end=end_date, progress=False, auto_adjust=True)
-        if not raw.empty:
-            if isinstance(raw.columns, pd.MultiIndex):
-                raw.columns = raw.columns.get_level_values(0)
-            raw.columns = [c.lower() for c in raw.columns]
-            return _yf_to_et(raw).sort_index()
-    except Exception as e:
-        logger.error(f"{symbol} daily fetch failed: {e}")
+    with _SilenceYFinance():
+        try:
+            raw = yf.download(symbol, start=start_date, end=end_date, progress=False, auto_adjust=True)
+            if not raw.empty:
+                if isinstance(raw.columns, pd.MultiIndex):
+                    raw.columns = raw.columns.get_level_values(0)
+                raw.columns = [c.lower() for c in raw.columns]
+                return _yf_to_et(raw).sort_index()
+        except Exception as e:
+            logger.error(f"{symbol} daily fetch failed: {e}")
     return pd.DataFrame()
 
 
@@ -196,10 +213,7 @@ def get_current_vol_snapshot() -> dict:
     """Delayed VIX/VVIX/VIX3M snapshot for live paper trading."""
     defaults = {"vix": 20.0, "vvix": 100.0, "vix3m": 20.0, "put_call_ratio": 0.9}
     ticker_map = {"vix": "^VIX", "vvix": "^VVIX", "vix3m": "^VIX3M"}
-    yf_log = logging.getLogger("yfinance")
-    prev_level = yf_log.level
-    yf_log.setLevel(logging.CRITICAL)
-    try:
+    with _SilenceYFinance():
         for key, ticker in ticker_map.items():
             try:
                 t = yf.Ticker(ticker)
@@ -208,8 +222,6 @@ def get_current_vol_snapshot() -> dict:
                     defaults[key] = float(hist["Close"].dropna().iloc[-1])
             except Exception as e:
                 logger.debug(f"Could not update {ticker}: {e}")
-    finally:
-        yf_log.setLevel(prev_level)
     return defaults
 
 
