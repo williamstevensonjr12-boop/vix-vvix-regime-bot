@@ -163,12 +163,23 @@ def cmd_paper(debug: bool = False):
     vix_ranker.fit(daily_returns, vix_s)
     logger.info(vix_ranker.summary_table().to_string(index=False))
 
-    # Determine active universe
-    active_universe = vix_ranker.rank(
-        regime_state.active_universe,
-        regime_mode="defensive" if regime_state.regime.value.startswith("C") else "momentum",
+    # Determine active universe.
+    # When config.ENABLE_VIX_BETA_FILTER is False (audit 2026-05-02), bypass
+    # the noisy hard-cut and scan the full regime universe. Defensive (C)
+    # behavior is preserved by regime selection; the per-name beta is still
+    # logged for context.
+    if config.ENABLE_VIX_BETA_FILTER:
+        active_universe = vix_ranker.rank(
+            regime_state.active_universe,
+            regime_mode="defensive" if regime_state.regime.value.startswith("C") else "momentum",
+        )
+    else:
+        active_universe = list(regime_state.active_universe)
+    logger.info(
+        f"Active universe ({len(active_universe)} symbols, "
+        f"vix-beta filter={'ON' if config.ENABLE_VIX_BETA_FILTER else 'OFF'}): "
+        f"{active_universe}"
     )
-    logger.info(f"Active universe: {active_universe}")
     logger.info(rotation_summary(regime_state))
 
     # Short universe (Regime B/C only, ranked by highest VIX beta)

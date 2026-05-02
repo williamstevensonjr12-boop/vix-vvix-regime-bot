@@ -102,15 +102,19 @@ got prioritized.
 
 ## VIX Beta Factor
 Rank symbols daily by rolling 60-day VIX beta.
-- Regime A: prefer **most negative** VIX beta within the universe (highest fear-resilience score)
-- Regime B/C: prefer most negative VIX beta (defensive names)
-Trade only top 50% of universe by regime-appropriate ranking.
+- LONG (Regime A): currently ON. Gated behind `ENABLE_VIX_BETA_FILTER=True` in config.
+  Keeps top 50% by fear_resilience = −beta. **Under audit** — Phase 5 will A/B drop vs keep.
+- SHORT (Regime B/C): per-symbol `SHORT_VIX_BETA_MIN` gate active in `strategy.py`
+- Per-symbol beta is computed and logged with each entry signal for context
 
 *Open audit question (2026-05-02):* the Regime A universe is explicitly **high-beta momentum**
 names, but this filter then picks the most **fear-resilient** (least-momentum) names within it —
-the two filters work against each other. Phase 2/3 will A/B test (a) inverting the filter to
-prefer highest VIX-beta in Regime A, or (b) moving the rank from entry gate to position-size
-weighting. Don't change the logic until tested.
+the two filters appear to work against each other. Worse, the realized betas in the live
+universe are all near-zero (−0.02 to +0.001) and statistically indistinguishable. The
+suspicion is that the cut-line happens to follow market-cap accidentally rather than any
+real signal. Flag added (`ENABLE_VIX_BETA_FILTER`) so Phase 5 can A/B test dropping the
+filter against current behavior. **Default stays ON until backtest evidence supports a
+change.** Don't touch live behavior on qualitative argument alone.
 
 ## Sector Rotation Post-Spike
 After VIX spike (>20pt rise in 3 days), rotate toward:
