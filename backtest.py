@@ -34,6 +34,21 @@ logger = logging.getLogger(__name__)
 ET = ZoneInfo(config.TIMEZONE)
 
 
+def _avg_volume(bars):
+    """Backtest-side dispatch: route volume baseline by config flag.
+
+    Phase 2 audit (2026-05-02). When USE_TIME_OF_DAY_RVOL is False (default),
+    behavior is identical to the legacy ind.calculate_avg_volume call site.
+    """
+    if getattr(config, "USE_TIME_OF_DAY_RVOL", False):
+        return ind.calculate_avg_volume_same_time_of_day(
+            bars,
+            lookback_days=getattr(config, "TIME_OF_DAY_RVOL_LOOKBACK_DAYS", 14),
+            min_obs=getattr(config, "TIME_OF_DAY_RVOL_MIN_OBS", 5),
+        )
+    return ind.calculate_avg_volume(bars)
+
+
 class StrategyMode(Enum):
     PLAIN_ORB = "plain_orb"
     ORB_VIX_BETA = "orb_vix_beta"
@@ -502,7 +517,7 @@ class BacktestEngine:
                     continue
 
                 vwap_s = ind.calculate_vwap(bars_so_far)
-                avg_vol_s = ind.calculate_avg_volume(bars_so_far)
+                avg_vol_s = _avg_volume(bars_so_far)
                 atr_s = ind.calculate_atr(bars_so_far)
                 if vwap_s.empty or avg_vol_s.empty or atr_s.empty:
                     continue
@@ -669,7 +684,7 @@ class BacktestEngine:
                     if opening_range is None:
                         continue
                     vwap_s = ind.calculate_vwap(bars_so_far)
-                    avg_vol_s = ind.calculate_avg_volume(bars_so_far)
+                    avg_vol_s = _avg_volume(bars_so_far)
                     atr_s = ind.calculate_atr(bars_so_far)
                     if vwap_s.empty or avg_vol_s.empty or atr_s.empty:
                         continue

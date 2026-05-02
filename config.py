@@ -180,6 +180,20 @@ VOLUME_MULTIPLIER: float = 2.0      # 2.0x — tightened from 1.5x to filter sma
 MIN_ORB_RANGE_PCT: float = 0.003   # skip flat opens (ORB range < 0.3% of price)
 VWAP_VOL_MULTIPLIER: float = 2.0   # volume threshold for VWAP reclaim entries
 
+# A/B switch for the volume-baseline metric. Phase 2 of the 2026-05-02 audit.
+# False (default) = legacy rolling-20-bar simple average. The 20-bar baseline
+#   averages over recent intraday bars regardless of time-of-day, mixing
+#   high-volume open bars with lunch-chop bars. Effective threshold ~1.2-1.4×
+#   vs same-time-of-day, much weaker than VOLUME_MULTIPLIER=2.0 implies.
+# True = same-time-of-day median over prior 14 days (matches Zarattini et al.
+#   and other published ORB literature). Stricter and more meaningful gate.
+# Switch to True only after the Phase 2 backtest comparison shows it doesn't
+# materially degrade total return / Sharpe, AND after re-tuning VOLUME_MULTIPLIER
+# on the new baseline (likely needs to drop to 1.5-2.0× on this metric).
+USE_TIME_OF_DAY_RVOL: bool = False
+TIME_OF_DAY_RVOL_LOOKBACK_DAYS: int = 14
+TIME_OF_DAY_RVOL_MIN_OBS: int = 5
+
 # ── Optional filters ──────────────────────────────────────────────────────────
 ENABLE_BREADTH_FILTER: bool = False
 ENABLE_ATR_EXPANSION_FILTER: bool = True
