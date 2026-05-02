@@ -85,6 +85,8 @@ if [[ -z "$NTFY_TOPIC" ]]; then
 fi
 
 if curl -fsS \
+    --connect-timeout 5 \
+    --max-time 10 \
     -H "Title: ${TITLE}" \
     -H "Priority: ${PRIORITY}" \
     -H "Tags: ${TAGS}" \

@@ -16,6 +16,7 @@ from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 
 import config
+from net_utils import install_default_timeout, with_retry
 
 logger = logging.getLogger(__name__)
 ET = ZoneInfo(config.TIMEZONE)
@@ -49,6 +50,7 @@ def get_data_client() -> StockHistoricalDataClient:
             api_key=config.ALPACA_API_KEY,
             secret_key=config.ALPACA_SECRET_KEY,
         )
+        install_default_timeout(_data_client)
     return _data_client
 
 
@@ -69,7 +71,7 @@ def _fetch_alpaca_bars(
         feed="iex",
     )
     try:
-        result = client.get_stock_bars(request)
+        result = with_retry(f"get_stock_bars[{symbol}]", client.get_stock_bars, request)
         df = result.df
     except Exception as e:
         logger.error(f"Alpaca fetch error {symbol}: {e}")

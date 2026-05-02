@@ -4,12 +4,10 @@ paper=True is hardcoded. Live trading is blocked at both config and constructor 
 """
 from __future__ import annotations
 import logging
-import random
 from zoneinfo import ZoneInfo
 
 import time as _time
 
-import requests
 from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import (
     MarketOrderRequest,
@@ -25,57 +23,10 @@ from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockLatestQuoteRequest
 
 import config
+from net_utils import install_default_timeout, with_retry
 
 logger = logging.getLogger(__name__)
 ET = ZoneInfo(config.TIMEZONE)
-
-# Network resilience defaults. The Alpaca SDK leaves request timeout=None,
-# so a hung TCP connection blocks indefinitely until the OS gives up — that
-# was the source of the constant ReadTimeout crashes and the silent hangs
-# the watchdog kept SIGTERM'ing. Cap every request and retry transient errors.
-_REQUEST_TIMEOUT_SEC = (10.0, 20.0)  # (connect, read)
-_MAX_RETRIES = 4
-_BASE_BACKOFF_SEC = 1.0
-_RETRYABLE_EXC = (
-    requests.exceptions.ConnectionError,
-    requests.exceptions.Timeout,
-    requests.exceptions.ChunkedEncodingError,
-)
-
-
-def _install_default_timeout(client) -> None:
-    """Patch the SDK's underlying requests.Session so every call has a timeout."""
-    session = getattr(client, "_session", None)
-    if session is None or getattr(session, "_alpaca_timeout_patched", False):
-        return
-    original_request = session.request
-
-    def request_with_timeout(method, url, **kwargs):
-        kwargs.setdefault("timeout", _REQUEST_TIMEOUT_SEC)
-        return original_request(method, url, **kwargs)
-
-    session.request = request_with_timeout
-    session._alpaca_timeout_patched = True
-
-
-def _retry(label: str, fn, *args, **kwargs):
-    """Call fn with retries on transient network errors. Re-raises on final failure."""
-    attempt = 0
-    while True:
-        try:
-            return fn(*args, **kwargs)
-        except _RETRYABLE_EXC as e:
-            attempt += 1
-            if attempt > _MAX_RETRIES:
-                logger.error(f"{label} failed after {_MAX_RETRIES} retries: {e}")
-                raise
-            sleep_for = _BASE_BACKOFF_SEC * (2 ** (attempt - 1))
-            sleep_for *= 0.5 + random.random()  # jitter
-            logger.warning(
-                f"{label} transient error (attempt {attempt}/{_MAX_RETRIES}): "
-                f"{type(e).__name__}: {e}. Retrying in {sleep_for:.1f}s."
-            )
-            _time.sleep(sleep_for)
 
 
 class AlpacaBroker:
@@ -89,10 +40,10 @@ class AlpacaBroker:
             secret_key=config.ALPACA_SECRET_KEY,
             paper=True,
         )
-        _install_default_timeout(self.client)
+        install_default_timeout(self.client)
         # Lazy-init data client for live quotes (limit-order entries need this)
         self._data_client = None
-        acct = _retry("get_account (init)", self.client.get_account)
+        acct = with_retry("get_account (init)", self.client.get_account)
         logger.info(
             f"Alpaca PAPER account connected | "
             f"equity=${float(acct.equity):,.2f} | "
@@ -102,26 +53,26 @@ class AlpacaBroker:
     # ── Account ──────────────────────────────────────────────────────────────
 
     def get_account(self):
-        return _retry("get_account", self.client.get_account)
+        return with_retry("get_account", self.client.get_account)
 
     def get_equity(self) -> float:
-        return float(_retry("get_account", self.client.get_account).equity)
+        return float(with_retry("get_account", self.client.get_account).equity)
 
     def get_buying_power(self) -> float:
-        return float(_retry("get_account", self.client.get_account).buying_power)
+        return float(with_retry("get_account", self.client.get_account).buying_power)
 
     # ── Clock ─────────────────────────────────────────────────────────────────
 
     def is_market_open(self) -> bool:
-        return _retry("get_clock", self.client.get_clock).is_open
+        return with_retry("get_clock", self.client.get_clock).is_open
 
     def get_next_open(self):
-        return _retry("get_clock", self.client.get_clock).next_open
+        return with_retry("get_clock", self.client.get_clock).next_open
 
     # ── Positions ─────────────────────────────────────────────────────────────
 
     def get_positions(self) -> dict:
-        positions = _retry("get_all_positions", self.client.get_all_positions)
+        positions = with_retry("get_all_positions", self.client.get_all_positions)
         return {
             pos.symbol: {
                 "symbol": pos.symbol,
@@ -136,7 +87,7 @@ class AlpacaBroker:
     # ── Orders ────────────────────────────────────────────────────────────────
 
     def get_open_orders(self) -> list:
-        return _retry(
+        return with_retry(
             "get_orders",
             self.client.get_orders,
             filter=GetOrdersRequest(status=QueryOrderStatus.OPEN),
@@ -206,6 +157,7 @@ class AlpacaBroker:
                 api_key=config.ALPACA_API_KEY,
                 secret_key=config.ALPACA_SECRET_KEY,
             )
+            install_default_timeout(self._data_client)
         return self._data_client
 
     def get_latest_quote(self, symbol: str) -> dict | None:
@@ -220,7 +172,7 @@ class AlpacaBroker:
             from datetime import datetime, timezone
             client = self._get_data_client()
             req = StockLatestQuoteRequest(symbol_or_symbols=symbol)
-            quotes = client.get_stock_latest_quote(req)
+            quotes = with_retry("get_stock_latest_quote", client.get_stock_latest_quote, req)
             q = quotes.get(symbol) if isinstance(quotes, dict) else getattr(quotes, symbol, None)
             if q is None:
                 return None
