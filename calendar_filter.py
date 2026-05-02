@@ -1,11 +1,28 @@
 """
 calendar_filter.py — High-impact economic event filter.
 
-Blocks ORB entries on FOMC, CPI, and NFP days. These events create
-explosive fake breakouts that stop out ORB positions immediately.
+Blocks ORB entries on FOMC, CPI, NFP, GDP, retail-sales, ISM days. These events
+create explosive fake breakouts that stop out ORB positions immediately.
+
+Date source (preferred): ForexFactory weekly JSON feed via calendar_feed.py.
+Date source (fallback): hardcoded `_HIGH_IMPACT_DATES` below — used only when
+the FF feed is unreachable. The hardcoded list is left in place as a safety
+net so the filter never goes silent.
 """
 from __future__ import annotations
+import logging
 from datetime import date
+
+logger = logging.getLogger(__name__)
+
+# Imported lazily so calendar_filter remains usable even if calendar_feed
+# itself raises on import (e.g., during partial-deploy states).
+try:
+    from calendar_feed import high_impact_dates_set as _ff_dates
+    from calendar_feed import event_name_for_date as _ff_event_name
+except Exception:  # pragma: no cover
+    _ff_dates = None
+    _ff_event_name = None
 
 # FOMC decision days, CPI release days, NFP release days
 # These are the three highest-impact scheduled macro events.
@@ -59,11 +76,29 @@ _HIGH_IMPACT_DATES: set[str] = {
 
 
 def is_high_impact_day(trading_day) -> bool:
-    """Return True if trading_day is a known high-impact macro event day."""
+    """
+    Return True if trading_day is a known high-impact macro event day.
+
+    Consults ForexFactory feed first; falls back to hardcoded list if the
+    feed is unreachable or doesn't have the date in scope.
+    """
     if isinstance(trading_day, date):
         key = trading_day.isoformat()
     else:
         key = str(trading_day)[:10]
+
+    # Try the live feed first (covers any FOMC/CPI/NFP/GDP/ISM the hardcoded
+    # list might be missing or have wrong).
+    if _ff_dates is not None:
+        try:
+            ff_set = _ff_dates()
+            if key in ff_set:
+                return True
+        except Exception as e:
+            logger.debug(f"FF feed lookup failed, falling back to static list: {e}")
+
+    # Fallback to hardcoded list. The FF feed only carries the current week,
+    # so backtest dates and dates beyond the current week always come from here.
     return key in _HIGH_IMPACT_DATES
 
 
@@ -107,11 +142,32 @@ class EarningsCalendar:
 
 
 def event_name(trading_day) -> str:
-    """Return the event type for a given day, or empty string."""
+    """
+    Return the event type for a given BLOCKED day, or empty string.
+
+    This intentionally only returns labels for days where is_high_impact_day()
+    is True (FOMC/CPI/NFP). For broader situational awareness (GDP, ISM, retail,
+    etc.) use calendar_feed.events_for_date() directly — those events surface
+    in the brief/dashboard but don't block entries.
+    """
     if isinstance(trading_day, date):
         key = trading_day.isoformat()
     else:
         key = str(trading_day)[:10]
+
+    if not is_high_impact_day(trading_day):
+        return ""
+
+    # If the day is blocked, prefer FF for a specific label (e.g. distinguishes
+    # "FOMC Statement" from "Federal Funds Rate" within the same FOMC bucket).
+    if _ff_event_name is not None:
+        try:
+            ff_name = _ff_event_name(trading_day if isinstance(trading_day, date) else key)
+            if ff_name:
+                return ff_name
+        except Exception:
+            pass
+
     if key not in _HIGH_IMPACT_DATES:
         return ""
     # Identify type from month-day pattern for labeling

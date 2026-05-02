@@ -5,7 +5,7 @@ Your edge is volatility regime detection. When in doubt, HOLD — patience beats
 You are running the PRE-MARKET RESEARCH workflow.
 Resolve today's date: DATE=$(date +%Y-%m-%d)
 
-REPO: /Users/prestonteel/Desktop/Cowork Homebase/02 Projects/Trading Bot Project /repo
+REPO: /Users/prestonteel/Desktop/Cowork Homebase/02 Projects/Trading Bot Project/repo
 cd "$REPO"
 
 ENVIRONMENT SETUP — run this first:

@@ -1,0 +1,129 @@
+{
+  // Quick-run tasks. Trigger via cmd+shift+P → "Tasks: Run Task" → pick one.
+  // Or assign keyboard shortcuts in keybindings.json.
+  // Tasks run in the integrated terminal — no debugger attached (use launch.json for that).
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Health: full status",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/bin/python3",
+      "args": ["${workspaceFolder}/scripts/health.py"],
+      "options": {"cwd": "${workspaceFolder}"},
+      "problemMatcher": [],
+      "presentation": {"reveal": "always", "panel": "dedicated", "clear": true}
+    },
+    {
+      "label": "Tests: run all (pytest)",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/bin/python3",
+      "args": ["-m", "pytest", "tests/", "-v"],
+      "options": {"cwd": "${workspaceFolder}"},
+      "group": {"kind": "test", "isDefault": true},
+      "problemMatcher": [],
+      "presentation": {"reveal": "always", "panel": "dedicated", "clear": true}
+    },
+    {
+      "label": "Bot: start (paper)",
+      "type": "shell",
+      "command": "bash",
+      "args": ["${workspaceFolder}/run_bot.sh"],
+      "options": {"cwd": "${workspaceFolder}"},
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {"reveal": "always", "panel": "dedicated"}
+    },
+    {
+      "label": "Bot: stop (kill all)",
+      "type": "shell",
+      "command": "pkill",
+      "args": ["-TERM", "-f", "main.py paper"],
+      "problemMatcher": [],
+      "presentation": {"reveal": "silent", "panel": "shared"}
+    },
+    {
+      "label": "Bot: tail log (live)",
+      "type": "shell",
+      "command": "bash",
+      "args": ["-c", "ls -t /tmp/bot_output_*.log | head -1 | xargs tail -f"],
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {"reveal": "always", "panel": "dedicated"}
+    },
+    {
+      "label": "Regime Status",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/bin/python3",
+      "args": ["${workspaceFolder}/main.py", "regime-status"],
+      "options": {"cwd": "${workspaceFolder}"},
+      "problemMatcher": [],
+      "presentation": {"reveal": "always", "panel": "dedicated", "clear": true}
+    },
+    {
+      "label": "Dashboard: regenerate + open",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "${workspaceFolder}/.venv/bin/python3 ${workspaceFolder}/scripts/generate_dashboard.py && open ${workspaceFolder}/dashboard.html"
+      ],
+      "problemMatcher": [],
+      "presentation": {"reveal": "always", "panel": "dedicated", "clear": true}
+    },
+    {
+      "label": "Pre-market Research (run now)",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/bin/python3",
+      "args": ["${workspaceFolder}/research.py"],
+      "options": {"cwd": "${workspaceFolder}"},
+      "problemMatcher": [],
+      "presentation": {"reveal": "always", "panel": "dedicated", "clear": true}
+    },
+    {
+      "label": "Slippage: measure realized",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/bin/python3",
+      "args": ["${workspaceFolder}/measure_slippage.py"],
+      "options": {"cwd": "${workspaceFolder}"},
+      "problemMatcher": [],
+      "presentation": {"reveal": "always", "panel": "dedicated", "clear": true}
+    },
+    {
+      "label": "Routine perms: re-apply",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/bin/python3",
+      "args": ["${workspaceFolder}/scripts/ensure_routine_permissions.py"],
+      "problemMatcher": [],
+      "presentation": {"reveal": "always", "panel": "shared"}
+    },
+    {
+      "label": "Watchers: tail logs",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "tail -f /tmp/trading-bot-perms-watcher.log /tmp/trading-bot-hang-watchdog.log"
+      ],
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {"reveal": "always", "panel": "dedicated"}
+    },
+    {
+      "label": "Compile: syntax-check all",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/bin/python3",
+      "args": [
+        "-m", "py_compile",
+        "main.py", "broker.py", "strategy.py", "risk.py", "config.py",
+        "indicators.py", "regime.py", "data.py", "journal.py",
+        "notifications.py", "research.py", "calendar_filter.py", "calendar_feed.py",
+        "performance.py", "vix_factor.py", "vvix_filter.py", "sentiment.py",
+        "backtest.py"
+      ],
+      "options": {"cwd": "${workspaceFolder}"},
+      "group": {"kind": "build", "isDefault": true},
+      "problemMatcher": [],
+      "presentation": {"reveal": "silent", "panel": "shared"}
+    }
+  ]
+}

@@ -34,7 +34,29 @@ ORB_DURATION_MINUTES = 15
 
 # ── Asset universes ──────────────────────────────────────────────────────────
 # Regime A: momentum / trend-following
+# LIVE universe (mega-caps) — restore to this after experiments:
+# MOMENTUM_UNIVERSE: list = [
+#     "SPY", "QQQ", "AAPL", "MSFT", "NVDA", "AMZN", "META", "TSLA", "AMD",
+#     "KO", "BP", "NUE"
+# ]
+# LIVE — switched to 30-ticker small-cap universe 2026-04-29 after 4-period backtest validation
+# (24-month total +13.41% Plain ORB, +10.78% ORB Full Sys with retracement entry in backtest)
+# Original mega-cap universe preserved for revert:
+# MEGA_CAP_UNIVERSE: list = [
+#     "SPY", "QQQ", "AAPL", "MSFT", "NVDA", "AMZN", "META", "TSLA", "AMD",
+#     "KO", "BP", "NUE"
+# ]
 MOMENTUM_UNIVERSE: list = [
+    "SOFI", "PLTR", "RIOT", "UPST", "HOOD", "DKNG", "AFRM", "PLUG", "RKLB", "IONQ",
+    "RIVN", "LCID", "NIO",
+    "ENPH", "RUN", "FSLR",
+    "MRNA", "CRSP", "BEAM", "TDOC",
+    "SMCI", "AI", "BBAI",
+    "MARA", "COIN", "MSTR",
+    "ROKU", "OPEN", "ASTS", "ACHR",
+]
+SMALL_CAP_UNIVERSE: list = list(MOMENTUM_UNIVERSE)
+MEGA_CAP_UNIVERSE: list = [
     "SPY", "QQQ", "AAPL", "MSFT", "NVDA", "AMZN", "META", "TSLA", "AMD",
     "KO", "BP", "NUE"
 ]
@@ -80,11 +102,16 @@ VVIX_SPIKE_PCT: float = 0.10   # 10% intraday spike = emergency risk-off
 VIX_TERM_BACKWARDATION: float = 1.05   # VIX/VIX3M > this = stress
 
 # ── Regime factor weights (must sum to 1.0) ──────────────────────────────────
+# 2026-04-30 — Removed put_call (10%) because the data source ^PCALL is dead on
+# yfinance and free real-time CBOE P/C data isn't reliably available. P/C signal
+# was silently inert (always neutral fallback). Redistributed 10% to vix_level
+# (+5%) and vvix_level (+5%) — the closest fear-detection proxies. Sentiment
+# filter in strategy.py still runs but always returns NEUTRAL, so per-entry
+# behavior unchanged. Re-add put_call here if a real data source returns.
 REGIME_WEIGHTS: dict = {
-    "vix_level":      0.30,
+    "vix_level":      0.35,
     "vix_trend":      0.15,
-    "vvix_level":     0.25,
-    "put_call":       0.10,
+    "vvix_level":     0.30,
     "spy_trend":      0.10,
     "term_structure": 0.10,
 }
@@ -104,7 +131,27 @@ REALIZED_VOL_LOOKBACK: int = 20       # days
 ATR_PERIOD: int = 14
 ATR_STOP_MULTIPLIER: float = 1.5
 TAKE_PROFIT_R: float = 2.0
-STOP_BUFFER_PCT: float = 0.0025
+STOP_BUFFER_PCT: float = 0.004      # 0.4% — widened from 0.25% for small-cap spreads/slippage
+
+# Fib extension target (Phase 1 experiment) — when enabled, target = entry ± FIB_LEVEL × ORB_range
+# instead of fixed TAKE_PROFIT_R × risk. Falls back to fixed-R if ORB range unavailable.
+USE_FIB_TARGET: bool = False
+FIB_EXTENSION_LEVEL: float = 1.618
+
+# Fib retracement entry (Phase 1 Test B) — when enabled, ORB break does NOT immediately enter;
+# instead waits for pullback to FIB_RETRACEMENT_LEVEL of the post-break advance, then re-enters
+# when price closes back above that level. Filters fake breakouts at cost of missed runners.
+USE_FIB_RETRACEMENT_ENTRY: bool = False
+FIB_RETRACEMENT_LEVEL: float = 0.382  # 0.382 = shallow, 0.5 = mid, 0.618 = deep pullback
+
+# Regime-gated retracement (Phase 1 Test C) — only apply retracement filter when markets are calm.
+# In gappy/volatile regimes, retracement filter misses runners and underperforms (validated by 2024 H2).
+# When BOTH gates pass: use retracement entry. When EITHER fails: fall back to immediate ORB entry.
+# 2026-04-30 update: discrepancy-hunt run showed gate=OFF produces cleaner Sharpe on Plain ORB
+# (3.28 vs 2.84 on 2023H1) without materially changing trade count. Flipped to False.
+USE_FIB_RETRACEMENT_REGIME_GATE: bool = False
+FIB_RETRACEMENT_VIX_MAX: float = 20.0       # skip retracement when VIX above this (vol regime)
+FIB_RETRACEMENT_VIX_TREND_MAX: float = 1.15  # skip when VIX rose >15% in last 3 trading days
 
 REGIME_B_SIZE_FACTOR: float = 0.50
 REGIME_C_SIZE_FACTOR: float = 0.25
@@ -117,7 +164,7 @@ DAILY_MAX_LOSS_PCT: float = 0.02
 KILL_SWITCH_LOSS_PCT: float = 0.03    # hard stop all trading
 
 VOLUME_LOOKBACK_BARS: int = 20
-VOLUME_MULTIPLIER: float = 1.5
+VOLUME_MULTIPLIER: float = 2.0      # 2.0x — tightened from 1.5x to filter small-cap volume noise
 MIN_ORB_RANGE_PCT: float = 0.003   # skip flat opens (ORB range < 0.3% of price)
 VWAP_VOL_MULTIPLIER: float = 2.0   # volume threshold for VWAP reclaim entries
 
@@ -128,6 +175,17 @@ SPY_TREND_FILTER: bool = True         # block Regime A entries when SPY < 20d MA
 SPY_TREND_MA_PERIOD: int = 20
 ATR_EXPANSION_MULTIPLIER: float = 1.2
 REALIZED_VOL_BREAKOUT_MULTIPLIER: float = 1.3
+
+# ── Limit-order entries (Phase 1) ─────────────────────────────────────────────
+# When ON, ORB entries fire as marketable limit orders at ask + buffer (long)
+# or bid - buffer (short) instead of market orders. Caps per-fill slippage at
+# the buffer; can miss entries when price runs through the limit. See:
+# 02 Projects/Trading Bot Project/[C] Limit Order Design Doc.md
+USE_LIMIT_ORDER_ENTRIES: bool = True          # FLIPPED 2026-05-01 for paper validation
+LIMIT_ORDER_BUFFER_PCT: float = 0.0010        # 10bp; matches realized slippage
+LIMIT_ORDER_TIF: str = "ioc"                  # "ioc" | "fok" | "day"
+LIMIT_ORDER_QUOTE_MAX_AGE_SEC: float = 2.0    # skip entry if quote staler than this
+LIMIT_ORDER_FILL_POLL_SECONDS: float = 1.5    # how long to poll before declaring miss
 
 # Gap filter — skip entries when SPY opens with a large gap (fake breakout risk)
 ENABLE_GAP_FILTER: bool = True
@@ -155,7 +213,7 @@ GAP_CONTINUATION_HOLD_BARS: int = 2        # bars after open price must hold abo
 # Regime-aware: only enforce in regimes listed in GAP_ALIGNMENT_REGIMES (default: A only).
 # In B/C the market mean-reverts after shocks — gap continuation thesis breaks.
 GAP_ALIGNMENT_REQUIRED: bool = True
-GAP_ALIGNMENT_THRESHOLD: float = 0.005     # 0.5% gap threshold
+GAP_ALIGNMENT_THRESHOLD: float = 0.008     # 0.8% gap — raised from 0.5% (small caps gap on noise)
 GAP_ALIGNMENT_REGIMES: tuple = ("A",)      # regime letters where gap filter applies
 
 # ── Backtest ──────────────────────────────────────────────────────────────────

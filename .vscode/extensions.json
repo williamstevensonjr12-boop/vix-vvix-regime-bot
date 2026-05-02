@@ -1,0 +1,19 @@
+{
+  // VS Code suggests installing these the first time you open this folder.
+  // Click "Install All" in the popup, or skip individual ones.
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-python.debugpy",
+    "charliermarsh.ruff",
+    "tamasfe.even-better-toml",
+    "redhat.vscode-yaml",
+    "eamodio.gitlens",
+    "yzhang.markdown-all-in-one",
+    "DavidAnson.vscode-markdownlint",
+    "anthropic.claude-code"
+  ],
+  "unwantedRecommendations": [
+    "ms-python.pylint"
+  ]
+}

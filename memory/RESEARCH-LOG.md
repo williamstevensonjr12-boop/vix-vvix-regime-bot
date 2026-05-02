@@ -2213,3 +2213,208 @@ Sub-threshold notes:
 | **
 
 ---
+
+---
+## 2026-05-01 — Pre-Market Research
+
+**Volatility**
+- VIX: 16.9 (+0.06%)
+- VVIX: 93.7 (-2.42%)
+- VIX3M: 20.08
+
+**Universe Prices + Pre-Market Gaps**
+  SOFI: $16.27 (+1.02%) | pre=$16.27 gap=1.02%
+  PLTR: $142.6 (+2.51%) | pre=$142.6 gap=2.51%
+  RIOT: $18.09 (+4.92%) | pre=$18.09 gap=4.92%
+  UPST: $31.88 (+0.95%) | pre=$31.88 gap=0.95%
+  HOOD: $74.1 (+1.66%) | pre=$74.1 gap=1.66%
+  DKNG: $23.45 (+0.56%) | pre=$23.45 gap=0.56%
+  AFRM: $65.01 (+1.14%) | pre=$65.01 gap=1.14%
+  PLUG: $3.15 (+0.64%) | pre=$3.15 gap=0.64%
+  RKLB: $84.56 (+2.48%) | pre=$84.56 gap=2.48%
+  IONQ: $45.03 (-0.20%) | pre=$45.03 gap=-0.2%
+  RIVN: $15.92 (-2.93%) | pre=$15.92 gap=-2.93%
+  LCID: $6.33 (-0.63%) | pre=$6.33 gap=-0.63%
+  NIO: $6.23 (-2.50%) | pre=$6.23 gap=-2.5%
+  ENPH: $33.01 (+0.16%) | pre=$33.01 gap=0.16%
+  RUN: $12.76 (+0.24%) | pre=$12.76 gap=0.24%
+  FSLR: $207.0 (+2.53%) | pre=$207.0 gap=2.53%
+  MRNA: $47.09 (+2.50%) | pre=$47.09 gap=2.5%
+  CRSP: $52.81 (+0.90%) | pre=$52.81 gap=0.9%
+  BEAM: $30.25 (-0.26%) | pre=$30.25 gap=-0.26%
+  TDOC: $6.03 (-0.50%) | pre=$6.03 gap=-0.5%
+  SMCI: $27.6 (+0.73%) | pre=$27.6 gap=0.73%
+  AI: $8.93 (+1.13%) | pre=$8.93 gap=1.13%
+  BBAI: $3.99 (+0.24%) | pre=$3.99 gap=0.24%
+  MARA: $12.25 (+2.17%) | pre=$12.25 gap=2.17%
+  COIN: $190.6 (+1.51%) | pre=$190.6 gap=1.51%
+  MSTR: $170.25 (+2.90%) | pre=$170.25 gap=2.9%
+  ROKU: $127.4 (+9.30%) | pre=$127.4 gap=9.3%
+  OPEN: $5.38 (-0.00%) | pre=$5.38 gap=-0.0%
+  ASTS: $75.49 (+2.15%) | pre=$75.49 gap=2.15%
+  ACHR: $5.77 (+0.52%) | pre=$5.77 gap=0.52%
+
+**Gap-Aligned Candidates (≥0.8% threshold)**
+- Gap UP (long ORB pairing): ROKU (+9.30%), RIOT (+4.92%), MSTR (+2.90%), FSLR (+2.53%), PLTR (+2.51%), MRNA (+2.50%), RKLB (+2.48%), MARA (+2.17%), ASTS (+2.15%), HOOD (+1.66%), COIN (+1.51%), AFRM (+1.14%), AI (+1.13%), SOFI (+1.02%), UPST (+0.95%), CRSP (+0.90%)
+- Gap DOWN (short ORB pairing, B/C only): RIVN (-2.93%), NIO (-2.50%)
+
+**Headlines**
+
+**GOOGLE_NEWS_MARKET**
+- Dow surges nearly 800 points, S&P 500 posts first close above 7,200 and best month since 2020: Live updates - CNBC
+- Dow futures jump 200 points to start May trading as oil falls, Apple shares jump: Live updates - CNBC
+- Stock market today: Dow jumps 750 points, S&P 500, Nasdaq notch record highs to cap best month for stocks since 2020 - Yahoo! Finance Canada
+- Stock Market Today: Dow Rises As Apple Jumps On Earnings; Roblox, Sandisk, Western Digital Dive (Live Coverage) - Investor's Business Daily
+- Stock Market News, April 30, 2026: Nasdaq, S&P Close at Records, Finishing Best Month Since 2020 - WSJ
+- Stock Market Today (LIVE): Markets Close Out April With a Bang; Data Center Surprise Sends QCOM Up 15% - The Motley Fool
+- Markets News, April 29, 2026: Stocks End Mostly Lower After Fed Holds Interest Rates Steady; Oil Jumps; Big Tech Earnings Arrive - Investopedia
+- Stock Market News, April 30, 2026: Dow rises 790 points, S&P 500 and Nasdaq close at records as GDP data shows the U.S. economy continues to grow; Big Tech slips; oil falls back from four-year high; Alphabet shares jump as Meta falls - MarketWatch
+- Why Are Stock Market Futures Up Today, 5/1/26? - TipRanks
+- Stock Market News From April 30, 2026: S&P 500 and Nasdaq Hit Records - Barron's
+
+**GOOGLE_NVDA**
+- Nvidia (NVDA) Stock Trades Down, Here Is Why - Yahoo Finance
+- Here are Thursday's biggest analyst calls: Nvidia, Amazon, Microsoft, Meta, Alphabet, Palantir, AbbVie & more - CNBC
+- Nvidia stock slips as investors weigh rising competition from Google and Amazon - Yahoo Finance
+- I Know It Sounds Crazy, But I Keep Buying This Stock - 24/7 Wall St.
+- What Big Tech Earnings Mean for Nvidia and Other AI Chip Stocks - Barron's
+
+**GOOGLE_AMD**
+- AMD’s Breakout Run Is Only Getting Started (NASDAQ:AMD) - Seeking Alpha
+- Nvidia, AMD Slip. Why Chip Stocks Are on Edge Ahead of Big Tech Earnings. - Barron's
+- Cathie Wood’s ARK sells AMD stock, buys Alphabet and Meta - Investing.com
+- This Super Semiconductor Stock Is Obliterating Nvidia, AMD, and Broadcom in 2026 - The Motley Fool
+- Cathie Wood buys Meta, Alphabet stocks, dumps AMD - MSN
+
+**GOOGLE_AMZN**
+- Amazon Stock Wobbles Following Positive Chip Demand Comments - Barron's
+- AMZN, GOOGL: JPMorgan Raises Stock Price Targets as Big Tech Crushes Q1 - TipRanks
+- Amazon: Not An Easy Buy After Overbuying, But Still A Sure Thing (NASDAQ:AMZN) - Seeking Alpha
+- Stocks making the biggest moves premarket: Meta, Eli Lilly, Caterpillar, Amazon & more - CNBC
+- Amazon Earnings: AWS Is Booming, E-Commerce Is Resilient, and Guidance Is Positive - Morningstar Canada
+
+**GOOGLE_META**
+- Google wraps up best month since 2004 as earnings push Alphabet stock up 34% in April - CNBC
+- Meta Stock Falls Sharply After Strong Earnings. What’s Dragging It Down. - Barron's
+- Time To Buy The Dip In Meta Platforms Stock? - Trefis
+- Big Tech’s earnings get ever bigger, and ever less useful - Financial Times
+- Meta Stock (Meta) Pounded By New Probe into Staff Viewing ‘Graphic’ Smart Glasses Content - TipRanks
+
+**GOOGLE_SPY**
+- Opinion: S&P 500 pushes to new highs. Here is the ‘line in the sand’ for this bull run. - MarketWatch
+- Goldman’s Flood Says Brace for Near-Term Selloff, Buy Stocks Dip - Bloomberg.com
+- US Stocks: This Chart Indicator Signals A Sell Now (NYSEARCA:SPY) - Seeking Alpha
+- Stock Market Live April 30, 2026: S&P 500 (SPY) Boosted by Earnings and Lower Oil - 24/7 Wall St.
+- Stock Market Today: SPY, QQQ Mixed as Fed Maintains Rates; Oil Climbs to 4-Year High - TipRanks
+
+**YAHOO_NVDA**
+- Nvidia stock slips as investors weigh rising competition from Google and Amazon
+- How Nvidia beat Apple to become the defining stock of the AI boom
+- Nvidia stock falls, Hertz & Uber partner on robotaxis
+- Nebius Acquires Eigen AI To Speed Up Cloud Computing Services
+- Don't Let the Volatility Fool You -- Here Are 2 Reasons to Buy MercadoLibre Now
+- Roku Stock Earns Another Rally When It Needed It the Most
+
+**YAHOO_AMD**
+- Nasdaq leads US stocks in monthly gains following April rally
+- Semiconductor stocks rise on Big Tech earnings, Qualcomm beat
+- Riot Platform Stock Rises After Data Center Debut, AMD Doubles Capacity
+- TSM Stock Bolts Into A Buy Zone With AI Trade Back In Focus
+- 4 S&P 500 Stocks Turn $10,000 To $109,607 In Four Months
+- AI Chips Today - Next-Gen Chips Drive Spatial Intelligence Forward
+
+**YAHOO_AMZN**
+- The downstream winners of the AI trade's latest phase
+- Best student credit cards for May 2026: Start building credit with rewards on spending
+- Amazon Q1 revenue tops estimates as AWS hits 15-quarter growth high
+- Alphabet stock rises on Q1 earnings beat, cloud growth
+- Pentagon signs AI deals with Nvidia, Microsoft, AWS and Reflection
+- Sandisk Falls After Strong Earnings Report. Analyst Sees Stock Hitting $2,000.
+
+**YAHOO_META**
+- Blue Owl CEO touts Big Tech's AI spending as 'significant' opportunity for the private credit giant
+- Semiconductor stocks rise on Big Tech earnings, Qualcomm beat
+- Meta Platforms Signals More Layoffs Amid Rising AI Costs
+- Meta Stock Just Dropped 9%: Is This the Dip to Buy?
+- Sandisk Falls After Strong Earnings Report. Analyst Sees Stock Hitting $2,000.
+- Bill Ackman’s ‘Influencer Hedge Fund’ IPO Tanks 18% on Day 1
+
+**YAHOO_SPY**
+- 4 S&P 500 Stocks Turn $10,000 To $109,607 In Four Months
+- K-Shaped and Cracking: Stocks Hit All-Time Highs as Consumer Sentiment Posts Lowest Score in History
+- S&P 500 pushes to new highs. Here is the ‘line in the sand’ for this bull run.
+- S&P 500 Rides Tech Earnings Wave Despite Inflation Warning Shot
+- Exchange-Traded Funds, Equity Futures Higher Pre-Bell Thursday Amid Big Tech Earnings, Economic Data
+- 8 Microcap Stocks Pick Up A Head Of Steam For Enormous Gains
+
+**MARKETWATCH**
+- LIV Golf has lost its Saudi funding. Players who want to rejoin the PGA Tour likely face financial penalties.
+- Will Trump’s new executive order make it easier to save for retirement?
+- ‘I am her scapegoat’: My mother-in-law squandered all her money. Do we buy her a house so she’s not homeless?
+- New homeowners pay 3 times more in property taxes than their neighbors in some places. Here’s what they can do about it.
+- 3 questions to ask before raiding your 401(k) for a hardship withdrawal
+- Software stocks are finally priced for a comeback, this veteran strategist says. He’s buying.
+- Twilio’s stock is soaring. The company says it’s because of ‘unprecedented demand’ for one AI function.
+- Berkshire’s stock has suffered in a post-Buffett world. Why that’s actually a good thing.
+
+**SEEKING_ALPHA**
+- Monolithic Power slides despite strong Q1 results, guidance: What Wall Street's saying
+- Rémy Cointreau SA reports FY results
+- Western Digital's gross margin guidance more modest than some analysts expected
+- BondBloxx Private Credit CLO ETF declares $0.2791 dividend
+- Southside targets mid-single-digit 2026 loan growth while projecting $2.7B-$2.8B securities balance
+- Soluna Holdings regains Nasdaq bid price compliance
+- Saba Capital Income & Opportunities Fund II declares $0.058 dividend
+
+**WSJ_MARKETS**
+- Stocks Sink in Broad AI Rout Sparked by China's DeepSeek
+- Comex Gold, Silver Settle Lower
+- DeepSeek Won't Sink U.S. AI Titans
+- Financial Services Roundup: Market Talk
+- Arabica Coffee Prices Hit Record on U.S., Colombia Tariff Spat
+- Swiss franc, Japanese yen Rise as DeepSeek News Boosts Safe Havens
+- Natural Gas Falls on Shifting Weather Forecasts
+- Building-Products Distributor QXO Launches Hostile Bid for Beacon
+
+
+### 🤖 AI TRADING INTELLIGENCE BRIEF
+# AI TRADING INTELLIGENCE BRIEF — 2026-05-01
+
+## 1. MARKET SENTIMENT
+**BULLISH** — S&P 500 and Nasdaq closed at record highs, capping best month since 2020; Big Tech earnings largely beat (Alphabet, Amazon AWS strong); VIX subdued at 16.9 with declining VVIX signals low fear.
+
+---
+
+## 2. KEY MACRO RISKS
+- **Fed policy overhang**: Rates held steady, but inflation "warning shot" per headlines — any hawkish Fed commentary could reverse risk-on tone
+- **Meta weakness contagion**: META down 9% post-earnings despite beat; signals AI capex concerns could spread to high-beta growth names
+- **Oil volatility**: Crude at 4-year highs then fell back — energy-sensitive names may whipsaw
+
+---
+
+## 3. CATALYSTS BY SYMBOL
+
+| Symbol | Gap | Catalyst |
+|--------|-----|----------|
+| **ROKU** | +9.30% | **EARNINGS BEAT** — headline confirms "another rally when it needed it most" |
+| **RIOT** | +4.92% | Data center expansion news + AMD capacity doubling; BTC sympathy |
+| **MSTR** | +2.90% | BTC strength / crypto risk-on sympathy |
+| **FSLR** | +2.53% | No clear catalyst — likely sector rotation into solar |
+| **PLTR** | +2.51% | Analyst upgrades circulating (CNBC mention); AI sentiment |
+| **MRNA** | +2.50% | No clear catalyst — likely positioning/biotech rotation |
+| **RKLB** | +2.48% | No clear catalyst — space/defense sympathy |
+| **MARA** | +2.17% | BTC/crypto risk-on; RIOT data center news sympathy |
+| **RIVN** | -2.93% | No clear catalyst — EV sector weakness, likely profit-taking |
+| **NIO** | -2.50% | China EV headwinds; no specific news |
+
+---
+
+## 4. GAP-UP WATCH (Long ORB Pairing)
+
+| Symbol | Conviction | Notes |
+|--------|------------|-------|
+| **ROKU** | **HIGH** | Earnings catalyst, volume expected, momentum setup |
+| **RIOT** | **HIGH** | News-driven (data center), BTC tailwind |
+| **MSTR** | **MED** | BTC proxy — watch
+
+---

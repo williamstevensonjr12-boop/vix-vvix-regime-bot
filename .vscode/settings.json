@@ -1,0 +1,47 @@
+{
+  // Pin Python interpreter to the repo's .venv so IntelliSense finds yfinance,
+  // alpaca, anthropic, etc. Without this, you'll get red-squiggle imports.
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python3",
+  "python.terminal.activateEnvironment": true,
+
+  // Pytest: discover tests in repo/tests/, point at the right interpreter
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": ["tests"],
+
+  // Format: 100-char ruler matches the codebase's loose style. No autoformat
+  // on save — too risky on a live trading codebase. Run formatter explicitly.
+  "[python]": {
+    "editor.rulers": [100],
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true
+  },
+
+  // Hide the noise so the file tree is browsable
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    ".venv/": true,
+    ".pytest_cache/": true,
+    "backtest_results/": false,
+    "memory/": false
+  },
+  "search.exclude": {
+    "**/__pycache__": true,
+    "**/.venv": true,
+    "**/backtest_results/*.csv": true,
+    "**/trades_*.csv": true
+  },
+
+  // Markdown — wider word wrap for design docs
+  "[markdown]": {
+    "editor.wordWrap": "on",
+    "editor.rulers": []
+  },
+
+  // Don't accidentally commit secrets via search-and-replace
+  "files.watcherExclude": {
+    "**/.env": true,
+    "**/.env.local": true
+  }
+}

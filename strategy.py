@@ -54,6 +54,10 @@ class TradeSignal:
     sizing_breakdown: dict = field(default_factory=dict)
     side: str = "long"
     setup: str = "orb"   # "orb", "short_orb", "gap_continuation"
+    # Limit-order entry support (Phase 1). When None, scan loop submits a
+    # market bracket order (legacy path). When set, scan loop submits a
+    # marketable-limit bracket at this price.
+    limit_price: float | None = None
 
 
 def _compute_gap_pct(bars: pd.DataFrame, prior_close: float | None) -> float | None:
@@ -121,7 +125,7 @@ def check_entry_signal(
     if is_high_impact_day(today):
         logger.info(f"{symbol}: skipping — {event_name(today)} day (calendar filter)")
         return None
-    if not _earnings_cal._fetched:
+    if symbol not in _earnings_cal._cache:
         _earnings_cal.prefetch([symbol])
     if _earnings_cal.is_earnings_day(symbol, today):
         logger.info(f"{symbol}: skipping — earnings day")
@@ -248,6 +252,7 @@ def check_entry_signal(
         vvix_size_factor=vvix_filter.size_multiplier,
         sentiment_size_factor=sentiment_state.size_multiplier,
         realized_vol=realized_vol,
+        orb_range=orb_high - orb_low,
     )
 
     if sizing.qty <= 0:
@@ -334,7 +339,7 @@ def check_short_signal(
     # ── Calendar + earnings ─────────────────────────────────────────────
     if is_high_impact_day(today):
         return None
-    if not _earnings_cal._fetched:
+    if symbol not in _earnings_cal._cache:
         _earnings_cal.prefetch([symbol])
     if _earnings_cal.is_earnings_day(symbol, today):
         return None
@@ -431,6 +436,7 @@ def check_short_signal(
         sentiment_size_factor=sentiment_state.size_multiplier,
         realized_vol=realized_vol,
         side="short",
+        orb_range=orb_high - orb_low,
     )
     if sizing.qty <= 0:
         return None
@@ -520,7 +526,7 @@ def check_gap_continuation_signal(
 
     if is_high_impact_day(today):
         return None
-    if not _earnings_cal._fetched:
+    if symbol not in _earnings_cal._cache:
         _earnings_cal.prefetch([symbol])
     if _earnings_cal.is_earnings_day(symbol, today):
         return None

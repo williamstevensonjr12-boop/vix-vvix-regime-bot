@@ -32,6 +32,7 @@ import strategy
 import risk as rsk
 from broker import AlpacaBroker
 import journal
+import notifications as notify
 import performance as perf
 
 logger = logging.getLogger(__name__)
@@ -133,10 +134,12 @@ def cmd_paper(debug: bool = False):
 
     vol_df = mkt_data.get_vix_history(start_str, end_str)
     spy_df = mkt_data.get_spy_daily(start_str, end_str)
+    iwm_df = mkt_data.get_iwm_daily(start_str, end_str)
     pc_series = mkt_data.get_put_call_history(start_str, end_str)
 
     vix_s = vol_df["vix"].dropna() if not vol_df.empty and "vix" in vol_df else pd.Series([snapshot["vix"]])
     spy_s = spy_df["close"].dropna() if not spy_df.empty else pd.Series([400.0])
+    iwm_s = iwm_df["close"].dropna() if not iwm_df.empty else None
     pc_val = float(pc_series.dropna().iloc[-1]) if not pc_series.empty else 0.9
 
     regime_state = regime_engine.compute(
@@ -190,7 +193,16 @@ def cmd_paper(debug: bool = False):
     account = broker.get_account()
     daily_start_equity = float(account.equity)
     trades_today = 0
-    spy_uptrend = _compute_spy_uptrend(spy_s)
+    # Track open-positions snapshot across scans so we can detect closures
+    # (Alpaca's bracket children fill server-side; bot doesn't see the events
+    # directly — so we diff position state and reconcile via order history).
+    prior_open_symbols: set[str] = set()
+    spy_uptrend = _compute_spy_uptrend(spy_s, iwm_s)
+    logger.info(
+        f"Market trend gate: SPY{'✓' if _is_above_ma(spy_s, config.SPY_TREND_MA_PERIOD) else '✗'}  "
+        f"IWM{'✓' if iwm_s is not None and _is_above_ma(iwm_s, config.SPY_TREND_MA_PERIOD) else ('?' if iwm_s is None else '✗')}  "
+        f"→ entries {'allowed' if spy_uptrend else 'BLOCKED'}"
+    )
     rsk.reset_kill_switch()
 
     logger.info(f"Market OPEN | equity=${daily_start_equity:,.2f} | regime={regime_state.regime.value}")
@@ -203,7 +215,40 @@ def cmd_paper(debug: bool = False):
         # EOD
         if current_time >= config.CLOSE_ALL_TIME:
             logger.info(f"EOD: closing all positions")
+            # Snapshot positions BEFORE close so we know what to reconcile after
+            pre_eod_positions = broker.get_positions()
             broker.close_all_positions()
+            # Reconcile each force-closed position into trades.csv. The close-all
+            # call submits market orders synchronously; fills are recorded on
+            # Alpaca within seconds. Brief sleep gives them time to settle.
+            time.sleep(2)
+            for sym_eod in pre_eod_positions.keys():
+                try:
+                    fill = broker.get_recent_closing_fill(sym_eod)
+                    if fill is None:
+                        logger.warning(f"EOD: no closing fill found for {sym_eod}")
+                        continue
+                    exit_price, exit_time_str, _reason = fill
+                    updated = journal.update_trade_close(
+                        symbol=sym_eod,
+                        trade_date=str(today),
+                        exit_time=exit_time_str or now.strftime("%H:%M:%S"),
+                        exit_price=exit_price,
+                        reason="EOD_FORCE_CLOSE",
+                    )
+                    if updated:
+                        notify.exit(
+                            symbol=updated.get("symbol"),
+                            side=updated.get("side", "long"),
+                            entry=float(updated.get("entry_price") or 0),
+                            exit_price=float(updated.get("exit_price") or 0),
+                            qty=int(float(updated.get("qty") or 0)),
+                            pnl=float(updated.get("pnl") or 0),
+                            r_multiple=float(updated.get("r_multiple") or 0),
+                            reason="EOD force-close",
+                        )
+                except Exception as e:
+                    logger.error(f"EOD reconcile failed for {sym_eod}: {e}", exc_info=True)
             _save_daily_summary(broker, daily_start_equity, today, regime_state.regime.value)
             logger.info("Session complete.")
             break
@@ -227,6 +272,40 @@ def cmd_paper(debug: bool = False):
         daily_pnl = equity - daily_start_equity
         open_positions = broker.get_positions()
 
+        # Detect position closures since last scan and reconcile to trades.csv.
+        # Bracket children fill server-side at Alpaca; bot doesn't see those
+        # events live. Diff the position set and look up the closing fill.
+        current_open_symbols = set(open_positions.keys())
+        closed_syms = prior_open_symbols - current_open_symbols
+        for sym_closed in closed_syms:
+            try:
+                fill = broker.get_recent_closing_fill(sym_closed)
+                if fill is None:
+                    logger.warning(f"closure detected for {sym_closed} but no fill found")
+                    continue
+                exit_price, exit_time_str, reason = fill
+                updated = journal.update_trade_close(
+                    symbol=sym_closed,
+                    trade_date=str(today),
+                    exit_time=exit_time_str,
+                    exit_price=exit_price,
+                    reason=reason,
+                )
+                if updated:
+                    notify.exit(
+                        symbol=updated.get("symbol"),
+                        side=updated.get("side", "long"),
+                        entry=float(updated.get("entry_price") or 0),
+                        exit_price=float(updated.get("exit_price") or 0),
+                        qty=int(float(updated.get("qty") or 0)),
+                        pnl=float(updated.get("pnl") or 0),
+                        r_multiple=float(updated.get("r_multiple") or 0),
+                        reason=reason,
+                    )
+            except Exception as e:
+                logger.error(f"closure reconcile failed for {sym_closed}: {e}", exc_info=True)
+        prior_open_symbols = current_open_symbols
+
         # Refresh VVIX intraday
         fresh_snap = mkt_data.get_current_vol_snapshot()
         vvix_filter_result = vvix.regime_filter(fresh_snap["vvix"])
@@ -243,6 +322,15 @@ def cmd_paper(debug: bool = False):
         can_trade, limit_reason = rsk.check_daily_limits(trades_today, daily_pnl, daily_start_equity)
         if not can_trade:
             logger.warning(f"Trading halted: {limit_reason}")
+            time.sleep(60)
+            continue
+
+        # PDT (Pattern Day Trader) check — protects against entries that would
+        # cross the FINRA $25K floor on a flagged account, plus warns when count
+        # climbs. No-op when account is healthy.
+        pdt_ok, pdt_reason = rsk.check_pdt_constraints(account)
+        if not pdt_ok:
+            logger.warning(f"Trading halted: {pdt_reason}")
             time.sleep(60)
             continue
 
@@ -302,19 +390,22 @@ def cmd_paper(debug: bool = False):
                     continue
 
                 journal.log_signal(sym, sig, taken=True)
-                order = broker.submit_bracket_order(
-                    symbol=sym,
-                    qty=sig.qty,
-                    stop_price=sig.stop_price,
-                    take_profit_price=sig.target_price,
-                )
+                order, filled, miss_reason = _submit_entry(broker, sig, side="long")
 
-                if order:
+                if order and filled:
                     trades_today += 1
                     journal.log_trade_open(sig)
                     journal.save_trade(
                         journal.build_trade_record(sig, str(order.id), today, now.strftime("%H:%M:%S"))
                     )
+                    notify.entry(
+                        symbol=sym, side="long",
+                        entry=sig.entry_price, stop=sig.stop_price, target=sig.target_price,
+                        qty=sig.qty, regime=regime_state.regime.value,
+                        reason=getattr(sig, "reason", ""),
+                    )
+                elif miss_reason:
+                    logger.info(f"ENTRY MISSED long {sym}: {miss_reason}")
 
             except Exception as e:
                 logger.error(f"Error processing {sym}: {e}", exc_info=True)
@@ -348,19 +439,22 @@ def cmd_paper(debug: bool = False):
                     continue
 
                 journal.log_signal(sym, sig, taken=True)
-                order = broker.submit_short_bracket_order(
-                    symbol=sym,
-                    qty=sig.qty,
-                    stop_price=sig.stop_price,
-                    take_profit_price=sig.target_price,
-                )
+                order, filled, miss_reason = _submit_entry(broker, sig, side="short")
 
-                if order:
+                if order and filled:
                     trades_today += 1
                     journal.log_trade_open(sig)
                     journal.save_trade(
                         journal.build_trade_record(sig, str(order.id), today, now.strftime("%H:%M:%S"))
                     )
+                    notify.entry(
+                        symbol=sym, side="short",
+                        entry=sig.entry_price, stop=sig.stop_price, target=sig.target_price,
+                        qty=sig.qty, regime=regime_state.regime.value,
+                        reason=getattr(sig, "reason", ""),
+                    )
+                elif miss_reason:
+                    logger.info(f"ENTRY MISSED short {sym}: {miss_reason}")
 
             except Exception as e:
                 logger.error(f"Error processing short {sym}: {e}", exc_info=True)
@@ -368,15 +462,92 @@ def cmd_paper(debug: bool = False):
         time.sleep(60)
 
 
-def _compute_spy_uptrend(spy_close_series) -> bool:
-    """SPY > N-day MA → uptrend (gates Regime A entries)."""
-    s = spy_close_series.dropna()
-    if s.empty:
-        return True
-    period = config.SPY_TREND_MA_PERIOD
-    if len(s) < period:
-        return True
+def _submit_entry(broker, sig, side: str = "long"):
+    """
+    Submit an entry order for a TradeSignal. Returns (order, filled, miss_reason).
+
+    When config.USE_LIMIT_ORDER_ENTRIES is False (default): submits a market
+    bracket order and treats it as filled if the order returns successfully.
+
+    When True: fetches current quote, computes a marketable limit at
+    ask + buffer (long) or bid - buffer (short), and submits a bracket
+    limit IOC. If the IOC parent doesn't fill, returns filled=False with
+    a miss_reason — caller logs and moves on (no chasing per design doc).
+
+    miss_reason is a short string (e.g., "stale quote", "limit not filled,
+    ran past 19.27") when the entry was attempted but didn't take. Empty
+    when the entry was filled OR when no attempt was made.
+    """
+    if not getattr(config, "USE_LIMIT_ORDER_ENTRIES", False):
+        # Legacy market-order path
+        if side == "long":
+            order = broker.submit_bracket_order(
+                symbol=sig.symbol, qty=sig.qty,
+                stop_price=sig.stop_price, take_profit_price=sig.target_price,
+            )
+        else:
+            order = broker.submit_short_bracket_order(
+                symbol=sig.symbol, qty=sig.qty,
+                stop_price=sig.stop_price, take_profit_price=sig.target_price,
+            )
+        # Market orders fill ~100% of the time on liquid names; we treat order
+        # creation success as fill success (consistent with prior behavior).
+        return order, bool(order), ""
+
+    # Phase 1 limit-order path
+    quote = broker.get_latest_quote(sig.symbol)
+    if quote is None:
+        return None, False, "quote fetch failed"
+    max_age = getattr(config, "LIMIT_ORDER_QUOTE_MAX_AGE_SEC", 2.0)
+    if quote["age_sec"] > max_age:
+        return None, False, f"stale quote ({quote['age_sec']:.1f}s > {max_age}s)"
+    if quote["ask"] <= 0 or quote["bid"] <= 0:
+        return None, False, "missing bid/ask"
+
+    buf = getattr(config, "LIMIT_ORDER_BUFFER_PCT", 0.0010)
+    if side == "long":
+        limit_price = quote["ask"] * (1 + buf)
+    else:
+        limit_price = quote["bid"] * (1 - buf)
+    sig.limit_price = round(limit_price, 2)
+    # Update the signal's recorded entry_price to the limit (worst-case fill)
+    sig.entry_price = sig.limit_price
+
+    order = broker.submit_bracket_limit_order(
+        symbol=sig.symbol, qty=sig.qty,
+        limit_price=sig.limit_price,
+        stop_price=sig.stop_price,
+        take_profit_price=sig.target_price,
+        side=side,
+    )
+    if order is None:
+        return None, False, "submit failed"
+
+    poll = getattr(config, "LIMIT_ORDER_FILL_POLL_SECONDS", 1.5)
+    filled = broker.order_filled(order, poll_seconds=poll)
+    if not filled:
+        return order, False, f"limit ${sig.limit_price:.2f} not filled in {poll}s window"
+    return order, True, ""
+
+
+def _is_above_ma(close_series, period: int) -> bool:
+    s = close_series.dropna() if close_series is not None else None
+    if s is None or s.empty or len(s) < period:
+        return True   # missing data → fail-open (don't block on missing index)
     return float(s.iloc[-1]) > float(s.tail(period).mean())
+
+
+def _compute_spy_uptrend(spy_close_series, iwm_close_series=None) -> bool:
+    """Market uptrend gate: BOTH SPY and IWM above their N-day MAs.
+    SPY = mega/large-cap proxy. IWM = small-cap proxy (Russell 2000).
+    Required for our small-cap universe — SPY alone misses small-cap regime
+    decoupling (e.g., 2024 H2 when SPY made highs but small caps got chopped).
+    Fail-open if either feed is missing (don't block on data outage).
+    """
+    period = config.SPY_TREND_MA_PERIOD
+    spy_ok = _is_above_ma(spy_close_series, period)
+    iwm_ok = _is_above_ma(iwm_close_series, period) if iwm_close_series is not None else True
+    return spy_ok and iwm_ok
 
 
 def _save_daily_summary(broker, daily_start_equity, today, regime):
@@ -401,6 +572,31 @@ def _save_daily_summary(broker, daily_start_equity, today, regime):
         "equity": round(final_eq, 2),
     })
     logger.info(f"Day complete | P&L=${day_pnl:+,.2f} | equity=${final_eq:,.2f}")
+
+    # Realized slippage measurement — only meaningful when there are fills today.
+    # Logs a one-line summary so the EOD log captures the realized number alongside
+    # the P&L. Failure here is non-fatal — slippage stats are nice-to-have.
+    if today_trades:
+        try:
+            import measure_slippage
+            slip = measure_slippage.get_summary(date_filter=str(today))
+            if slip and slip.get("entry_median_abs_pct") is not None:
+                logger.info(
+                    f"Realized slippage today | "
+                    f"entry median {slip['entry_median_abs_pct']:.4f}%  "
+                    f"exit median {slip['exit_median_abs_pct']:.4f}% "
+                    f"(n={slip['count']})"
+                )
+        except Exception as e:
+            logger.warning(f"slippage summary failed: {e}")
+
+    # Push EOD summary to phone
+    notify.eod(
+        date_str=str(today), pnl=day_pnl,
+        trades=len(today_trades), wins=len(wins), losses=len(losses),
+        equity=final_eq, regime=regime,
+        killswitch=rsk.is_kill_switch_active(),
+    )
 
 
 # ── Backtest ──────────────────────────────────────────────────────────────────

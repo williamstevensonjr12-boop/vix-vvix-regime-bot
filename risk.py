@@ -31,6 +31,12 @@ def trigger_kill_switch(reason: str) -> None:
     global _KILL_SWITCH_TRIGGERED
     _KILL_SWITCH_TRIGGERED = True
     logger.critical(f"KILL SWITCH ACTIVATED: {reason}")
+    # Push urgent alert. Import inside to avoid a circular import at module load.
+    try:
+        import notifications as _notify
+        _notify.alert(f"KILL SWITCH ACTIVATED — {reason}")
+    except Exception as e:
+        logger.warning(f"kill-switch notification failed: {e}")
 
 
 def reset_kill_switch() -> None:
@@ -63,12 +69,17 @@ def calculate_position_size(
     realized_vol: float | None = None,
     take_profit_r: float = None,
     side: str = "long",
+    orb_range: float | None = None,
 ) -> SizingResult:
     """
     Full vol-adjusted, regime-aware position sizing.
     For longs: stop_price < entry_price, target above entry.
     For shorts: stop_price > entry_price, target below entry.
     Returns qty = 0 if risk_per_share is non-positive or sizing fails.
+
+    If config.USE_FIB_TARGET is True and orb_range is provided, the take-profit
+    target is computed as entry ± FIB_EXTENSION_LEVEL × orb_range instead of the
+    fixed take_profit_r × risk_per_share. Otherwise falls back to fixed-R behavior.
     """
     if take_profit_r is None:
         take_profit_r = config.TAKE_PROFIT_R
@@ -99,7 +110,14 @@ def calculate_position_size(
     if qty <= 0:
         return SizingResult(0, 0, final_risk_pct, stop_price, entry_price, risk_per_share, vol_mult, {})
 
-    if side == "short":
+    use_fib = getattr(config, "USE_FIB_TARGET", False) and orb_range is not None and orb_range > 0
+    if use_fib:
+        fib_dist = config.FIB_EXTENSION_LEVEL * orb_range
+        if side == "short":
+            target_price = round(entry_price - fib_dist, 2)
+        else:
+            target_price = round(entry_price + fib_dist, 2)
+    elif side == "short":
         target_price = round(entry_price - take_profit_r * risk_per_share, 2)
     else:
         target_price = round(entry_price + take_profit_r * risk_per_share, 2)
@@ -169,6 +187,54 @@ def check_daily_limits(
 
     if daily_pnl < -max_loss:
         return False, f"Daily max-loss hit (limit=${max_loss:.2f}, P&L=${daily_pnl:.2f})"
+
+    return True, ""
+
+
+# PDT (Pattern Day Trader) thresholds
+PDT_EQUITY_FLOOR = 25_000.0       # FINRA rule — under this, flagged accounts are locked
+PDT_SAFETY_BUFFER = 500.0         # additional buffer above floor before we hard-block
+PDT_WARNING_COUNT = 5             # log a warning when count reaches this in 5-day window
+
+
+def check_pdt_constraints(account) -> tuple[bool, str]:
+    """
+    Returns (can_trade, reason) based on Alpaca account's PDT state.
+
+    The FINRA Pattern Day Trader rule: 4+ day-trades in any rolling 5-business-day
+    window flags the account. While flagged, equity must stay above $25,000 or the
+    account is locked from day trading for 90 days.
+
+    Logic:
+      - If account isn't flagged, no restriction (any equity, any count)
+      - If flagged AND equity is within $500 of the $25K floor AND we'd be taking
+        another day-trade, hard-block to prevent crossing
+      - Otherwise, log a warning if count climbs past 5 (situational awareness)
+
+    Pass the Alpaca account object directly (from broker.get_account()).
+    """
+    if account is None:
+        return True, ""
+    try:
+        equity = float(getattr(account, "equity", 0))
+        is_flagged = bool(getattr(account, "pattern_day_trader", False))
+        dt_count = int(getattr(account, "daytrade_count", 0))
+    except (TypeError, ValueError):
+        # If we can't read the account state, don't block — let other guards run
+        return True, ""
+
+    if is_flagged and equity < (PDT_EQUITY_FLOOR + PDT_SAFETY_BUFFER):
+        return False, (
+            f"PDT lockout risk: flagged account, equity ${equity:,.2f} within "
+            f"buffer of ${PDT_EQUITY_FLOOR:,.0f} floor (count={dt_count})"
+        )
+
+    if dt_count >= PDT_WARNING_COUNT:
+        logger.warning(
+            f"PDT day-trade count at {dt_count} (rolling 5-day) — "
+            f"flagged={is_flagged}, equity=${equity:,.2f}. "
+            f"Lockout triggers if equity drops below ${PDT_EQUITY_FLOOR:,.0f}."
+        )
 
     return True, ""
 

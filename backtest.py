@@ -135,6 +135,18 @@ class BacktestConfig:
     slippage_pct: float = config.SLIPPAGE_PCT
     save_trades: bool = False
     trades_file: str = ""
+    # Optional: per-day dynamic universe override. Keyed by date.isoformat().
+    # When set, replaces MOMENTUM_UNIVERSE for that day. Empty/missing key = skip day.
+    dynamic_universe_by_day: dict | None = None
+    # Limit-order entry simulation (Phase 1, design doc §7 v1).
+    # When True: on each entry signal, compute limit = price * (1 + buffer)
+    # for long (or price * (1 - buffer) for short). Fill is simulated by
+    # checking if the NEXT bar's high (long) or low (short) crosses the limit.
+    # Misses are logged but no trade is taken — replicates IOC behavior.
+    use_limit_entry_sim: bool = False
+    limit_order_buffer_pct: float = 0.0010
+    # Counter populated during run() — exposed in metrics for diagnostics.
+    missed_entries_count: int = 0
 
 
 class BacktestEngine:
@@ -284,6 +296,21 @@ class BacktestEngine:
         else:
             active_universe = config.MOMENTUM_UNIVERSE[:]
 
+        # ── Dynamic universe override (Phase 2 universe rebuild) ──────────
+        # If a per-day universe map is provided, replace active_universe with
+        # today's pre-computed top-N. Missing day or empty list = skip the day.
+        if self.cfg.dynamic_universe_by_day is not None:
+            day_key = trading_day.isoformat()
+            day_picks = self.cfg.dynamic_universe_by_day.get(day_key)
+            if not day_picks:
+                logger.debug(f"[DYN-UNI] {trading_day} no qualifying picks — skip")
+                return
+            # day_picks is a list of dicts with {symbol, ...} — extract symbols
+            if day_picks and isinstance(day_picks[0], dict):
+                active_universe = [p["symbol"] for p in day_picks]
+            else:
+                active_universe = list(day_picks)
+
         # ── Short universe (long_short modes, regime gated by mode) ───────
         short_universe: list = []
         active_short_regimes = _short_regimes_for_mode(self.cfg.mode)
@@ -358,6 +385,28 @@ class BacktestEngine:
             if not db.empty:
                 day_bars[sym] = db
                 all_ts.update(db.index)
+
+        # ── Fib retracement entry state (per-symbol, per-day) ──────────────
+        # Tracks post-breakout price action to detect pullback + re-entry trigger
+        breakout_state: dict = {}  # sym -> {broken, h_max, pulled_back, retrace_level}
+
+        # ── Regime gate for retracement entry ──────────────────────────────
+        # When enabled, retracement filter only applies on calm/orderly days.
+        # Gappy/volatile days fall back to immediate ORB entry (retracement misses runners there).
+        retracement_active_today = getattr(config, "USE_FIB_RETRACEMENT_ENTRY", False)
+        if retracement_active_today and getattr(config, "USE_FIB_RETRACEMENT_REGIME_GATE", False):
+            try:
+                # Use VIX data up through prior trading day (no lookahead)
+                vix_to_date = vol_df.loc[vol_df.index.date < trading_day, "vix"].dropna()
+                if len(vix_to_date) >= 4:
+                    vix_today = float(vix_to_date.iloc[-1])
+                    vix_3d_avg = float(vix_to_date.iloc[-4:-1].mean())
+                    vix_rising = (vix_today / vix_3d_avg) if vix_3d_avg > 0 else 1.0
+                    level_ok = vix_today < config.FIB_RETRACEMENT_VIX_MAX
+                    trend_ok = vix_rising < config.FIB_RETRACEMENT_VIX_TREND_MAX
+                    retracement_active_today = level_ok and trend_ok
+            except Exception:
+                pass  # fail-safe: keep retracement on if data check errors
 
         # ── Bar-by-bar simulation ─────────────────────────────────────────
         for ts in sorted(all_ts):
@@ -465,6 +514,7 @@ class BacktestEngine:
                 avg_vol = float(avg_vol_s.iloc[-1])
                 atr = float(atr_s.iloc[-1])
                 orb_high = opening_range["high"]
+                orb_low = opening_range["low"]
 
                 if self.cfg.mode == StrategyMode.VWAP_FULL_SYSTEM:
                     # VWAP reclaim: price must have dipped below VWAP earlier today
@@ -494,8 +544,38 @@ class BacktestEngine:
                     c1 = price > orb_high
                     c2 = price > vwap
                     c3 = avg_vol > 0 and volume > config.VOLUME_MULTIPLIER * avg_vol
-                    if not (c1 and c2 and c3):
-                        continue
+
+                    # Fib retracement entry: two-stage signal (breakout → pullback → re-entry)
+                    # Gated by retracement_active_today — falls back to immediate entry on volatile days
+                    if retracement_active_today:
+                        state = breakout_state.get(sym)
+                        # Stage 1 — detect initial breakout (don't enter yet)
+                        if state is None:
+                            if c1 and c2 and c3:
+                                breakout_state[sym] = {
+                                    "h_max": price,
+                                    "pulled_back": False,
+                                }
+                            continue
+                        # Stage 2 — track running high, watch for pullback then reversal
+                        if price > state["h_max"]:
+                            state["h_max"] = price
+                        # Invalidate if price falls below ORB high (breakout failed)
+                        if price < orb_high:
+                            del breakout_state[sym]
+                            continue
+                        retrace_lvl = orb_high + (1.0 - config.FIB_RETRACEMENT_LEVEL) * (state["h_max"] - orb_high)
+                        if not state["pulled_back"]:
+                            if price <= retrace_lvl:
+                                state["pulled_back"] = True
+                            continue  # still waiting for pullback
+                        # Stage 3 — pullback achieved; trigger entry on close back above retrace level + VWAP
+                        if not (price > retrace_lvl and c2):
+                            continue
+                        # Fall through to standard entry sizing/stop/gap/MTF logic
+                    else:
+                        if not (c1 and c2 and c3):
+                            continue
                     # MTF daily trend filter — long only if symbol above its 20d MA
                     if self.cfg.mode == StrategyMode.LONG_SHORT_MTF_TREND:
                         if not _symbol_in_uptrend(self._symbol_trends, sym, trading_day):
@@ -517,7 +597,10 @@ class BacktestEngine:
                 if stop >= price:
                     continue
 
-                target = round(price + config.TAKE_PROFIT_R * (price - stop), 2)
+                if getattr(config, "USE_FIB_TARGET", False) and (orb_high - orb_low) > 0:
+                    target = round(price + config.FIB_EXTENSION_LEVEL * (orb_high - orb_low), 2)
+                else:
+                    target = round(price + config.TAKE_PROFIT_R * (price - stop), 2)
 
                 # Size
                 regime_sf = regime_state.size_factor
@@ -538,7 +621,21 @@ class BacktestEngine:
                 if qty <= 0:
                     continue
 
-                entry_fill = price * (1 + self.cfg.slippage_pct)
+                # Entry fill — market vs limit-order simulation
+                if self.cfg.use_limit_entry_sim:
+                    limit_price = round(price * (1 + self.cfg.limit_order_buffer_pct), 2)
+                    # Look at NEXT bar — would it have crossed the limit?
+                    sym_bars = day_bars.get(sym)
+                    if sym_bars is None:
+                        continue
+                    after = sym_bars[sym_bars.index > ts]
+                    if after.empty or float(after.iloc[0]["high"]) < limit_price:
+                        # Limit not crossed in next bar — IOC miss, no entry taken
+                        self.cfg.missed_entries_count += 1
+                        continue
+                    entry_fill = limit_price
+                else:
+                    entry_fill = price * (1 + self.cfg.slippage_pct)
 
                 open_positions[sym] = {
                     "symbol": sym, "date": trading_day, "entry_time": ts,
@@ -616,7 +713,10 @@ class BacktestEngine:
                     if stop <= price:
                         continue
                     rps = stop - price
-                    target = round(price - config.TAKE_PROFIT_R * rps, 2)
+                    if getattr(config, "USE_FIB_TARGET", False) and (orb_high - orb_low) > 0:
+                        target = round(price - config.FIB_EXTENSION_LEVEL * (orb_high - orb_low), 2)
+                    else:
+                        target = round(price - config.TAKE_PROFIT_R * rps, 2)
                     if target >= price or target <= 0:
                         continue
                     realized_vol = ind.calculate_realized_vol(
@@ -632,7 +732,21 @@ class BacktestEngine:
                     qty = int(risk_amount / rps) if rps > 0 else 0
                     if qty <= 0:
                         continue
-                    entry_fill = price * (1 - self.cfg.slippage_pct)
+                    # Short entry fill — market vs limit-order simulation
+                    if self.cfg.use_limit_entry_sim:
+                        limit_price = round(price * (1 - self.cfg.limit_order_buffer_pct), 2)
+                        sym_bars = day_bars.get(sym)
+                        if sym_bars is None:
+                            continue
+                        after = sym_bars[sym_bars.index > ts]
+                        # Short fills when next bar's LOW reaches our limit (someone
+                        # was willing to buy from us at limit_price or higher).
+                        if after.empty or float(after.iloc[0]["low"]) > limit_price:
+                            self.cfg.missed_entries_count += 1
+                            continue
+                        entry_fill = limit_price
+                    else:
+                        entry_fill = price * (1 - self.cfg.slippage_pct)
                     open_positions[sym] = {
                         "symbol": sym, "date": trading_day, "entry_time": ts,
                         "entry_price": entry_fill, "stop_price": stop, "target_price": target,

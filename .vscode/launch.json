@@ -1,0 +1,84 @@
+{
+  // Debug configurations. Pick one from the Run-and-Debug sidebar (cmd+shift+D).
+  // Each runs in the repo's .venv and loads .env automatically via config.py:load_dotenv().
+  // Set breakpoints in the gutter, then F5 to launch with debugger attached.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Live Bot (paper)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/main.py",
+      "args": ["paper"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "justMyCode": false
+    },
+    {
+      "name": "Regime Status (one-shot)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/main.py",
+      "args": ["regime-status"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Pre-market Research",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/research.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Health Check",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/health.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Generate Dashboard",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/generate_dashboard.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Morning Check (preflight)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/morning_check.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Measure Slippage",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/measure_slippage.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Backtest: Plain ORB H1 2024",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/main.py",
+      "args": ["backtest", "--start", "2024-01-02", "--end", "2024-06-28"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Python: Current File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

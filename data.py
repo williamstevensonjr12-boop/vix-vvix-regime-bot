@@ -156,21 +156,39 @@ def get_put_call_history(start_date: str, end_date: str) -> pd.Series:
     finally:
         yf_log.setLevel(prev_level)
 
-    logger.debug("Put/call data unavailable; regime will use 0.9 neutral proxy")
+    # KNOWN ISSUE 2026-04-30: yfinance dropped all CBOE P/C tickers (^PCALL, ^CPC,
+    # ^CPCE etc. all return empty). The sentiment filter is silently inert, using
+    # the 0.9 neutral proxy as a constant. Bot still works because VIX/VVIX cover
+    # most fear-regime detection. TODO: find an alternative free source (CBOE direct
+    # scrape or Stooq with API key) or remove the filter cleanly + redistribute the
+    # 10% regime weight to VIX/VVIX.
+    logger.warning(
+        "Put/call data unavailable from ^PCALL — using 0.9 neutral fallback. "
+        "Sentiment filter is currently INERT. See data.py for known issue."
+    )
     return pd.Series(dtype=float, name="put_call_ratio")
 
 
 def get_spy_daily(start_date: str, end_date: str) -> pd.DataFrame:
     """Daily SPY OHLCV for benchmark and trend calculations."""
+    return _get_index_daily("SPY", start_date, end_date)
+
+
+def get_iwm_daily(start_date: str, end_date: str) -> pd.DataFrame:
+    """Daily IWM (Russell 2000) OHLCV — small-cap proxy for trend filter."""
+    return _get_index_daily("IWM", start_date, end_date)
+
+
+def _get_index_daily(symbol: str, start_date: str, end_date: str) -> pd.DataFrame:
     try:
-        raw = yf.download("SPY", start=start_date, end=end_date, progress=False, auto_adjust=True)
+        raw = yf.download(symbol, start=start_date, end=end_date, progress=False, auto_adjust=True)
         if not raw.empty:
             if isinstance(raw.columns, pd.MultiIndex):
                 raw.columns = raw.columns.get_level_values(0)
             raw.columns = [c.lower() for c in raw.columns]
             return _yf_to_et(raw).sort_index()
     except Exception as e:
-        logger.error(f"SPY daily fetch failed: {e}")
+        logger.error(f"{symbol} daily fetch failed: {e}")
     return pd.DataFrame()
 
 

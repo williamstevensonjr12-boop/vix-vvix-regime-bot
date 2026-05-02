@@ -27,6 +27,7 @@ _SSL_CTX = ssl.create_default_context()
 _SSL_CTX.check_hostname = False
 _SSL_CTX.verify_mode = ssl.CERT_NONE
 
+import pandas as pd
 import yfinance as yf
 
 logger = logging.getLogger(__name__)
@@ -36,14 +37,17 @@ REPO_ROOT = Path(__file__).parent
 RESEARCH_LOG = REPO_ROOT / "memory" / "RESEARCH-LOG.md"
 TRADE_LOG    = REPO_ROOT / "memory" / "TRADE-LOG.md"
 
-# Long-bias universe (Regime A momentum names)
-UNIVERSE = ["SPY", "QQQ", "NVDA", "AMD", "AMZN", "META", "MSFT", "AAPL", "TSLA", "XLK"]
+# Long-bias universe — pulls from config so it stays in sync with the live trade path
+import config as _bot_config
+UNIVERSE = list(_bot_config.MOMENTUM_UNIVERSE)
 # Short-bias universe (high-VIX-beta names — bot SHORT_UNIVERSE)
-SHORT_UNIVERSE = ["QQQ", "XLK", "NVDA", "AMD", "TSLA", "META", "AMZN"]
+SHORT_UNIVERSE = list(_bot_config.SHORT_UNIVERSE)
 VOL_TICKERS = {"VIX": "^VIX", "VVIX": "^VVIX", "VIX3M": "^VIX3M"}
 
-# Gap thresholds for pre-market call-outs (must match config.GAP_ALIGNMENT_THRESHOLD)
-GAP_THRESHOLD_PCT = 0.5
+# Gap threshold — matches config.GAP_ALIGNMENT_THRESHOLD so the brief reports the
+# same "qualifying" gaps that the bot actually trades. (Was hardcoded 0.5% — out
+# of sync with bot's 0.8% threshold; fixed 2026-04-30.)
+GAP_THRESHOLD_PCT = _bot_config.GAP_ALIGNMENT_THRESHOLD * 100
 
 
 # ── 1. Market data ────────────────────────────────────────────────────────────
@@ -70,29 +74,72 @@ def fetch_market_data() -> dict:
     for sym in UNIVERSE:
         try:
             t = yf.Ticker(sym)
-            hist = t.history(period="2d")
+            hist = t.history(period="5d")
             if not hist.empty:
+                # `prev` must be the most recent COMPLETED daily close (yesterday).
+                # During pre-market, yfinance has no today bar yet → iloc[-1] is
+                # already yesterday → using iloc[-2] under-reaches by one day.
+                # During RTH, iloc[-1] is today's partial bar. Either way, filter
+                # to dates strictly before today (ET) and take the last entry.
+                today_et = datetime.now(ET_TZ).date()
+                hist_idx = hist.index
+                if hist_idx.tz is None:
+                    hist_idx = hist_idx.tz_localize("UTC").tz_convert(ET_TZ)
+                else:
+                    hist_idx = hist_idx.tz_convert(ET_TZ)
+                completed_mask = pd.Series(
+                    [d.date() < today_et for d in hist_idx],
+                    index=hist.index,
+                )
+                completed = hist[completed_mask]
+                if completed.empty:
+                    continue
                 close = float(hist["Close"].iloc[-1])
-                prev  = float(hist["Close"].iloc[-2]) if len(hist) > 1 else close
-                # Pre-market price (best-effort via fast_info → info → fall back to last close)
+                prev  = float(completed["Close"].iloc[-1])
+                # Pre-market price — pull 1-min bars with prepost=True and take
+                # the last bar BEFORE today's 9:30 ET open. Falls back to fast_info
+                # if extended-hours data unavailable. (Bug fix 2026-04-30: was using
+                # fast_info.last_price, which during regular hours returns the
+                # current quote, not a pre-market price — making "gap" calculation
+                # silently meaningless.)
                 pre_price = None
                 try:
-                    fi = getattr(t, "fast_info", None)
-                    if fi is not None:
-                        pre_price = getattr(fi, "last_price", None)
+                    today_et = datetime.now(ET_TZ).date()
+                    intraday = t.history(period="1d", interval="1m", prepost=True)
+                    if not intraday.empty:
+                        # Localize to ET if needed
+                        if intraday.index.tz is None:
+                            intraday.index = intraday.index.tz_localize("UTC").tz_convert(ET_TZ)
+                        else:
+                            intraday.index = intraday.index.tz_convert(ET_TZ)
+                        # Pre-market = bars before 9:30 ET on today's date
+                        cutoff = pd.Timestamp(f"{today_et} 09:30:00", tz=ET_TZ)
+                        pre_bars = intraday[intraday.index < cutoff]
+                        if not pre_bars.empty:
+                            pre_price = float(pre_bars["Close"].iloc[-1])
                 except Exception:
                     pre_price = None
+                # Fallback: fast_info if pre-market data unavailable (still useful
+                # during regular hours as "current quote vs prior close" intraday move)
                 if not pre_price:
                     try:
-                        pre_price = t.info.get("preMarketPrice") or t.info.get("regularMarketPrice")
+                        fi = getattr(t, "fast_info", None)
+                        if fi is not None:
+                            pre_price = getattr(fi, "last_price", None)
                     except Exception:
                         pre_price = None
+                # Gap = (pre_price - PRIOR DAY's close) / PRIOR DAY's close.
+                # Bug fix 2026-04-30: was dividing by latest close, which during intraday
+                # equals current quote → gap=~0% even on real gap days. Use `prev` instead.
                 gap_pct = None
-                if pre_price and close:
-                    gap_pct = round((float(pre_price) - close) / close * 100, 2)
+                if pre_price and prev:
+                    gap_pct = round((float(pre_price) - prev) / prev * 100, 2)
+                # Display price prefers pre-market when available (more current
+                # than yesterday's close); chg_pct tracks display price vs prev.
+                display_price = float(pre_price) if pre_price else close
                 stocks[sym] = {
-                    "price": round(close, 2),
-                    "chg_pct": round((close - prev) / prev * 100, 2),
+                    "price": round(display_price, 2),
+                    "chg_pct": round((display_price - prev) / prev * 100, 2),
                     "pre_price": round(float(pre_price), 2) if pre_price else None,
                     "gap_pct": gap_pct,
                 }
@@ -250,6 +297,34 @@ def generate_brief(market_data: dict, headlines: dict, regime_summary: str) -> s
         f"pre=${d.get('pre_price', 'n/a')} gap={d.get('gap_pct', 'n/a')}%"
         for sym, d in market_data.get("stocks", {}).items()
     )
+
+    # Today's macro events (from ForexFactory feed). Tier-1 (FOMC/CPI/NFP) → bot
+    # blocks entries. Tier-2 (GDP/ISM/retail/PCE/claims) → don't block but warn.
+    events_str = "(none scheduled)"
+    block_events_today = []
+    try:
+        from calendar_feed import events_for_date, usd_blocking_events
+        today_et = datetime.now(ET_TZ).date()
+        all_today = events_for_date(today_et)
+        if all_today:
+            lines = []
+            for ev in all_today:
+                tag = "BLOCKS ENTRIES" if any(p.lower() in (ev.get("title") or "").lower()
+                    for p in ("FOMC","Federal Funds","Fed Chair","CPI","Non-Farm","NFP")) else "watch"
+                lines.append(f"  {ev.get('et_time'):>8}  [{ev.get('impact'):>6}]  {ev.get('title')}"
+                             f"  | forecast={ev.get('forecast') or '—'}  prev={ev.get('previous') or '—'}  ({tag})")
+            events_str = "\n".join(lines)
+        # Track blocking events for the prompt's risk section
+        for ev in usd_blocking_events():
+            try:
+                ts = ev.get("date") or ""
+                ev_dt = datetime.fromisoformat(ts.replace("Z","+00:00")).astimezone(ET_TZ)
+                if ev_dt.date() == today_et:
+                    block_events_today.append(f"{ev.get('title')} @ {ev_dt.strftime('%H:%M ET')}")
+            except Exception:
+                pass
+    except Exception as e:
+        logger.warning(f"calendar_feed events fetch failed: {e}")
     vol_str = (
         f"  VIX: {market_data.get('VIX')} ({market_data.get('VIX_chg_pct',0):+.2f}%)\n"
         f"  VVIX: {market_data.get('VVIX')} ({market_data.get('VVIX_chg_pct',0):+.2f}%)\n"
@@ -280,6 +355,10 @@ GAP-ALIGNED CANDIDATES (≥{GAP_THRESHOLD_PCT}% threshold):
 
 REGIME ENGINE OUTPUT:
 {regime_summary}
+
+TODAY'S MACRO EVENTS (from ForexFactory):
+{events_str}
+{('⚠ BOT WILL BLOCK ENTRIES TODAY due to: ' + ', '.join(block_events_today)) if block_events_today else 'No tier-1 blocking events today.'}
 
 TODAY'S HEADLINES:
 {news_str}
@@ -331,6 +410,33 @@ def write_research_log(today: str, market_data: dict, headlines: dict, brief: st
     for source, items in headlines.items():
         news_str += f"\n**{source.upper()}**\n" + "\n".join(f"- {h}" for h in items) + "\n"
 
+    # Today's macro events (FF feed)
+    events_md = "(none scheduled)"
+    block_note = ""
+    try:
+        from calendar_feed import events_for_date, usd_blocking_events
+        today_et = datetime.now(ET_TZ).date()
+        evs = events_for_date(today_et)
+        if evs:
+            lines = []
+            for ev in evs:
+                lines.append(f"- {ev.get('et_time')}  [{ev.get('impact')}]  **{ev.get('title')}**"
+                             f"  forecast: {ev.get('forecast') or '—'}  prev: {ev.get('previous') or '—'}")
+            events_md = "\n".join(lines)
+        blocks = []
+        for ev in usd_blocking_events():
+            try:
+                ts = ev.get("date") or ""
+                d = datetime.fromisoformat(ts.replace("Z","+00:00")).astimezone(ET_TZ)
+                if d.date() == today_et:
+                    blocks.append(f"{ev.get('title')} @ {d.strftime('%H:%M ET')}")
+            except Exception:
+                pass
+        if blocks:
+            block_note = "\n\n⚠️ **Bot will block ORB entries today (tier-1 macro):** " + ", ".join(blocks)
+    except Exception:
+        pass
+
     entry = f"""
 ---
 ## {today} — Pre-Market Research
@@ -339,6 +445,9 @@ def write_research_log(today: str, market_data: dict, headlines: dict, brief: st
 - VIX: {market_data.get('VIX')} ({market_data.get('VIX_chg_pct', 0):+.2f}%)
 - VVIX: {market_data.get('VVIX')} ({market_data.get('VVIX_chg_pct', 0):+.2f}%)
 - VIX3M: {market_data.get('VIX3M')}
+
+**Today's Macro Events (ForexFactory)**
+{events_md}{block_note}
 
 **Universe Prices + Pre-Market Gaps**
 {stocks_str}
