@@ -65,6 +65,11 @@ def fetch_window(start: str, end: str):
 def run_one(mode, rvol_on, data_tuple, equity):
     bars, vol, spy, pc, dr = data_tuple
     config.USE_TIME_OF_DAY_RVOL = rvol_on    # flag set before engine.run
+
+    # Diagnostic: confirm the dispatcher actually saw the flag we set.
+    import backtest as bt_mod
+    bt_mod._avg_volume_call_count = {"tod": 0, "legacy": 0}
+
     bt_cfg = BacktestConfig(
         mode=mode,
         initial_equity=equity,
@@ -74,10 +79,8 @@ def run_one(mode, rvol_on, data_tuple, equity):
     )
     engine = BacktestEngine(bt_cfg)
     metrics = engine.run(bars, vol, spy, pc, dr) or {}
-    # Engine returns total_pnl + max_drawdown_pnl (not pre-computed pct).
-    # Compute return % from total_pnl / initial_equity for consistency with
-    # how other backtest scripts (limit_order_backtest, slippage_stress) report.
     metrics["return_pct"] = (metrics.get("total_pnl", 0) / equity * 100) if equity > 0 else 0.0
+    metrics["_dispatch"] = dict(bt_mod._avg_volume_call_count)
     return metrics
 
 
@@ -140,13 +143,15 @@ def main():
                 out(f"  running: {tag}...")
                 m = run_one(mode, rvol_on, data_tuple, equity)
                 results[(mode, label, rvol_on)] = m
+                disp = m.get('_dispatch', {})
                 out(
                     f"    → trades={m.get('total_trades', 0):4d}  "
                     f"win_rate={m.get('win_rate', 0):.1%}  "
                     f"return={m.get('return_pct', 0):+.2f}%  "
                     f"Sharpe={m.get('sharpe', 0):+.2f}  "
                     f"PF={m.get('profit_factor', 0):.2f}  "
-                    f"maxDD=${m.get('max_drawdown_pnl', 0):,.0f}"
+                    f"maxDD=${m.get('max_drawdown_pnl', 0):,.0f}  "
+                    f"dispatch=(tod={disp.get('tod', 0)}, legacy={disp.get('legacy', 0)})"
                 )
 
     # ── Summary table ────────────────────────────────────────────────────────
@@ -158,7 +163,7 @@ def main():
             f"{'Trades':>7} {'WR':>7} {'Return':>9} {'Sharpe':>8} {'PF':>6} {'MaxDD$':>10}"
         )
         out("-" * 80)
-        for label, _, _ in WINDOWS:
+        for label, _, _ in selected:
             for rvol_on in RVOL_SETTINGS:
                 m = results.get((mode, label, rvol_on), {})
                 tag = "ON" if rvol_on else "OFF"

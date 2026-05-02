@@ -34,6 +34,9 @@ logger = logging.getLogger(__name__)
 ET = ZoneInfo(config.TIMEZONE)
 
 
+_avg_volume_call_count = {"tod": 0, "legacy": 0}
+
+
 def _avg_volume(bars):
     """Backtest-side dispatch: route volume baseline by config flag.
 
@@ -41,11 +44,13 @@ def _avg_volume(bars):
     behavior is identical to the legacy ind.calculate_avg_volume call site.
     """
     if getattr(config, "USE_TIME_OF_DAY_RVOL", False):
+        _avg_volume_call_count["tod"] += 1
         return ind.calculate_avg_volume_same_time_of_day(
             bars,
             lookback_days=getattr(config, "TIME_OF_DAY_RVOL_LOOKBACK_DAYS", 14),
             min_obs=getattr(config, "TIME_OF_DAY_RVOL_MIN_OBS", 5),
         )
+    _avg_volume_call_count["legacy"] += 1
     return ind.calculate_avg_volume(bars)
 
 
