@@ -103,15 +103,25 @@ def is_high_impact_day(trading_day) -> bool:
 
 
 class EarningsCalendar:
-    """Pre-fetches and caches earnings dates per symbol for backtest + live use."""
+    """Pre-fetches and caches earnings dates per symbol for backtest + live use.
+
+    Failure-mode contract:
+      A yfinance prefetch failure is recorded in `self._failed` and emits a
+      WARNING. The cache for the failed symbol is also set to an empty set,
+      which means `is_earnings_day()` will return False for that symbol —
+      trades get through. This preserves the prior behavior (loud-but-soft
+      failure) so a yfinance rate-limit doesn't block all trading; the
+      WARNING is what makes it audit-able after the fact. Use
+      `prefetch_failures()` to surface the unprotected symbols in EOD reports.
+    """
 
     def __init__(self):
         self._cache: dict[str, set] = {}
+        self._failed: set[str] = set()
         self._fetched = False
 
     def prefetch(self, symbols: list) -> None:
         import yfinance as yf
-        from datetime import timezone
         for sym in symbols:
             try:
                 ed = yf.Ticker(sym).earnings_dates
@@ -124,11 +134,24 @@ class EarningsCalendar:
                         except Exception:
                             pass
                     self._cache[sym] = dates
+                    self._failed.discard(sym)
                 else:
                     self._cache[sym] = set()
-            except Exception:
+                    self._failed.discard(sym)
+            except Exception as e:
                 self._cache[sym] = set()
+                self._failed.add(sym)
+                logger.warning(
+                    f"earnings prefetch failed for {sym}: {e!s}. "
+                    f"Earnings-day filter will pass through (no protection) for this symbol "
+                    f"until next successful prefetch."
+                )
         self._fetched = True
+        if self._failed:
+            logger.warning(
+                f"earnings prefetch summary: {len(self._failed)} unprotected symbol(s): "
+                f"{sorted(self._failed)}"
+            )
 
     def is_earnings_day(self, symbol: str, trading_day) -> bool:
         if not self._fetched:
@@ -139,6 +162,14 @@ class EarningsCalendar:
             from datetime import date as _date
             trading_day = _date.fromisoformat(str(trading_day)[:10])
         return trading_day in self._cache.get(symbol, set())
+
+    def prefetch_failures(self) -> set[str]:
+        """Symbols whose earnings data couldn't be fetched (no protection).
+
+        Surface this in EOD reports so unprotected trades through earnings days
+        are visible after the fact rather than silent.
+        """
+        return set(self._failed)
 
 
 def event_name(trading_day) -> str:
