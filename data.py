@@ -75,12 +75,12 @@ def _fetch_alpaca_bars(
     return df
 
 
-def get_today_bars(client, symbol: str, trade_date=None) -> pd.DataFrame:
+def get_today_bars(client, symbol: str, trade_date=None, bar_size_minutes: int = 5) -> pd.DataFrame:
     if trade_date is None:
         trade_date = datetime.now(ET).date()
     start = datetime.combine(trade_date, datetime.strptime("09:25", "%H:%M").time()).replace(tzinfo=ET)
     end = datetime.combine(trade_date, datetime.strptime("16:05", "%H:%M").time()).replace(tzinfo=ET)
-    return _fetch_alpaca_bars(client, symbol, start, end)
+    return _fetch_alpaca_bars(client, symbol, start, end, bar_size_minutes=bar_size_minutes)
 
 
 def get_historical_bars(client, symbol: str, start_date: str, end_date: str) -> pd.DataFrame:

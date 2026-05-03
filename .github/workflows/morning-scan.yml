@@ -31,7 +31,7 @@ jobs:
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
           PAPER_TRADING: "true"
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
-        run: python main.py scan
+        run: python main.py gap-go-scan
 
       - name: Commit trade journal to repo
         run: |

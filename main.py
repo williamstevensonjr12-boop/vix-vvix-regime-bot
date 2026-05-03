@@ -1031,6 +1031,138 @@ def cmd_daily_brief(debug: bool = False):
     logger.info(f"Daily brief saved: {path}")
 
 
+# ── Gap & Go cloud scan ───────────────────────────────────────────────────────
+
+def cmd_gap_go_scan(debug: bool = False):
+    """
+    Gap & Go morning scan. Replaces V5 scan in GitHub Actions.
+    IWM filter → gapper screen → ORB breakout → Fibonacci pullback entry → bracket orders.
+    """
+    import gap_go_live as gg
+
+    setup_logging(debug)
+    logger.info("Mode: GAP & GO SCAN")
+
+    broker = AlpacaBroker()
+    if not broker.is_market_open():
+        logger.info("Market closed — nothing to do.")
+        return
+
+    data_client = mkt_data.get_data_client()
+    today = datetime.now(ET).date()
+    daily_start_equity = float(broker.get_account().equity)
+
+    # ── IWM filter ────────────────────────────────────────────────────────────
+    if not gg.check_iwm_filter():
+        logger.info("IWM filter: bearish small-cap regime — skipping all trades.")
+        _save_daily_summary(broker, daily_start_equity, today, "IWM_SKIP")
+        return
+
+    # ── Pre-market gapper screen ──────────────────────────────────────────────
+    candidates = gg.scan_gapper_candidates()
+    if not candidates:
+        logger.info("No gap-up candidates found today.")
+        _save_daily_summary(broker, daily_start_equity, today, "NO_CANDIDATES")
+        return
+
+    trades_today = 0
+    logger.info(
+        f"Gap & Go scan start | equity=${daily_start_equity:,.2f} | {len(candidates)} candidates"
+    )
+
+    # ── Main loop ─────────────────────────────────────────────────────────────
+    while True:
+        now          = datetime.now(ET)
+        current_time = now.strftime("%H:%M")
+
+        # Force-close all at 3:45 PM
+        if current_time >= gg.FORCE_CLOSE_TIME:
+            logger.info("3:45 PM — force-closing all Gap & Go positions")
+            broker.close_all_positions()
+            _save_daily_summary(broker, daily_start_equity, today, "GAP_GO")
+            break
+
+        # Entry window closed — hold until EOD
+        if current_time >= gg.ENTRY_END_TIME:
+            time.sleep(60)
+            continue
+
+        # Wait for ORB to finish
+        if current_time < gg.ORB_END_TIME:
+            logger.info(f"Waiting for ORB to close at {gg.ORB_END_TIME}...")
+            time.sleep(30)
+            continue
+
+        account        = broker.get_account()
+        equity         = float(account.equity)
+        open_positions = broker.get_positions()
+
+        # Daily loss limit halt
+        if (equity - daily_start_equity) < -daily_start_equity * gg.DAILY_LOSS_LIMIT:
+            logger.info(
+                f"Daily loss limit hit (${equity - daily_start_equity:,.2f}) — halting new entries."
+            )
+            time.sleep(60)
+            continue
+
+        if len(open_positions) >= gg.MAX_POSITIONS:
+            time.sleep(60)
+            continue
+
+        # Scan each candidate for breakout and entry
+        for cand in candidates:
+            if cand.in_position or cand.failed:
+                continue
+            if cand.symbol in open_positions:
+                cand.in_position = True
+                continue
+
+            try:
+                bars = mkt_data.get_today_bars(
+                    data_client, cand.symbol, bar_size_minutes=gg.BAR_MINUTES
+                )
+                if bars.empty:
+                    continue
+
+                gg.update_candidate_state(cand, bars)
+
+                if not gg.should_enter(cand, bars):
+                    continue
+
+                # R:R gate: T1 must be ≥ MIN_RR × stop distance from entry level
+                current_price = float(bars.iloc[-1]["close"])
+                stop_dist     = abs(cand.entry_level - cand.stop_level)
+                target_dist   = abs(cand.target1 - cand.entry_level)
+                if stop_dist <= 0 or (target_dist / stop_dist) < gg.MIN_RR:
+                    logger.debug(
+                        f"{cand.symbol}: R:R {target_dist/stop_dist:.1f} < {gg.MIN_RR} — skip"
+                    )
+                    continue
+
+                qty = gg.calculate_position_size(equity, cand.entry_level, cand.stop_level)
+                if qty <= 0:
+                    continue
+
+                order = broker.submit_bracket_order(
+                    symbol=cand.symbol,
+                    qty=qty,
+                    stop_price=round(cand.stop_level, 2),
+                    take_profit_price=round(cand.target1, 2),
+                )
+                if order:
+                    cand.in_position = True
+                    trades_today += 1
+                    logger.info(
+                        f"ENTRY ▶ {cand.symbol}  ~{current_price:.2f}  stop={cand.stop_level:.2f}"
+                        f"  t1={cand.target1:.2f}  qty={qty}  gap={cand.gap_pct:+.1f}%  rvol={cand.rvol:.1f}×"
+                    )
+
+            except Exception as e:
+                logger.error(f"Error processing {cand.symbol}: {e}", exc_info=True)
+
+        time.sleep(60)
+
+
 # ── Backtest ──────────────────────────────────────────────────────────────────
 
 def cmd_backtest(start: str, end: str, equity: float, debug: bool = False):
@@ -1118,7 +1250,8 @@ def main():
     sub = parser.add_subparsers(dest="mode", required=True)
 
     sub.add_parser("paper", help="Live paper trading (long-running, local use)")
-    sub.add_parser("scan", help="Morning entry scan with bracket orders, then exit (cloud)")
+    sub.add_parser("gap-go-scan", help="Gap & Go morning scan — gapper screen + Fib entry (cloud)")
+    sub.add_parser("scan", help="V5 regime morning scan with bracket orders (cloud, legacy)")
     sub.add_parser("close", help="Close all positions and cancel orders (cloud EOD)")
     sub.add_parser("daily-brief", help="Pull today's Alpaca fills and print P&L summary")
     sub.add_parser("research", help="Pull Yahoo Finance news and save daily report")
@@ -1139,6 +1272,8 @@ def main():
 
     if args.mode == "paper":
         cmd_paper(args.debug)
+    elif args.mode == "gap-go-scan":
+        cmd_gap_go_scan(args.debug)
     elif args.mode == "scan":
         cmd_scan(args.debug)
     elif args.mode == "close":
