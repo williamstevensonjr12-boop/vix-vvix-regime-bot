@@ -173,7 +173,13 @@ REGIME_C_SIZE_FACTOR: float = 0.25
 
 PORTFOLIO_EXPOSURE_CAP: float = 0.50
 MAX_OPEN_POSITIONS: int = 3
-MAX_TRADES_PER_DAY: int = 5
+# 2026-05-03 — HALT. Universe A/B confirmed Branch B of the locked decision
+# tree: small-cap sums to -4.29%, mega-cap sums to -21.67% across the 4-window
+# panel (2023H1, 2023H2, 2024H1, 2024H2). Strategy is unprofitable in every
+# tested universe. Setting to 0 blocks new entries via risk.py:178 while
+# keeping the wrapper alive for monitoring. Restore to 5 only after a salvage
+# config produces multi-window backtest evidence of profitability.
+MAX_TRADES_PER_DAY: int = 0
 
 DAILY_MAX_LOSS_PCT: float = 0.02
 KILL_SWITCH_LOSS_PCT: float = 0.03    # hard stop all trading
