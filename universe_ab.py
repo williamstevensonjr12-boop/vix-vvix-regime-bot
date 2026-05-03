@@ -86,12 +86,19 @@ def fetch_window(start: str, end: str):
 def run_one(mode, universe, data_tuple, equity):
     saved_universe = list(config.MOMENTUM_UNIVERSE)
     saved_all = list(config.ALL_SYMBOLS)
+    # MAX_TRADES_PER_DAY may be 0 because the live bot is halted (see
+    # MEMORY: bot HALT state). Backtests evaluate strategy potential, not
+    # live safety state, so always restore the strategy's intended cap (5)
+    # for the run — otherwise every entry attempt is blocked at risk.py:178
+    # and the result is 0-trade garbage.
+    saved_max_trades = config.MAX_TRADES_PER_DAY
     try:
         config.MOMENTUM_UNIVERSE = list(universe)
         config.ALL_SYMBOLS = list(dict.fromkeys(
             config.MOMENTUM_UNIVERSE + config.FEAR_RESILIENT_UNIVERSE
             + config.DEFENSIVE_UNIVERSE + config.SHORT_UNIVERSE
         ))
+        config.MAX_TRADES_PER_DAY = 5
         bars, vol, spy, pc, dr = data_tuple
         bt_cfg = BacktestConfig(
             mode=mode,
@@ -109,6 +116,7 @@ def run_one(mode, universe, data_tuple, equity):
     finally:
         config.MOMENTUM_UNIVERSE = saved_universe
         config.ALL_SYMBOLS = saved_all
+        config.MAX_TRADES_PER_DAY = saved_max_trades
 
 
 def main():
