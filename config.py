@@ -124,16 +124,15 @@ VIX_BETA_MIN_OBS: int = 30
 TOP_SYMBOLS_FRACTION: float = 0.50   # trade top ~50% by fear resilience (top 4-5 of 9)
 
 # A/B switch for the LONG (Regime A) VIX-beta hard-cut filter.
-# True = current behavior (rank universe by fear-resilience, keep top 50%).
+# True = rank universe by fear-resilience, keep top 50%.
 # False = bypass the filter, scan the full regime universe.
 #
-# The 2026-05-02 audit flagged the filter as suspicious — every name in the
-# active universe scored a near-zero noisy beta (-0.02 to +0.001), and the
-# cut-line happened to follow market-cap rather than any real fear-resilience
-# signal. But "suspicious" is not "proven dilutive," so default stays True
-# until Phase 2 backtests provide evidence. Phase 5 of the audit will A/B
-# this flag and decide.
-ENABLE_VIX_BETA_FILTER: bool = True
+# 2026-05-03 — flipped to False. Filter ablation across 4 windows (2023H1,
+# 2023H2, 2024H1, 2024H2) showed 0 trade delta with this filter off — the
+# active small-cap universe scores near-zero noisy beta on every name, so
+# the top-50% cut never excludes anyone. Plus vix_factor.py:213 has an
+# impl-vs-spec bug (sort direction inverted). Decorative gate, dropped.
+ENABLE_VIX_BETA_FILTER: bool = False
 
 # ── Risk management ───────────────────────────────────────────────────────────
 RISK_PER_TRADE_PCT: float = 0.005     # 0.5% base
@@ -196,7 +195,9 @@ TIME_OF_DAY_RVOL_MIN_OBS: int = 5
 
 # ── Optional filters ──────────────────────────────────────────────────────────
 ENABLE_BREADTH_FILTER: bool = False
-ENABLE_ATR_EXPANSION_FILTER: bool = True
+# 2026-05-03 — flipped to False. Filter ablation across 4 windows showed 0
+# trade delta with this filter off. Decorative gate, dropped.
+ENABLE_ATR_EXPANSION_FILTER: bool = False
 SPY_TREND_FILTER: bool = True         # block Regime A entries when SPY < 20d MA
 SPY_TREND_MA_PERIOD: int = 20
 ATR_EXPANSION_MULTIPLIER: float = 1.2
@@ -238,7 +239,9 @@ GAP_CONTINUATION_HOLD_BARS: int = 2        # bars after open price must hold abo
 # Strict mode: flat opens (within threshold) skipped entirely.
 # Regime-aware: only enforce in regimes listed in GAP_ALIGNMENT_REGIMES (default: A only).
 # In B/C the market mean-reverts after shocks — gap continuation thesis breaks.
-GAP_ALIGNMENT_REQUIRED: bool = True
+# 2026-05-03 — flipped to False. Filter ablation across 4 windows showed 0
+# trade delta with this filter off. Decorative gate, dropped.
+GAP_ALIGNMENT_REQUIRED: bool = False
 GAP_ALIGNMENT_THRESHOLD: float = 0.008     # 0.8% gap — raised from 0.5% (small caps gap on noise)
 GAP_ALIGNMENT_REGIMES: tuple = ("A",)      # regime letters where gap filter applies
 

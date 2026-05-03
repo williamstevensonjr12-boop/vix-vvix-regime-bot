@@ -62,7 +62,19 @@ class TestComputeGapPct:
 # ── _gap_aligned ───────────────────────────────────────────────────────────
 
 class TestGapAligned:
-    """Note: gap-alignment is regime-aware. Filter is OFF outside Regime A."""
+    """Note: gap-alignment is regime-aware. Filter is OFF outside Regime A.
+
+    Production default is GAP_ALIGNMENT_REQUIRED=False (filter dropped 2026-05-03
+    after 4-window ablation showed 0 trade delta). These tests force the flag
+    on so they remain a regression check on gate logic if it's ever re-enabled.
+    """
+
+    def setup_method(self, method):
+        self._prev = config.GAP_ALIGNMENT_REQUIRED
+        config.GAP_ALIGNMENT_REQUIRED = True
+
+    def teardown_method(self, method):
+        config.GAP_ALIGNMENT_REQUIRED = self._prev
 
     def test_long_passes_with_bullish_gap_in_A(self):
         ok, reason = _gap_aligned(0.012, side="long", regime_letter="A")
