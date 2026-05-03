@@ -6,7 +6,11 @@ from __future__ import annotations
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+# override=True so .env wins over any stale ALPACA_* vars left in the shell
+# environment from prior sessions. Without this, fresh-process backtests
+# silently picked up a revoked key and 401'd while the live wrapper (which
+# always re-sources .env) worked — see 2026-05-03 universe A/B incident.
+load_dotenv(override=True)
 
 # ── Broker ──────────────────────────────────────────────────────────────────
 ALPACA_API_KEY: str = os.getenv("ALPACA_API_KEY", "")
