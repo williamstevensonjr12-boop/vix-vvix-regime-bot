@@ -132,6 +132,15 @@ def main():
         default=[v[0] for v in VARIANTS],
     )
     parser.add_argument(
+        "--retracement",
+        choices=["on", "off"],
+        default="off",
+        help="USE_FIB_RETRACEMENT_ENTRY for the run. Default 'off' = match "
+             "live config (USE_FIB_RETRACEMENT_ENTRY=False). Use 'on' to "
+             "match prior backtest harnesses (filter_ablation, take_profit_ab) "
+             "which force-True it.",
+    )
+    parser.add_argument(
         "--out",
         default=os.path.join(config.BACKTEST_RESULTS_DIR, "universe_ab.log"),
     )
@@ -146,7 +155,7 @@ def main():
                   "sentiment", "sector_rotation", "performance"):
         logging.getLogger(noisy).setLevel(logging.WARNING)
 
-    config.USE_FIB_RETRACEMENT_ENTRY = True   # match filter_ablation / take_profit_ab
+    config.USE_FIB_RETRACEMENT_ENTRY = (args.retracement == "on")
 
     equity = config.INITIAL_EQUITY
     os.makedirs(config.BACKTEST_RESULTS_DIR, exist_ok=True)
@@ -165,7 +174,7 @@ def main():
     out(f"  small_cap: {SMALL_CAP}")
     out(f"  mega_cap : {MEGA_CAP}")
     out(f"  slippage : {SLIPPAGE * 100:.2f}% per side")
-    out(f"  fib_retr : USE_FIB_RETRACEMENT_ENTRY = True (matches prior harnesses)")
+    out(f"  fib_retr : USE_FIB_RETRACEMENT_ENTRY = {config.USE_FIB_RETRACEMENT_ENTRY}")
     out(f"  equity   : ${equity:,.0f}")
     out(f"  started  : {started.isoformat()}")
     out(f"  total runs: {len(selected_windows) * len(selected_modes) * len(selected_variants)}")
