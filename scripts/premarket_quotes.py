@@ -36,9 +36,16 @@ def _last_regular_close(t) -> float | None:
     History always reflects the last completed daily bar. 2026-05-04 fix.
     """
     try:
-        hist = t.history(period="5d", auto_adjust=False)
-        if not hist.empty:
-            return float(hist["Close"].iloc[-1])
+        from datetime import date
+        hist = t.history(period="7d", auto_adjust=False)
+        if hist.empty:
+            return None
+        today = date.today()
+        # Drop today's row — Yahoo creates a partial daily bar during pre-market
+        # whose Close is the live pre-market price, not yesterday's close.
+        past = hist[hist.index.date < today]
+        if not past.empty:
+            return float(past["Close"].iloc[-1])
     except Exception:
         pass
     return None
@@ -50,7 +57,14 @@ def quote(symbol: str) -> str:
             t = yf.Ticker(symbol)
             info = t.info or {}
             prev = _last_regular_close(t)
+        # Yahoo populates preMarketPrice during early pre-market hours, then
+        # rolls pre-market activity into regularMarketPrice closer to the open
+        # (preMarketPrice goes None ~30 min before bell). Fall back to
+        # regularMarketPrice when the dedicated field is unavailable —
+        # before market opens, regularMarketPrice tracks pre-market levels.
         pre_px = info.get("preMarketPrice")
+        if pre_px is None:
+            pre_px = info.get("regularMarketPrice")
 
         if pre_px is None and prev:
             return f"- {symbol}: no pre-market quote (prev close ${prev:.2f})"
