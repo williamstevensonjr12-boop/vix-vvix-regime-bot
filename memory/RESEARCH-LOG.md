@@ -2611,3 +2611,30 @@ S&P 500 and Nasdaq at record highs, but pre-market shows near-flat gaps across t
 | **REGIME** | **Likely Regime A** (Low Vol) — VIX 16.99
 
 ---
+
+=== PRE-MARKET 2026-05-05 (TEST RUN — manual invocation, not the 6 AM cron) ===
+
+**Account snapshot:** equity $99,621.24 · buying_power $398,484.96 · 0 open positions · 0 open orders · daytrade_count 7 · last_equity $99,621.24 (flat overnight)
+
+**Held overnight:** none (Cameron strategy is intraday-only, EOD flat)
+
+**Macro context (1-3 bullets, via WebSearch):**
+- Q1 earnings season largely past — Mag-7 broadly beat (GOOGL, AMZN, META, MSFT, AAPL all reported through end of April). S&P 500 first-quarter earnings now expected to grow 14% YoY, up from 12% est at end of March. Full-year 2026 S&P earnings projected +18.7%.
+- S&P 500 at fresh all-time intraday high Friday May 1 (7,230.12). Tone neutral-to-bullish into Tuesday.
+- US-Iran diplomatic stalemate ongoing — WTI elevated. No specific scheduled catalyst identified for 2026-05-05.
+
+**Per-symbol notes (snapshots from late-Apr/May-1 close — no live pre-market quote available at this hour):**
+- AAPL ~$280 (+3.3% post-earnings — strongest mega-cap momentum)
+- MSFT ~$414 (+1.6% post-earnings)
+- AMZN ~$268 (+1.2%)
+- GOOGL ~$383 (+0.3%)
+- META ~$608 (-0.5% — weakest of cohort, post-earnings tug-of-war)
+- NVDA ~$198 (-0.5% — no fresh catalyst)
+- SPY/QQQ at all-time highs
+- No mega-cap reports earnings tomorrow (verified via calendar_filter prefetch); all 8 eligible
+
+**Decision: ALLOW BOT TO TRADE.** No extreme events identified. No scheduled FOMC/CPI for 5/5 in WebSearch results. Bot live with Cameron VWAP-Bounce, MAX_TRADES_PER_DAY=5, halt -2%, kill -3%.
+
+**Notification:** silent (no held position drawdown, no halt, no PAUSE).
+
+**Test-run notes:** This entry was written by a manual invocation of the pre-market routine at 03:1X ET to verify the post-perplexity routine pipeline end-to-end (memory reads ✓, alpaca.sh wrappers ✓, WebSearch tool ✓ replacing perplexity.sh, RESEARCH-LOG append ✓, git push ✓). The actual scheduled cron run will fire at 06:00 ET and write a second entry for 2026-05-05.
