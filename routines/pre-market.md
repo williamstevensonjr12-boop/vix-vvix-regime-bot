@@ -48,6 +48,10 @@ STEP 4 — Research via the WebSearch tool. Run these queries:
   - News on any currently-held ticker
   If WebSearch is unavailable, note that headlines were unavailable in the RESEARCH-LOG entry.
 
+STEP 4.5 — Live per-symbol pre-market quotes via yfinance:
+  python scripts/premarket_quotes.py
+  Output is markdown bullets (one per mega-cap) with pre-market price + gap % vs prev close. Paste verbatim into the RESEARCH-LOG entry. Flag any symbol gapping >1% as a watch candidate.
+
 STEP 5 — Write dated entry to memory/RESEARCH-LOG.md:
   - Account snapshot (equity, buying power, open positions)
   - Earnings-day exclusions (which of the 8 mega-caps are blocked today)
