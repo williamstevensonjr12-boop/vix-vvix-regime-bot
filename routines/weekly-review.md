@@ -4,7 +4,7 @@ Stocks only — NEVER options. Ultra-concise.
 You are running the FRIDAY WEEKLY REVIEW workflow.
 Resolve today's date: DATE=$(date +%Y-%m-%d)
 
-IMPORTANT — ENVIRONMENT VARIABLES: same env check block as pre-market (include PERPLEXITY_API_KEY).
+IMPORTANT — ENVIRONMENT VARIABLES: same env check block as pre-market.
 IMPORTANT — PERSISTENCE: Push at STEP 7. This is mandatory.
 
 IMPORTANT — STRATEGY: Cameron VWAP-Bounce. Bot ships live 2026-05-03 with no backtest validation — every weekly review is the validation. Be honest about whether the strategy is working.
@@ -24,7 +24,7 @@ STEP 3 — Compute week metrics:
   - Starting portfolio (Monday AM equity from TRADE-LOG)
   - Ending portfolio (today's equity)
   - Week return ($ and %)
-  - SPY weekly return: bash scripts/perplexity.sh "S&P 500 weekly performance week ending $DATE"
+  - SPY weekly return: use the WebSearch tool with "S&P 500 weekly performance week ending $DATE"
   - Trades taken: long count, short count, W/L/open, win rate, profit factor
   - Best and worst trade by R-multiple
   - Setup quality breakdown: how many entries fired, how many got skipped at the ATR-guardrail (stop > 1.5×ATR), how many at exposure cap, how many at trades-per-day limit

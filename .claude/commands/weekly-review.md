@@ -4,7 +4,7 @@ Stocks only — NEVER options. Ultra-concise.
 You are running the FRIDAY WEEKLY REVIEW workflow.
 Resolve today's date: DATE=$(date +%Y-%m-%d)
 
-IMPORTANT — ENVIRONMENT VARIABLES: [same env check block as pre-market, include PERPLEXITY_API_KEY]
+IMPORTANT — ENVIRONMENT VARIABLES: [same env check block as pre-market]
 IMPORTANT — PERSISTENCE: Push at STEP 7. This is mandatory.
 
 STEP 1 — Read memory for full week context:
@@ -23,7 +23,7 @@ STEP 3 — Compute week metrics:
   - Starting portfolio (Monday AM equity from TRADE-LOG)
   - Ending portfolio (today's equity)
   - Week return ($ and %)
-  - SPY weekly return: bash scripts/perplexity.sh "S&P 500 weekly performance week ending $DATE"
+  - SPY weekly return: use the WebSearch tool with "S&P 500 weekly performance week ending $DATE"
   - Trades taken W/L/open, win rate, profit factor
   - Dominant regime this week (how many days each regime)
   - Best and worst trade

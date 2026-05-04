@@ -34,7 +34,6 @@ bash scripts/alpaca.sh account     # account state
 bash scripts/alpaca.sh positions   # open positions
 bash scripts/alpaca.sh regime      # current regime
 bash scripts/alpaca.sh vix         # VIX/VVIX snapshot
-bash scripts/perplexity.sh "query" # market research
 bash scripts/clickup.sh "message"  # notifications
 ```
 

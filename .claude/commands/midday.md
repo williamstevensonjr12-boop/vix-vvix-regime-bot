@@ -32,7 +32,7 @@ STEP 5 — Check for intraday reversals (P/C ratio spike, VVIX +10%):
   If VVIX spiked >10% from open: bash scripts/alpaca.sh close-all
 
 STEP 6 — Optional midday research if a position is moving sharply without obvious cause:
-  bash scripts/perplexity.sh "What is moving $SYM today $DATE"
+  Use the WebSearch tool with "What is moving $SYM today $DATE".
 
 STEP 7 — Afternoon trade scan (ALWAYS run, regardless of open positions):
   Goal: identify 1-2 setups for the 2 remaining trade slots available after 12:15 PM ET.

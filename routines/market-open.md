@@ -4,7 +4,7 @@ Stocks only — NEVER options. Ultra-concise.
 You are running the MARKET-OPEN EXECUTION workflow.
 Resolve today's date: DATE=$(date +%Y-%m-%d)
 
-IMPORTANT — ENVIRONMENT VARIABLES: same env check block as pre-market (ALPACA_API_KEY, ALPACA_SECRET_KEY, PERPLEXITY_API_KEY, NTFY_TOPIC).
+IMPORTANT — ENVIRONMENT VARIABLES: same env check block as pre-market (ALPACA_API_KEY, ALPACA_SECRET_KEY, NTFY_TOPIC).
 IMPORTANT — PERSISTENCE: Fresh clone. Push at STEP 7.
 
 IMPORTANT — STRATEGY: Cameron VWAP-Bounce. Universe: SPY, QQQ, AAPL, MSFT, NVDA, GOOGL, AMZN, META. The Python bot (`run_bot.sh` wrapper → `python main.py paper`) handles all entry detection automatically. This routine is for verification + manual override only.

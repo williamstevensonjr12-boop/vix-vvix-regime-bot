@@ -33,7 +33,7 @@ STEP 4 — Position quality scan. For each open position:
   - Stop level still valid (broker maintaining the bracket)?
 
 STEP 5 — Optional intraday research if a position is moving sharply without obvious cause:
-  bash scripts/perplexity.sh "What is moving SYM today $DATE"
+  Use the WebSearch tool with "What is moving SYM today $DATE".
 
 STEP 6 — Manual intervention (rare — bot manages its own exits via brackets). If you must close manually:
   bash scripts/alpaca.sh close SYM

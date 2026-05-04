@@ -8,11 +8,11 @@ Resolve today's date: DATE=$(date +%Y-%m-%d)
 IMPORTANT — ENVIRONMENT VARIABLES:
 - Every API key is ALREADY exported as a process env var:
   ALPACA_API_KEY, ALPACA_SECRET_KEY, ALPACA_ENDPOINT, ALPACA_DATA_ENDPOINT,
-  PERPLEXITY_API_KEY, PERPLEXITY_MODEL, NTFY_TOPIC, NTFY_SERVER
+  NTFY_TOPIC, NTFY_SERVER
 - There is NO .env file in this repo. DO NOT create, write, or source one.
 - If a wrapper prints "not set in environment" → STOP, send one ntfy alert naming the missing var, exit.
 - Verify env vars first:
-  for v in ALPACA_API_KEY ALPACA_SECRET_KEY PERPLEXITY_API_KEY NTFY_TOPIC; do
+  for v in ALPACA_API_KEY ALPACA_SECRET_KEY NTFY_TOPIC; do
     [[ -n "${!v:-}" ]] && echo "$v: set" || echo "$v: MISSING"
   done
 
@@ -41,12 +41,12 @@ STEP 3 — Earnings-day check on the universe:
   Use the Python calendar to surface today's earnings names. Skipped automatically by the live bot's strategy gate, but useful to log:
   python -c "from calendar_filter import EarningsCalendar; c=EarningsCalendar(); c.prefetch(['SPY','QQQ','AAPL','MSFT','NVDA','GOOGL','AMZN','META']); from datetime import date; today=date.today(); print([s for s in ['SPY','QQQ','AAPL','MSFT','NVDA','GOOGL','AMZN','META'] if c.is_earnings_day(s, today)])"
 
-STEP 4 — Research via Perplexity (use bash scripts/perplexity.sh "<query>" for each):
+STEP 4 — Research via the WebSearch tool. Run these queries:
   - "S&P 500 futures premarket $DATE"
   - "Top stock market catalysts today $DATE"
   - "Pre-market movers among AAPL MSFT NVDA GOOGL AMZN META mega-caps $DATE"
   - News on any currently-held ticker
-  If Perplexity exits 3, fall back to native WebSearch and note the fallback.
+  If WebSearch is unavailable, note that headlines were unavailable in the RESEARCH-LOG entry.
 
 STEP 5 — Write dated entry to memory/RESEARCH-LOG.md:
   - Account snapshot (equity, buying power, open positions)

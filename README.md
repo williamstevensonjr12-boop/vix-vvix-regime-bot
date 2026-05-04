@@ -68,7 +68,6 @@ VIX_VVIX_Regime_Alpha_Bot/
 │
 ├── scripts/
 │   ├── alpaca.sh          — All Alpaca API calls (account, orders, positions)
-│   ├── perplexity.sh      — Market research via Perplexity
 │   └── clickup.sh         — ClickUp chat notifications
 │
 ├── routines/              — Cloud routine prompts (paste into Claude Code cron)
@@ -94,7 +93,6 @@ VIX_VVIX_Regime_Alpha_Bot/
 
 - Python 3.10+
 - Alpaca paper trading account: https://app.alpaca.markets
-- (Optional) Perplexity API key for pre-market research
 - (Optional) ClickUp account for daily notifications
 
 ### 2. Install dependencies

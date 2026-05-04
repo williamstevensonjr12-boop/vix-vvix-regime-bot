@@ -80,7 +80,6 @@ Use the bash scripts — never curl directly:
 
 ```bash
 bash scripts/alpaca.sh <subcommand>    # account, positions, orders, order, close
-bash scripts/perplexity.sh "<query>"   # market research with citations
 bash scripts/notify.sh <type> "<msg>"  # ntfy push notification (types: entry, exit, regime, alert, eod, info)
 ```
 
