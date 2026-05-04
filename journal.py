@@ -17,8 +17,8 @@ TRADE_FIELDS = [
     "date", "symbol", "side", "setup", "entry_time", "exit_time",
     "entry_price", "stop_price", "target_price", "exit_price",
     "qty", "pnl", "r_multiple", "result",
-    "regime", "vix_beta", "regime_size", "vol_mult",
-    "atr", "vwap", "orb_high", "reason", "notes",
+    "strategy", "vwap", "ema_fast", "ema_mid", "ema_slow",
+    "atr", "rvol", "reason", "notes",
 ]
 
 PERFORMANCE_FIELDS = [
@@ -43,8 +43,9 @@ def log_trade_open(signal):
     now = datetime.now(ET).strftime("%Y-%m-%d %H:%M:%S")
     logger.info(
         f"[TRADE OPEN] {now} | {signal.symbol} | "
+        f"side={getattr(signal, 'side', 'long')} "
         f"entry={signal.entry_price:.2f} qty={signal.qty} "
-        f"regime={signal.regime}"
+        f"setup={getattr(signal, 'setup', 'vwap_bounce')}"
     )
 
 
@@ -209,7 +210,7 @@ def build_trade_record(signal, order_id: str, today, entry_time: str) -> dict:
         "date": str(today),
         "symbol": signal.symbol,
         "side": getattr(signal, "side", "long"),
-        "setup": getattr(signal, "setup", "orb"),
+        "setup": getattr(signal, "setup", "vwap_bounce"),
         "entry_time": entry_time,
         "exit_time": "",
         "entry_price": signal.entry_price,
@@ -220,13 +221,13 @@ def build_trade_record(signal, order_id: str, today, entry_time: str) -> dict:
         "pnl": "",
         "r_multiple": "",
         "result": "OPEN",
-        "regime": signal.regime,
-        "vix_beta": round(signal.vix_beta, 4),
-        "regime_size": signal.regime_size_factor,
-        "vol_mult": signal.vol_multiplier,
-        "atr": signal.atr,
+        "strategy": "VWAP-Bounce",
         "vwap": signal.vwap,
-        "orb_high": signal.orb_high,
+        "ema_fast": getattr(signal, "ema_fast", ""),
+        "ema_mid": getattr(signal, "ema_mid", ""),
+        "ema_slow": getattr(signal, "ema_slow", ""),
+        "atr": signal.atr,
+        "rvol": getattr(signal, "rvol", ""),
         "reason": signal.reason,
         "notes": f"order_id={order_id}",
     }
