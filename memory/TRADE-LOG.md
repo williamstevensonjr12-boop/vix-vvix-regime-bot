@@ -273,3 +273,14 @@ Account equity $99,621.24, no open positions, no open orders.
 - Branch `preston-filters`, commits past `04cc2fc` snapshot
 - Account equity $99,621.24, no open positions, no open orders
 - Wrapper restart needed to pick up new strategy (Phase 11 next)
+
+
+=== EOD 2026-05-04 ===
+Equity: $99,639.88 (day P&L: +$18.64, day return: +0.019%)
+Trades: 1 (W:1 / L:0 / flat:0) | Win rate: 100% | P/F: ∞ (no losses)
+  - Avg win: $18.64 | Avg loss: N/A
+  - Wins: MSFT long (+$18.64)
+  - Losses: NONE
+Halt: NO | Kill switch: NO
+Open overnight: NONE (Cameron strategy is intraday-only, EOD flat)
+Notes: First successful Cameron VWAP-Bounce trade since strategy swap (2026-05-03). MSFT long entered 10:17 ET @ $417.757, exited 10:32 ET @ $419.621 (10 shares, +$1.864/share = +$18.64). Closed by bot ~13min after entry — no bracket legs visible on Alpaca (both buy and sell orders show as `market` type with `legs=0`); exit mechanism unclear from log but P&L is real and equity matches order math exactly. Bot wrapper auto-closed all (none open) at 3:55 PM ET as expected. Account variance vs trade-log sum: matches exactly ($18.64 = $18.64). Day trade count rolled from 7 → 8 on rolling 5-day window. PDT-flagged but well within paper-account margin. Bot pre-market gap %s buggy this morning (anchored to 2-day-old close); fixed mid-day in commit `7e88e4a` and 3 prior-corrections appended in RESEARCH-LOG. Bug signals to track: (1) `closure detected for MSFT but no fill found` WARNING at 10:32 — journal pipeline didn't capture the round-trip; trades.csv still shows last entry from 2026-04-30 (RKLB). Bot's internal `trades_today` counter also stayed at 0/5 after the closed round-trip — entry-side counter increment may be missing in the new Cameron signal path. Neither halt nor kill-switch tripped; far below 2% / 3% thresholds.
