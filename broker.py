@@ -4,7 +4,11 @@ paper=True is hardcoded. Live trading is blocked at both config and constructor 
 """
 from __future__ import annotations
 import logging
+import time
 from zoneinfo import ZoneInfo
+
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import (
@@ -20,6 +24,27 @@ import config
 logger = logging.getLogger(__name__)
 ET = ZoneInfo(config.TIMEZONE)
 
+_CONNECT_TIMEOUT = 20   # seconds to establish TCP connection
+_READ_TIMEOUT    = 30   # seconds to wait for a response
+
+
+class _TimeoutAdapter(HTTPAdapter):
+    """HTTPAdapter that enforces connect + read timeouts on every request."""
+
+    def send(self, request, **kwargs):
+        kwargs.setdefault("timeout", (_CONNECT_TIMEOUT, _READ_TIMEOUT))
+        return super().send(request, **kwargs)
+
+
+def _make_retry_adapter() -> _TimeoutAdapter:
+    retry = Retry(
+        total=3,
+        backoff_factor=2,
+        status_forcelist=[429, 500, 502, 503, 504],
+        allowed_methods=["GET", "POST", "DELETE"],
+    )
+    return _TimeoutAdapter(max_retries=retry)
+
 
 class AlpacaBroker:
     """Paper-only trading client. Raises RuntimeError if live keys detected."""
@@ -32,12 +57,24 @@ class AlpacaBroker:
             secret_key=config.ALPACA_SECRET_KEY,
             paper=True,
         )
-        acct = self.client.get_account()
-        logger.info(
-            f"Alpaca PAPER account connected | "
-            f"equity=${float(acct.equity):,.2f} | "
-            f"buying_power=${float(acct.buying_power):,.2f}"
-        )
+        adapter = _make_retry_adapter()
+        self.client._session.mount("https://", adapter)
+        self.client._session.mount("http://", adapter)
+
+        for attempt in range(1, 4):
+            try:
+                acct = self.client.get_account()
+                logger.info(
+                    f"Alpaca PAPER account connected | "
+                    f"equity=${float(acct.equity):,.2f} | "
+                    f"buying_power=${float(acct.buying_power):,.2f}"
+                )
+                break
+            except Exception as e:
+                if attempt == 3:
+                    raise RuntimeError(f"Alpaca API unreachable after 3 attempts: {e}") from e
+                logger.warning(f"Alpaca connect attempt {attempt} failed: {e} — retrying in {2**attempt}s")
+                time.sleep(2 ** attempt)
 
     # ── Account ──────────────────────────────────────────────────────────────
 
