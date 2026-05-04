@@ -27,12 +27,29 @@ from data import _SilenceYFinance  # noqa: E402
 import yfinance as yf  # noqa: E402
 
 
+def _last_regular_close(t) -> float | None:
+    """Most reliable source for last regular-session close: history's final
+    daily bar. The `regularMarketPreviousClose` quoteSummary field is
+    misleading — Yahoo defines it as "the close BEFORE the most recent
+    close" (two trading days ago), not yesterday's close. `regularMarketPrice`
+    works while market is closed but updates live during regular hours.
+    History always reflects the last completed daily bar. 2026-05-04 fix.
+    """
+    try:
+        hist = t.history(period="5d", auto_adjust=False)
+        if not hist.empty:
+            return float(hist["Close"].iloc[-1])
+    except Exception:
+        pass
+    return None
+
+
 def quote(symbol: str) -> str:
     try:
         with _SilenceYFinance():
             t = yf.Ticker(symbol)
             info = t.info or {}
-        prev = info.get("regularMarketPreviousClose") or info.get("previousClose")
+            prev = _last_regular_close(t)
         pre_px = info.get("preMarketPrice")
 
         if pre_px is None and prev:
