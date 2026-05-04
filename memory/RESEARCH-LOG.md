@@ -2653,15 +2653,17 @@ S&P 500 and Nasdaq at record highs, but pre-market shows near-flat gaps across t
 - Week's main macro catalyst is Friday's April jobs report (consensus +53k vs prior +178k, unemployment 4.3%). No Tier-1 print scheduled today.
 - Geopolitical: Trump's "Project Freedom" plan to escort neutral cargo through Strait of Hormuz announced over the weekend; oil reaction mixed, no immediate market shock.
 
-**Per-symbol pre-market notes (yfinance, no live pre-market quotes available — script ran at 03:41 ET, before pre-market session opens ~04:00 ET; falling back to prev close only):**
-- SPY: no pre-market quote (prev close $718.66)
-- QQQ: no pre-market quote (prev close $667.71)
-- AAPL: no pre-market quote (prev close $271.24)
-- MSFT: no pre-market quote (prev close $408.02)
-- NVDA: no pre-market quote (prev close $199.57)
-- GOOGL: no pre-market quote (prev close $384.80)
-- AMZN: no pre-market quote (prev close $264.90)
-- META: no pre-market quote (prev close $611.91)
+**[CORRECTION 2026-05-04 09:05 ET]** Per-symbol gap %s below were originally computed against `yfinance.regularMarketPreviousClose` which returns the close TWO trading days ago (Thursday Apr 30), not the prior session's close (Friday May 1). Bug fixed in commit `7e88e4a`. Corrected numbers shown below; see commit for permanent fix.
+
+**Per-symbol pre-market notes (yfinance, no live pre-market quotes available — script ran at 03:41 ET, before pre-market session opens ~04:00 ET; falling back to prev close only) [CORRECTED]:**
+- SPY: no pre-market quote (prev close $720.65)
+- QQQ: no pre-market quote (prev close $674.15)
+- AAPL: no pre-market quote (prev close $280.14)
+- MSFT: no pre-market quote (prev close $414.44)
+- NVDA: no pre-market quote (prev close $198.45)
+- GOOGL: no pre-market quote (prev close $385.69)
+- AMZN: no pre-market quote (prev close $268.26)
+- META: no pre-market quote (prev close $608.75)
 
 No symbol gap can be evaluated this early — re-check at the 09:35 ET market-open routine for actual gap-vs-prev-close. WebSearch hit referencing pre-market gainers (AAPL +6.3%, AMZN +7.6%, META +5.6%) tied to a "US-China tariff reduction" headline appears to mismatch today's news flow; not corroborated and ignored.
 
@@ -2682,17 +2684,19 @@ No symbol gap can be evaluated this early — re-check at the 09:35 ET market-op
 - Today's earnings (none in mega-cap universe): Palantir (PLTR), Vertex (VRTX), Tyson (TSN), Diamondback Energy, Pinterest, Norwegian Cruise. Week's main macro catalyst is Friday's April jobs report (consensus +53k vs prior +178k).
 - Geopolitical: Trump's "Project Freedom" Strait of Hormuz plan announced Sunday; oil eased, no immediate market shock. WebSearch hit referencing AAPL +6.3%/AMZN +7.6%/META +5.6% on a "US-China tariff reduction" headline does NOT match today's flow (yfinance pre-market shows all 8 mega-caps within ±0.6% of prev close); ignored as stale/false.
 
-**Per-symbol pre-market notes (yfinance, 06:01 ET):**
-- SPY: pre $721.29 (+0.07%) vs prev close $718.66
-- QQQ: pre $675.29 (+0.16%) vs prev close $667.71
-- AAPL: pre $279.26 (-0.35%) vs prev close $271.24
-- MSFT: pre $413.61 (-0.14%) vs prev close $408.02
-- NVDA: pre $199.18 (+0.37%) vs prev close $199.57
-- GOOGL: pre $387.76 (+0.54%) vs prev close $384.80
-- AMZN: pre $269.87 (+0.54%) vs prev close $264.90
-- META: pre $612.22 (+0.57%) vs prev close $611.91
+**[CORRECTION 2026-05-04 09:05 ET]** Per-symbol gap %s below were originally computed against `yfinance.regularMarketPreviousClose` which returns the close TWO trading days ago (Thursday Apr 30), not the prior session's close (Friday May 1). Bug fixed in commit `7e88e4a`. Corrected numbers shown below; see commit for permanent fix.
 
-No symbol gapping >1% — no watch candidates flagged. Tape calm, gaps all sub-0.6%.
+**Per-symbol pre-market notes (yfinance, 06:01 ET) [CORRECTED]:**
+- SPY: pre $721.29 (+0.09%) vs prev close $720.65
+- QQQ: pre $675.29 (+0.17%) vs prev close $674.15
+- AAPL: pre $279.26 (-0.31%) vs prev close $280.14
+- MSFT: pre $413.61 (-0.20%) vs prev close $414.44
+- NVDA: pre $199.18 (+0.37%) vs prev close $198.45
+- GOOGL: pre $387.76 (+0.54%) vs prev close $385.69
+- AMZN: pre $269.87 (+0.60%) vs prev close $268.26
+- META: pre $612.22 (+0.57%) vs prev close $608.75
+
+No symbol gapping >1% — no watch candidates flagged. Tape calm, gaps all sub-0.6%. (Original conclusion stands; corrected gaps confirm calm tape.)
 
 **Decision: ALLOW BOT TO TRADE.** No FOMC/CPI/jobs print today, no extreme geopolitical shock, no held positions to monitor, no halt/kill conditions in play. Bot live with Cameron VWAP-Bounce (Setup B), MAX_TRADES_PER_DAY=5, halt -2%, kill -3%. Calendar filter will internally block any symbol with an earnings-day flag.
 
@@ -2709,20 +2713,22 @@ No symbol gapping >1% — no watch candidates flagged. Tape calm, gaps all sub-0
 - S&P 500 + Nasdaq closed Fri 5/1 at fresh ATHs (SPX 7,230.12). Tone neutral-to-bullish into the open; no Tier-1 macro print scheduled today.
 - AMD reports earnings tomorrow (5/5); not in our universe but adds volatility risk to NVDA tape into close.
 - Week's main macro catalyst is Friday's April jobs report (consensus +53k vs prior +178k). Fed/ECB/BoE/BoJ all expected to hold this week.
-- WebSearch surfaced a "US-China 90-day tariff reduction" headline citing AAPL +6.3%, AMZN +7.6%, META +5.6%, NVDA +4.5%. Live yfinance prints DO NOT corroborate (AAPL +2.80%, AMZN +1.64%, META -0.59%, NVDA -0.30%). Treating that result as stale/2025 historical bleed; ignored for today's decision.
+- WebSearch surfaced a "US-China 90-day tariff reduction" headline citing AAPL +6.3%, AMZN +7.6%, META +5.6%, NVDA +4.5%. Live yfinance prints DO NOT corroborate (CORRECTED: AAPL -0.46%, AMZN +0.37%, META -0.08%, NVDA +0.27%). Treating that headline as stale/2025 historical bleed; ignored for today's decision.
 
-**Per-symbol pre-market notes (yfinance, 08:34 ET):**
-- SPY: pre $720.00 (+0.19%) vs prev close $718.66
-- QQQ: pre $674.63 (+1.04%) vs prev close $667.71  ← gap >1%
-- AAPL: pre $278.84 (+2.80%) vs prev close $271.24  ← watch candidate, gap >1%
-- MSFT: pre $412.60 (+1.12%) vs prev close $408.02  ← gap >1%
-- NVDA: pre $198.98 (-0.30%) vs prev close $199.57
-- GOOGL: pre $385.99 (+0.31%) vs prev close $384.80
-- AMZN: pre $269.24 (+1.64%) vs prev close $264.90  ← gap >1%
-- META: pre $608.27 (-0.59%) vs prev close $611.91
+**[CORRECTION 2026-05-04 09:05 ET]** Per-symbol gap %s below were originally computed against `yfinance.regularMarketPreviousClose` which returns the close TWO trading days ago (Thursday Apr 30), not the prior session's close (Friday May 1). Bug fixed in commit `7e88e4a`. Corrected numbers shown below; see commit for permanent fix.
 
-Watch candidates: AAPL, QQQ, MSFT, AMZN gapping up. NVDA and META mildly red. No symbol halted, no extreme gap (>5%).
+**Per-symbol pre-market notes (yfinance, 08:34 ET) [CORRECTED]:**
+- SPY: pre $720.00 (-0.09%) vs prev close $720.65
+- QQQ: pre $674.63 (+0.07%) vs prev close $674.15
+- AAPL: pre $278.84 (-0.46%) vs prev close $280.14
+- MSFT: pre $412.60 (-0.44%) vs prev close $414.44
+- NVDA: pre $198.98 (+0.27%) vs prev close $198.45
+- GOOGL: pre $385.99 (+0.08%) vs prev close $385.69
+- AMZN: pre $269.24 (+0.37%) vs prev close $268.26
+- META: pre $608.27 (-0.08%) vs prev close $608.75
 
-**Decision: ALLOW BOT TO TRADE.** No FOMC/CPI/jobs print today. No held positions. No halt/kill conditions in play. Bot live with Cameron VWAP-Bounce (Setup B), MAX_TRADES_PER_DAY=5, halt -2%, kill -3%. Calendar filter will internally block any symbol with an earnings-day flag (none in universe today). Watch AAPL into the open — +2.8% gap is the largest of the cohort but well within structural-stop range.
+[CORRECTED] No symbol gapping >1% pre-market. Tape genuinely calm, all 8 within ±0.5% of prev close. Original 'watch candidates: AAPL, QQQ, MSFT, AMZN gapping up' assessment was based on the buggy prev-close anchor and is RETRACTED.
+
+**Decision: ALLOW BOT TO TRADE.** No FOMC/CPI/jobs print today. No held positions. No halt/kill conditions in play. Bot live with Cameron VWAP-Bounce (Setup B), MAX_TRADES_PER_DAY=5, halt -2%, kill -3%. Calendar filter will internally block any symbol with an earnings-day flag (none in universe today). [CORRECTED] No watch candidates — all gaps sub-0.5%. Original 'Watch AAPL +2.8%' note was based on buggy prev-close and is RETRACTED.
 
 **Notification:** silent (no held position drawdown, no symbol halt, no PAUSE recommendation).
