@@ -9,6 +9,6 @@ trades.csv
 performance.csv
 trading_bot.log
 backtest_results/
-DAILY-SUMMARY.md
+/DAILY-SUMMARY.md
 .DS_Store
 dashboard.html
