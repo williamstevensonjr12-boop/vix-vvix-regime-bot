@@ -181,3 +181,52 @@ Trades: 0 (W:0 / L:0) | Win rate: N/A | P/F: N/A
 Regime: A_LOW_VOL_TREND all session (VIX 16.77, VVIX ~93.7) | Kill switch: NO
 Open overnight: NONE (0 positions, 0 open orders, 0 trades)
 Notes: No bot entries despite a heavy gap-up tape (16 universe symbols ≥0.8% gap; ROKU +9.3%, RIOT +4.9%, MSTR +2.9%, FSLR +2.5%, RKLB +2.5%). Bot ran the full session but no ORB-H breakouts cleared the volume + VWAP + ATR gates — gap-and-go open faded into chop, stuck in opening ranges. No discretionary overrides taken. Equity flat at $99,621.24 (-$0.07 vs prior close, rounding/fees). May best month since 2020 backdrop, S&P closed at record highs 04-30; tape strong but bot's intraday breakout setup didn't trigger. Loss far below 2% halt and 3% kill switch. Day trade count 7 on rolling 5-day window (PDT-tagged but well within paper-account margin).
+
+
+=== AUDIT HALT 2026-05-03 ===
+
+**Live entries halted.** `MAX_TRADES_PER_DAY = 0` (commit d91e293), wrapper restarted PID 79440 → child PID 87873 at 16:26:18 ET. Bot stays alive for monitoring; cannot enter trades until restored.
+
+**Why:** Phase 2 audit on 4-window panel (2023H1, 2023H2, 2024H1, 2024H2) showed strategy unprofitable in every tested universe.
+
+| Universe | Σ Return | Avg Sharpe | Trades |
+|---|---|---|---|
+| SMALL_CAP (live, 30 names) | -4.29% | -0.35 | 800 |
+| MEGA_CAP (legacy 12) | -21.67% | -4.17 | 371 |
+
+Mega-cap is *worse* than small-cap on every individual window — the 2026-04-29 universe switch was directionally correct, just insufficient. Universe revert does NOT fix the strategy.
+
+**Decision tree:** memory/project_universe_ab_decision_tree.md Branch B (locked before reading the numbers). Strategy problem, not universe problem.
+
+**Salvage queue (not committed yet):**
+- Re-run the 4-window panel with `USE_FIB_RETRACEMENT_ENTRY=False` to match live config — backtest harnesses force-True it, possible the live bot is less bad than backtest implies
+- VOLUME_MULTIPLIER sweep on small-cap (Phase 2c finding: this is the actual lever)
+- USE_LIMIT_ORDER_ENTRIES A/B (live True since 2026-05-01, no multi-window evidence)
+- SPY_GAP regime-dependence dig (helps in 2024 windows, hurts in 2023H2)
+
+**Restore criterion:** restore `MAX_TRADES_PER_DAY = 5` only after a salvage config produces multi-window backtest evidence of profitability.
+
+Account equity $99,621.24, no open positions, no open orders.
+
+
+
+=== PROJECT RETIRED 2026-05-03 ===
+
+**Trading bot retired.** No further development planned on this codebase.
+
+**Reason:** Today's audit confirmed the strategy is unprofitable in every tested universe across the 4-window panel. Live config (retr=OFF, small-cap) sums to **-10.46%** across 2023H1-2024H2; the audit panel (retr=ON) was partly shadow-boxing a phantom feature (retracement entry exists only in `backtest.py`, never wired into live). After dropping decorative filters and confirming the universe switch was directionally correct, no remaining lever has multi-window evidence that would push the strategy positive. Continued tuning is unlikely to find an edge.
+
+**Pivot:** Preston is moving the ORB / gap-continuation thesis to Pine Script + TradingView paper trading. Cheaper iteration, visible debugging, zero operational debt.
+
+**State at retirement:**
+- Branch: `preston-filters` at commit `6ae6213`
+- Bot wrapper + python child terminated (full stop, no halt-monitor mode)
+- Account equity $99,621.24, no open positions, no open orders
+- `MAX_TRADES_PER_DAY = 0` (halt) remains in config so any accidental relaunch is gated
+
+**If you ever want to revisit:**
+- The audit history with retracement=ON is misleading — those backtests evaluated a strategy that was never wired into live. Re-running anything with `--retracement off` (matches live) is the only valid baseline.
+- 9 backtest harnesses still need the `MAX_TRADES_PER_DAY` save/restore patch (see today's daily log Session 3, finding C2). Without it, halt invalidates them silently.
+- Notification routines reference the dead `clickup.sh` stack and would need rewriting to `notify.sh` (finding C1).
+- The retracement code path in `backtest.py` is a phantom feature — either implement it in `strategy.py`/`main.py` (backtest evidence: +6pp small-cap, +23pp mega-cap) or delete from `backtest.py`. Currently misleading.
+

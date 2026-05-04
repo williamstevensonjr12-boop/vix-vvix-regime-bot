@@ -1,0 +1,3 @@
+date,time,symbol,entry_price,stop_price,target_price,qty,risk_amount,risk_per_share,regime,vix_beta,result,pnl,exit_price
+2026-04-30,RUN,long,orb,14:22:40,,12.645,12.27072,13.39,,332,,,OPEN,A_LOW_VOL_TREND,-0.014,1.0,0.25,0.04691073335564657,12.392940464325749,12.32,ORB break 12.32 | VWAP 12.39 | vol 2.1x | ATR 0.047 | A_LOW_VOL_TREND,order_id=3d039eae-88e9-4767-92f8-7a13d0065dfc
+2026-04-30,RKLB,long,orb,15:04:14,,82.56,80.44691999999999,86.79,,58,,,OPEN,A_LOW_VOL_TREND,-0.0139,1.0,0.25,0.28563050777382737,81.80186593969762,80.77,ORB break 80.77 | VWAP 81.80 | vol 2.1x | ATR 0.286 | A_LOW_VOL_TREND,order_id=dad3a3f4-4328-4193-9538-d7993f85cfac
