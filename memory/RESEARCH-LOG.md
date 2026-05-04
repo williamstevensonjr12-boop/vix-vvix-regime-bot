@@ -2697,3 +2697,32 @@ No symbol gapping >1% — no watch candidates flagged. Tape calm, gaps all sub-0
 **Decision: ALLOW BOT TO TRADE.** No FOMC/CPI/jobs print today, no extreme geopolitical shock, no held positions to monitor, no halt/kill conditions in play. Bot live with Cameron VWAP-Bounce (Setup B), MAX_TRADES_PER_DAY=5, halt -2%, kill -3%. Calendar filter will internally block any symbol with an earnings-day flag.
 
 **Notification:** silent (no held position drawdown, no symbol halt, no PAUSE recommendation).
+
+
+=== PRE-MARKET 2026-05-04 (cron run, 08:34 ET) ===
+
+**Account snapshot:** equity $99,621.24 · buying_power $398,484.96 · cash $99,621.24 · 0 open positions · 0 open orders · daytrade_count 7 · last_equity $99,621.24 (flat overnight, day P&L $0)
+
+**Held overnight:** none (Cameron strategy is intraday-only, EOD flat)
+
+**Macro context (via WebSearch):**
+- S&P 500 + Nasdaq closed Fri 5/1 at fresh ATHs (SPX 7,230.12). Tone neutral-to-bullish into the open; no Tier-1 macro print scheduled today.
+- AMD reports earnings tomorrow (5/5); not in our universe but adds volatility risk to NVDA tape into close.
+- Week's main macro catalyst is Friday's April jobs report (consensus +53k vs prior +178k). Fed/ECB/BoE/BoJ all expected to hold this week.
+- WebSearch surfaced a "US-China 90-day tariff reduction" headline citing AAPL +6.3%, AMZN +7.6%, META +5.6%, NVDA +4.5%. Live yfinance prints DO NOT corroborate (AAPL +2.80%, AMZN +1.64%, META -0.59%, NVDA -0.30%). Treating that result as stale/2025 historical bleed; ignored for today's decision.
+
+**Per-symbol pre-market notes (yfinance, 08:34 ET):**
+- SPY: pre $720.00 (+0.19%) vs prev close $718.66
+- QQQ: pre $674.63 (+1.04%) vs prev close $667.71  ← gap >1%
+- AAPL: pre $278.84 (+2.80%) vs prev close $271.24  ← watch candidate, gap >1%
+- MSFT: pre $412.60 (+1.12%) vs prev close $408.02  ← gap >1%
+- NVDA: pre $198.98 (-0.30%) vs prev close $199.57
+- GOOGL: pre $385.99 (+0.31%) vs prev close $384.80
+- AMZN: pre $269.24 (+1.64%) vs prev close $264.90  ← gap >1%
+- META: pre $608.27 (-0.59%) vs prev close $611.91
+
+Watch candidates: AAPL, QQQ, MSFT, AMZN gapping up. NVDA and META mildly red. No symbol halted, no extreme gap (>5%).
+
+**Decision: ALLOW BOT TO TRADE.** No FOMC/CPI/jobs print today. No held positions. No halt/kill conditions in play. Bot live with Cameron VWAP-Bounce (Setup B), MAX_TRADES_PER_DAY=5, halt -2%, kill -3%. Calendar filter will internally block any symbol with an earnings-day flag (none in universe today). Watch AAPL into the open — +2.8% gap is the largest of the cohort but well within structural-stop range.
+
+**Notification:** silent (no held position drawdown, no symbol halt, no PAUSE recommendation).
