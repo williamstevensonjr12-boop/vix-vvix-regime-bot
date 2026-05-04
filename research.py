@@ -37,17 +37,18 @@ REPO_ROOT = Path(__file__).parent
 RESEARCH_LOG = REPO_ROOT / "memory" / "RESEARCH-LOG.md"
 TRADE_LOG    = REPO_ROOT / "memory" / "TRADE-LOG.md"
 
-# Long-bias universe — pulls from config so it stays in sync with the live trade path
+# Universe — pulls from config so it stays in sync with the live trade path.
+# Cameron VWAP-Bounce trades both directions on a single universe; SHORT_UNIVERSE
+# was retired in the 2026-05-03 strategy swap.
 import config as _bot_config
 UNIVERSE = list(_bot_config.MOMENTUM_UNIVERSE)
-# Short-bias universe (high-VIX-beta names — bot SHORT_UNIVERSE)
-SHORT_UNIVERSE = list(_bot_config.SHORT_UNIVERSE)
+SHORT_UNIVERSE = list(UNIVERSE)
 VOL_TICKERS = {"VIX": "^VIX", "VVIX": "^VVIX", "VIX3M": "^VIX3M"}
 
-# Gap threshold — matches config.GAP_ALIGNMENT_THRESHOLD so the brief reports the
-# same "qualifying" gaps that the bot actually trades. (Was hardcoded 0.5% — out
-# of sync with bot's 0.8% threshold; fixed 2026-04-30.)
-GAP_THRESHOLD_PCT = _bot_config.GAP_ALIGNMENT_THRESHOLD * 100
+# Gap threshold for "notable" pre-market moves. GAP_ALIGNMENT_THRESHOLD was deleted
+# with the gap-alignment filter in the strategy swap; 0.5% is a reasonable default
+# for what the brief should call out as a qualifying move.
+GAP_THRESHOLD_PCT = 0.5
 
 
 # ── 1. Market data ────────────────────────────────────────────────────────────

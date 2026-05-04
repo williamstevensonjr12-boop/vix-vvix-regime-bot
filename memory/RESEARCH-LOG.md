@@ -2418,3 +2418,196 @@ Sub-threshold notes:
 | **MSTR** | **MED** | BTC proxy — watch
 
 ---
+
+---
+## 2026-05-04 — Pre-Market Research
+
+**Volatility**
+- VIX: 16.99 (+0.59%)
+- VVIX: 95.17 (+1.57%)
+- VIX3M: 20.37
+
+**Today's Macro Events (ForexFactory)**
+- 12:50 ET  [Low]  **FOMC Member Williams Speaks**  forecast: —  prev: —
+
+⚠️ **Bot will block ORB entries today (tier-1 macro):** FOMC Member Williams Speaks @ 12:50 ET
+
+**Universe Prices + Pre-Market Gaps**
+  SPY: $720.0 (-0.09%) | pre=$720.0 gap=-0.09%
+  QQQ: $673.55 (-0.09%) | pre=$673.55 gap=-0.09%
+  AAPL: $280.07 (-0.02%) | pre=$280.07 gap=-0.02%
+  MSFT: $413.24 (-0.29%) | pre=$413.24 gap=-0.29%
+  NVDA: $198.12 (-0.17%) | pre=$198.12 gap=-0.17%
+  GOOGL: $385.34 (-0.09%) | pre=$385.34 gap=-0.09%
+  AMZN: $267.55 (-0.26%) | pre=$267.55 gap=-0.26%
+  META: $608.81 (+0.01%) | pre=$608.81 gap=0.01%
+
+**Gap-Aligned Candidates (≥0.5% threshold)**
+- Gap UP (long ORB pairing): (none)
+- Gap DOWN (short ORB pairing, B/C only): (none)
+
+**Headlines**
+
+**GOOGLE_NEWS_MARKET**
+- Stock market today: S&P 500, Nasdaq, Dow futures climb as the US and Iran inch toward peace talks - Yahoo Finance
+- Stock futures are mostly higher as investors monitor latest in U.S.-Iran developments: Live updates - CNBC
+- Futures Mixed; U.S. To 'Guide' Ships Through Hormuz - Investor's Business Daily
+- Warren Buffett has blunt message on stock market for 2026 - thestreet.com
+- Stock Market News, May 1, 2026: S&P 500, Nasdaq Rise to New Highs - WSJ
+- Warren Buffett's Successor, Greg Abel, Sends Investors a $397 Billion Warning. History Says the Stock Market Will Do This Next. - The Motley Fool
+- Stock market today: Nifty50 opens above 24,100; BSE Sensex rallies over 500 points in opening trade - The Times of India
+- Why Are Stock Market Futures Rising Today, 5/4/26? - TipRanks
+- Markets News, May 1, 2026: S&P 500, Nasdaq Close at Record Highs as Indexes Post Weekly Gains; Apple, Tech Shares Rise; Oil Slips - Investopedia
+- Stock Market Today: All You Need To Know Before Going Into Trade On May 4 - NDTV Profit
+
+**GOOGLE_NVDA**
+- NVDA vs. MU: Which “Strong Buy” AI Stock Has the Higher Upside Potential, According to Analysts? - TipRanks
+- Nvidia Is Worth $5 Trillion Once Again. Here's Why It Could Become the First $10 Trillion Stock Within the Next 3 Years. - The Motley Fool
+- Is NVIDIA Corporation (NVDA) A Good Stock To Buy Now? - Yahoo Finance
+- Is It Time To Reassess Nvidia (NVDA) After Its Recent Share Price Swings? - simplywall.st
+- Nvidia Has Split Its Stock 480-for-1 Since 2000. Here's When to Expect the Next Stock Split. - Yahoo Finance
+
+**GOOGLE_AMD**
+- How Much Is AMD Stock Expected to Move After Earnings? - Investopedia
+- Cathie Wood sells $79.9M of strong, surging semiconductor stock - thestreet.com
+- META or AMD: Cathie Wood Doubles Down on One Top AI Stock - TipRanks
+- Cathie Wood’s ARK sells AMD stock, buys Roblox and Intellia - Investing.com
+- Riot Platform Stock Spikes After Data Center Debut, AMD Doubles Capacity - Investor's Business Daily
+
+**GOOGLE_AMZN**
+- Bank of America revamps Amazon stock target after earnings - thestreet.com
+- Amazon (AMZN) Ranks Among the Best American Tech Stocks to Invest In - Yahoo Finance
+- Warren Buffett Went Out With a Bang by Selling 77% of His Amazon Stake and Piling Into a Virtual Monopoly That's Soared 13,600% Since Its IPO - The Motley Fool
+- Amazon Reports Earnings, Shares Edge Lower - WSJ
+- Amazon: Why Is There No Focus On The Chip Business, Mr. Market? (NASDAQ:AMZN) - Seeking Alpha
+
+**GOOGLE_META**
+- Meta Stock Sees Heavy Selling Thursday — What's Going On? - Benzinga
+- Cathie Wood buys $28.7 million of tumbling megacap stock - thestreet.com
+- Is Meta Platforms Stock a Buy on Its Pullback? - Yahoo Finance
+- AI boom lifts big tech earnings, but Wall Street is picking winners and losers (META:NASDAQ) - Seeking Alpha
+- META or AMD: Cathie Wood Doubles Down on One Top AI Stock - TipRanks
+
+**GOOGLE_SPY**
+- SPY Stock Price, Quote & Chart | SS SPDR S&P 500 ETF TRUST-US (NYSEARCA:SPY) - ChartMill
+- US Stocks: This Chart Indicator Signals A Sell Now (NYSEARCA:SPY) - Seeking Alpha
+- Why Gold Won’t Save You in a Real Crisis (But Stocks Will) - 24/7 Wall St.
+- Goldman’s Flood Says Brace for Near-Term Selloff, Buy Stocks Dip - Bloomberg.com
+- Stock Market Today: SPY, QQQ Climb to Record Highs on Tech Momentum as Trump Orders New EU Auto Tariffs - TipRanks
+
+**YAHOO_NVDA**
+- Bull vs. Bear: Is Taiwan Semiconductor Manufacturing Stock a Buy or Sell?
+- MediaTek hires former TSMC executive to boost AI chip packaging
+- Why General Dynamics Stock Is Rising
+- 3 Surprising Quantum Computing Stocks Robinhood Investors Love
+- My Top Energy Stock for May 2026 and Beyond
+- Why Eli Lilly Stock Jumped This Week
+
+**YAHOO_AMD**
+- Dow Jones Futures: Trump Says U.S. To 'Guide' Ships Through Hormuz
+- Why AMD Stock Skyrocketed 74% in April
+- How Riot’s AI Data Center Pivot and Wider AMD Deal May Reshape Riot Platforms (RIOT) Investors
+- Jobs Report, Palantir, Pinterest, AMD, PayPal, Disney, and More to Watch This Week
+- Jobs, Earnings and Other Key Things to Watch this Week
+- Is Arm Holdings plc (ARM) A Good Stock To Buy Now?
+
+**YAHOO_AMZN**
+- GameStop makes $56 billion takeover bid for eBay
+- GameStop Offers to Buy eBay for $56 Billion
+- This Under‑the‑Radar Grid Infrastructure Powerhouse Could Be a Generational Wealth Builder for Patient Investors
+- GameStop makes bold $56 billion play for eBay, ready to go hostile
+- Amazon Just Made a Big Move. These 2 S&P 500 Stocks Are Next to Watch.
+- AI Capex Boom Drives Hottest ETF Trade Into Semiconductors, Not Crypto
+
+**YAHOO_META**
+- AI Capex Boom Drives Hottest ETF Trade Into Semiconductors, Not Crypto
+- Jim Cramer on Meta: “It’s Being Clubbed Like a Baby Seal”
+- Jim Cramer Says Stocks Like Seagate  “Are Really Overextended” For Him
+- Her Dying Wish Was To Give Their Kids A Part Of Home Equity. Now, He's Getting Married Again, And Wants To Take Back $400K From His Kids
+- Traders Grapple With Two-Sided Tail Risk as Stocks Regain Highs
+- Big Tech Earnings Show Split Between AI Trade Winners and Losers
+
+**YAHOO_SPY**
+- Why Gold Won’t Save You in a Real Crisis (But Stocks Will)
+- A $300,000 Annuity Guarantees $1,900 a Month for Life, but Here Is What Retirees Are Giving Up
+- Concentration Risk High as Top Two Stocks Steer U.S. Communication Services ETF Performance
+- Amazon and Tesla Drive One-Third of FDIS as U.S. Spending Surges Despite Recession-Level Sentiment
+- Intel Stock Was Up 115% in April. How to Play It With Options Now.
+- Why Paying Off Your Mortgage Could Cost You More Than Investing
+
+**MARKETWATCH**
+- Investors appear skeptical as Trump touts new plan to partially reopen Strait of Hormuz
+- GameStop is hungry for relevance. Is buying eBay the answer?
+- Here’s what’s worth streaming in May 2026 on Netflix, Hulu, HBO Max and more
+- ‘The numbers don’t lie’: If I had invested my Social Security in the S&P 500 I’d have $4 million. Is the system broken?
+- ‘We are old school’: I’ve been married for 40 years. Should I have kept my money separate?
+- Become a ‘lazy’ millionaire: This one habit can add a 20% bonus to your retirement
+- OPEC+ announces modest boost in oil production. But here’s why it’s a mostly symbolic move.
+- The market is riding high on an AI spending boom — but what could crack this rally?
+
+**SEEKING_ALPHA**
+- GameStop launches bold $56B takeover attempt for eBay
+- SA Asks: What happens if Disney loses its FCC licenses?
+- SA Asks: How will the UAE's exit from OPEC impact the energy sector?
+- A2 Milk recalls U.S. infant formula batches after toxin detection
+- Oil falls as Trump signals Hormuz shipping plan, Iran talks progress
+- Trump says U.S. to start guiding neutral ships from Persian Gulf under ‘Project Freedom’
+- Here are the major earnings before the open Monday
+
+**WSJ_MARKETS**
+- Stocks Sink in Broad AI Rout Sparked by China's DeepSeek
+- Comex Gold, Silver Settle Lower
+- DeepSeek Won't Sink U.S. AI Titans
+- Financial Services Roundup: Market Talk
+- Arabica Coffee Prices Hit Record on U.S., Colombia Tariff Spat
+- Swiss franc, Japanese yen Rise as DeepSeek News Boosts Safe Havens
+- Natural Gas Falls on Shifting Weather Forecasts
+- Building-Products Distributor QXO Launches Hostile Bid for Beacon
+
+
+### 🤖 AI TRADING INTELLIGENCE BRIEF
+# AI TRADING INTELLIGENCE BRIEF — May 4, 2026
+
+## 1. MARKET SENTIMENT: **Neutral-to-Bullish**
+S&P 500 and Nasdaq at record highs, but pre-market shows near-flat gaps across the board. US-Iran de-escalation headlines supportive, but FOMC speaker blocks entries today—limiting actionable setups.
+
+---
+
+## 2. KEY MACRO RISKS
+- **FOMC Williams speaks 12:50 ET** — bot will block entries; any hawkish surprise could reverse recent gains
+- **Geopolitical uncertainty** — Trump's Hormuz shipping plan faces skepticism; oil volatility risk if talks stall
+- **AI capex scrutiny** — headlines highlight "winners vs. losers" split in Big Tech; META seeing heavy selling despite AI boom
+
+---
+
+## 3. CATALYSTS BY SYMBOL
+- **SPY/QQQ (-0.09%)**: No clear catalyst — consolidation after record highs
+- **AAPL (-0.02%)**: No catalyst — drifting with market
+- **MSFT (-0.29%)**: Slight weakness, no specific driver — positioning
+- **NVDA (-0.17%)**: Bullish analyst chatter ($10T target), but no fresh catalyst today
+- **GOOGL (-0.09%)**: Flat, no catalyst
+- **AMZN (-0.26%)**: Post-earnings drift lower; BofA target revision — mixed sentiment
+- **META (+0.01%)**: Heavy selling Thursday (Cramer: "clubbed like a baby seal"), Cathie Wood buying dip — tug-of-war
+
+---
+
+## 4. GAP-UP WATCH (Long ORB Pairing)
+**NONE** — No symbols meet ≥0.5% gap-up threshold. No long setups qualify today.
+
+---
+
+## 5. GAP-DOWN WATCH (Short ORB Pairing — Regime B/C Only)
+**NONE** — No symbols meet ≥0.5% gap-down threshold. All gaps are sub-0.3%, too tight for high-conviction shorts.
+
+---
+
+## 6. PRIORITY LIST
+
+| Category | Symbols |
+|----------|---------|
+| **LONG TRADE** | NONE — no qualifying gaps |
+| **SHORT TRADE** | NONE — no qualifying gaps |
+| **AVOID** | ALL — gaps too small; FOMC block active |
+| **REGIME** | **Likely Regime A** (Low Vol) — VIX 16.99
+
+---
