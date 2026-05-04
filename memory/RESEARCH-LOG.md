@@ -2668,3 +2668,32 @@ No symbol gap can be evaluated this early — re-check at the 09:35 ET market-op
 **Decision: ALLOW BOT TO TRADE.** No FOMC/CPI/jobs print today, no extreme geopolitical shock, no held positions to monitor, no halt/kill conditions in play. Bot live with Cameron VWAP-Bounce (Setup B), MAX_TRADES_PER_DAY=5, halt -2%, kill -3%. Calendar filter will internally block any symbol with an earnings-day flag.
 
 **Notification:** silent (no held position drawdown, no symbol halt, no PAUSE recommendation).
+
+---
+
+=== PRE-MARKET 2026-05-04 (cron run, 06:01 ET) ===
+
+**Account snapshot:** equity $99,621.24 · buying_power $398,484.96 · cash $99,621.24 · 0 open positions · 0 open orders · daytrade_count 7 · last_equity $99,621.24 (flat overnight, day P&L $0)
+
+**Held overnight:** none (Cameron strategy is intraday-only, EOD flat)
+
+**Macro context (via WebSearch):**
+- S&P 500 futures +0.07% pre-market; Polymarket ~76% "Up" for May 4. Tape neutral-to-bullish into Monday open. SPX closed Fri 5/1 at fresh ATH (7,230.12).
+- Today's earnings (none in mega-cap universe): Palantir (PLTR), Vertex (VRTX), Tyson (TSN), Diamondback Energy, Pinterest, Norwegian Cruise. Week's main macro catalyst is Friday's April jobs report (consensus +53k vs prior +178k).
+- Geopolitical: Trump's "Project Freedom" Strait of Hormuz plan announced Sunday; oil eased, no immediate market shock. WebSearch hit referencing AAPL +6.3%/AMZN +7.6%/META +5.6% on a "US-China tariff reduction" headline does NOT match today's flow (yfinance pre-market shows all 8 mega-caps within ±0.6% of prev close); ignored as stale/false.
+
+**Per-symbol pre-market notes (yfinance, 06:01 ET):**
+- SPY: pre $721.29 (+0.07%) vs prev close $718.66
+- QQQ: pre $675.29 (+0.16%) vs prev close $667.71
+- AAPL: pre $279.26 (-0.35%) vs prev close $271.24
+- MSFT: pre $413.61 (-0.14%) vs prev close $408.02
+- NVDA: pre $199.18 (+0.37%) vs prev close $199.57
+- GOOGL: pre $387.76 (+0.54%) vs prev close $384.80
+- AMZN: pre $269.87 (+0.54%) vs prev close $264.90
+- META: pre $612.22 (+0.57%) vs prev close $611.91
+
+No symbol gapping >1% — no watch candidates flagged. Tape calm, gaps all sub-0.6%.
+
+**Decision: ALLOW BOT TO TRADE.** No FOMC/CPI/jobs print today, no extreme geopolitical shock, no held positions to monitor, no halt/kill conditions in play. Bot live with Cameron VWAP-Bounce (Setup B), MAX_TRADES_PER_DAY=5, halt -2%, kill -3%. Calendar filter will internally block any symbol with an earnings-day flag.
+
+**Notification:** silent (no held position drawdown, no symbol halt, no PAUSE recommendation).
