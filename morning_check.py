@@ -98,42 +98,35 @@ def check_recent_scan():
 
 
 def check_universe_loaded():
-    """Did the bot load the expected 30-name universe?"""
-    print(f"\n{BOLD}3. Universe + regime{END}")
+    """Did the bot load the expected mega-cap universe?"""
+    print(f"\n{BOLD}3. Universe{END}")
     log_path = f"/tmp/bot_output_{datetime.now(ET).strftime('%Y%m%d')}.log"
     if not os.path.exists(log_path):
         warn("Today's bot log missing")
         return
     try:
-        out = subprocess.run(["grep", "Active universe:", log_path], capture_output=True, text=True)
-        last = out.stdout.strip().split("\n")[-1]
-        if "Active universe" in last:
-            # Extract the list
-            import re
-            m = re.search(r"\[(.*?)\]", last)
-            if m:
-                names = [n.strip().strip("'").strip('"') for n in m.group(1).split(",")]
-                ok(f"Active universe: {len(names)} symbols — {', '.join(names[:5])}...")
-                # Sanity: should be subset of MOMENTUM_UNIVERSE
-                static_set = set(config.MOMENTUM_UNIVERSE)
-                non_member = [n for n in names if n not in static_set]
-                if non_member:
-                    warn(f"Active universe has names NOT in current MOMENTUM_UNIVERSE: {non_member} — bot may have stale config in memory")
-                else:
-                    ok(f"All active names match current MOMENTUM_UNIVERSE — no stale-config drift")
+        # main.py logs: "...universe=N symbols (NAME1, NAME2, ...)"
+        out = subprocess.run(["grep", "universe=", log_path], capture_output=True, text=True)
+        lines = [l for l in out.stdout.strip().split("\n") if l]
+        if not lines:
+            warn("No 'universe=' line in log yet (bot may not have hit Market OPEN)")
+            return
+        last = lines[-1]
+        import re
+        m = re.search(r"universe=\d+ symbols \(([^)]*)\)", last)
+        if not m:
+            warn(f"Couldn't parse universe line: {last[:120]}")
+            return
+        names = [n.strip() for n in m.group(1).split(",") if n.strip()]
+        ok(f"Universe: {len(names)} symbols — {', '.join(names)}")
+        static_set = set(config.MOMENTUM_UNIVERSE)
+        non_member = [n for n in names if n not in static_set]
+        if non_member:
+            warn(f"Loaded universe has names NOT in current MOMENTUM_UNIVERSE: {non_member} — bot may have stale config in memory")
         else:
-            warn("No 'Active universe' line in log yet")
+            ok(f"All loaded names match current MOMENTUM_UNIVERSE — no stale-config drift")
     except Exception as e:
         warn(f"Couldn't parse universe: {e}")
-
-    out = subprocess.run(["grep", "Regime ", log_path], capture_output=True, text=True)
-    if out.stdout.strip():
-        last_regime = out.stdout.strip().split("\n")[-1]
-        try:
-            short = last_regime.split("Regime ")[1][:80]
-            ok(f"Regime: {short}")
-        except Exception:
-            pass
 
 
 def check_alpaca_connection():
@@ -171,11 +164,11 @@ def check_pre_market_brief():
             capture_output=True, text=True
         )
         non_zero = [l for l in out2.stdout.split("\n") if "gap=0.0%" not in l and "gap=0.04%" not in l]
-        non_zero_today = [l for l in non_zero if today in l or any(s in l for s in ["MARA","ASTS","SMCI","SOFI","RIOT"])]
+        non_zero_today = [l for l in non_zero if today in l or any(s in l for s in config.MOMENTUM_UNIVERSE)]
         if non_zero_today:
-            ok(f"Non-zero gap entries detected — gap-detection bug fix working")
+            ok(f"Non-zero gap entries detected — gap-detection working")
         else:
-            warn(f"All gaps near 0% — gap-detection may still be broken (or genuinely flat day)")
+            warn(f"All gaps near 0% — gap-detection may be broken (or genuinely flat day)")
 
 
 def check_scheduled_routines():
@@ -206,24 +199,31 @@ def check_scheduled_routines():
 
 
 def check_market_status():
-    """Are we pre-market, in-market, or post-market?"""
+    """Are we pre-market, in-market, or post-market? Uses config times."""
     print(f"\n{BOLD}7. Market timing{END}")
     now = datetime.now(ET)
-    today_open = now.replace(hour=9, minute=30, second=0, microsecond=0)
+    def _at(hhmm):
+        h, m = (int(x) for x in hhmm.split(":"))
+        return now.replace(hour=h, minute=m, second=0, microsecond=0)
+    today_open = _at(config.MARKET_OPEN)         # 09:30
+    entry_cutoff = _at(config.LAST_ENTRY_TIME)   # 15:30
+    force_close = _at(config.CLOSE_ALL_TIME)     # 15:55
     today_close = now.replace(hour=16, minute=0, second=0, microsecond=0)
-    cutoff = now.replace(hour=15, minute=30, second=0, microsecond=0)
 
     if now.weekday() >= 5:
         warn(f"It's the weekend ({now.strftime('%A')}) — market closed")
     elif now < today_open:
         mins = int((today_open - now).total_seconds() / 60)
         ok(f"Pre-market — market opens in {mins} min")
-    elif now < cutoff:
-        mins = int((cutoff - now).total_seconds() / 60)
+    elif now < entry_cutoff:
+        mins = int((entry_cutoff - now).total_seconds() / 60)
         ok(f"Market open — entries cutoff in {mins} min")
+    elif now < force_close:
+        mins = int((force_close - now).total_seconds() / 60)
+        warn(f"Past entries cutoff — bot force-close in {mins} min")
     elif now < today_close:
         mins = int((today_close - now).total_seconds() / 60)
-        warn(f"Past entries cutoff — force-close in {mins} min")
+        warn(f"Force-close window — positions should be flat ({mins} min to bell)")
     else:
         warn(f"After hours — market closed")
 
