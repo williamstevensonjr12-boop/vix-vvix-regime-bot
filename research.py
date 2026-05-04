@@ -38,16 +38,16 @@ RESEARCH_LOG = REPO_ROOT / "memory" / "RESEARCH-LOG.md"
 TRADE_LOG    = REPO_ROOT / "memory" / "TRADE-LOG.md"
 
 # Universe — pulls from config so it stays in sync with the live trade path.
-# Cameron VWAP-Bounce trades both directions on a single universe; SHORT_UNIVERSE
-# was retired in the 2026-05-03 strategy swap.
+# Cameron VWAP-Bounce trades both directions on a single universe; the brief
+# flags gap-up / gap-down candidates as context for setup proximity, not as
+# a filter the bot enforces.
 import config as _bot_config
 UNIVERSE = list(_bot_config.MOMENTUM_UNIVERSE)
-SHORT_UNIVERSE = list(UNIVERSE)
 VOL_TICKERS = {"VIX": "^VIX", "VVIX": "^VVIX", "VIX3M": "^VIX3M"}
 
-# Gap threshold for "notable" pre-market moves. GAP_ALIGNMENT_THRESHOLD was deleted
-# with the gap-alignment filter in the strategy swap; 0.5% is a reasonable default
-# for what the brief should call out as a qualifying move.
+# Threshold for what counts as a "notable" pre-market gap in the brief.
+# Cameron VWAP-Bounce doesn't gate entries on gaps, so this is purely for
+# narrative context — pickup of names with material overnight moves.
 GAP_THRESHOLD_PCT = 0.5
 
 
@@ -279,7 +279,7 @@ def fetch_headlines(symbols: list[str]) -> dict[str, list[str]]:
 
 # ── 3. Claude API — AI Trading Intelligence Brief ─────────────────────────────
 
-def generate_brief(market_data: dict, headlines: dict, regime_summary: str) -> str:
+def generate_brief(market_data: dict, headlines: dict) -> str:
     """Call Claude API and return the AI Trading Intelligence Brief."""
     api_key = os.environ.get("ANTHROPIC_API_KEY", "")
     if not api_key:
@@ -335,13 +335,21 @@ def generate_brief(market_data: dict, headlines: dict, regime_summary: str) -> s
     gap_buckets = classify_gaps(market_data.get("stocks", {}))
     gap_up_str = ", ".join(f"{s} ({g:+.2f}%)" for s, g in gap_buckets["gap_up"]) or "(none)"
     gap_down_str = ", ".join(f"{s} ({g:+.2f}%)" for s, g in gap_buckets["gap_down"]) or "(none)"
-    short_uni_str = ", ".join(SHORT_UNIVERSE)
+    universe_str = ", ".join(UNIVERSE)
 
     news_str = ""
     for source, items in headlines.items():
         news_str += f"\n[{source.upper()}]\n" + "\n".join(f"  - {h}" for h in items)
 
-    prompt = f"""You are an expert quantitative trading analyst providing a pre-market briefing for a VIX/VVIX regime-based ORB trading bot. The bot now trades both LONG (bullish gap + ORB high break) and SHORT (bearish gap + ORB low break, Regime B/C only on high-VIX-beta names).
+    prompt = f"""You are an expert quantitative trading analyst providing a pre-market briefing for a Cameron VWAP-Bounce trading bot.
+
+The bot trades 1-min bars on 8 mega-caps (long AND short, mirror entries) using a single setup:
+- LONG: close > VWAP, close > 200 EMA, 9 EMA > 20 EMA, recent low touched VWAP (within 0.15%) in last 3 bars, current bar close > prior close, relative volume ≥ 1.5×.
+- SHORT: full mirror.
+- Stop: min(prior 5 bar lows) for long / max for short. Skip if stop distance > 1.5 × ATR (chop guardrail).
+- Target: 2R. Risk: 0.75% per trade. Max 5 trades/day, 3 open positions.
+
+There is NO regime engine, NO gap-alignment requirement, NO sector/sentiment scoring. Gaps below are CONTEXT for which names might develop tradeable VWAP-bounce setups, not a filter the bot enforces.
 
 VOLATILITY SNAPSHOT:
 {vol_str}
@@ -349,13 +357,10 @@ VOLATILITY SNAPSHOT:
 UNIVERSE PRICES + PRE-MARKET GAPS (gap = pre-market vs prior close):
 {stocks_str}
 
-GAP-ALIGNED CANDIDATES (≥{GAP_THRESHOLD_PCT}% threshold):
-- Gap UP (long ORB candidates):  {gap_up_str}
-- Gap DOWN (short ORB candidates, only valid in Regime B/C): {gap_down_str}
-- Bot SHORT universe: {short_uni_str}
-
-REGIME ENGINE OUTPUT:
-{regime_summary}
+NOTABLE PRE-MARKET MOVERS (≥{GAP_THRESHOLD_PCT}%):
+- Gap UP:   {gap_up_str}
+- Gap DOWN: {gap_down_str}
+- Full universe: {universe_str}
 
 TODAY'S MACRO EVENTS (from ForexFactory):
 {events_str}
@@ -366,21 +371,21 @@ TODAY'S HEADLINES:
 
 Provide a concise AI TRADING INTELLIGENCE BRIEF with exactly these 6 sections:
 
-1. MARKET SENTIMENT: Overall tone (Bullish / Neutral / Bearish) with one sentence rationale.
+1. MARKET SENTIMENT: Overall tone (Bullish / Neutral / Bearish) with one sentence rationale tied to today's tape.
 
-2. KEY MACRO RISKS: 2-3 bullets of the biggest risks to watch today.
+2. KEY MACRO RISKS: 2-3 bullets of the biggest risks today. Flag any tier-1 events that will block entries.
 
-3. CATALYSTS BY SYMBOL: One line per notable mover (gap-up or gap-down). For each name in the gap-up/gap-down lists, name the catalyst or "no clear catalyst — likely sympathy/positioning". Flag any earnings today.
+3. CATALYSTS BY SYMBOL: One line per name in the universe with a notable mover or news item. Name the catalyst or say "no clear catalyst". Flag any earnings today (bot will block those names).
 
-4. GAP-UP WATCH (long ORB pairing): For each gap-up name, rate conviction High/Med/Low based on whether the catalyst supports continuation (vs. likely-fade). Call out any that look like fakes.
+4. SETUP PROXIMITY — LONG: Which mega-caps are most likely to develop a clean LONG VWAP-bounce today? A "clean" setup is an uptrending name (above 200 EMA on the daily, 9>20 EMA short-term) that's likely to pull back to VWAP intraday and bounce on volume. Call out names that look chop-prone (high ATR vs price, no clear trend) — these will likely fail the 1.5× ATR guardrail.
 
-5. GAP-DOWN WATCH (short ORB pairing — only fires if regime is B/C): For each gap-down name, rate conviction High/Med/Low and call out any that have likely-bounce setups (oversold dip-buyers, support nearby) where the short would get squeezed.
+5. SETUP PROXIMITY — SHORT: Mirror of #4. Which names look most likely to develop a clean SHORT VWAP-bounce (downtrending, weak news, rejection at VWAP)? Call out names where a short would be exposed to squeezes (heavy positive catalyst, oversold).
 
 6. PRIORITY LIST:
-   - LONG TRADE: [gap-up names with high-conviction catalyst — bot will pair with ORB-high break]
-   - SHORT TRADE (Regime B/C only): [gap-down names with high-conviction catalyst — bot will pair with ORB-low break]
-   - AVOID: [symbols where the gap is unreliable, regardless of direction]
-   - REGIME: which regime (A/B/C) is favored and why
+   - LONG WATCH: [names with the cleanest long-setup conditions today]
+   - SHORT WATCH: [names with the cleanest short-setup conditions today]
+   - AVOID: [names that are too erratic, too newsy, or have earnings today]
+   - BIAS: overall day-bias (long-favored / short-favored / two-way) and why
 
 Be direct, specific, actionable. No fluff. Under 400 words total."""
 
@@ -434,7 +439,7 @@ def write_research_log(today: str, market_data: dict, headlines: dict, brief: st
             except Exception:
                 pass
         if blocks:
-            block_note = "\n\n⚠️ **Bot will block ORB entries today (tier-1 macro):** " + ", ".join(blocks)
+            block_note = "\n\n⚠️ **Bot will block entries today (tier-1 macro):** " + ", ".join(blocks)
     except Exception:
         pass
 
@@ -453,9 +458,9 @@ def write_research_log(today: str, market_data: dict, headlines: dict, brief: st
 **Universe Prices + Pre-Market Gaps**
 {stocks_str}
 
-**Gap-Aligned Candidates (≥{GAP_THRESHOLD_PCT}% threshold)**
-- Gap UP (long ORB pairing): {gap_up_str}
-- Gap DOWN (short ORB pairing, B/C only): {gap_down_str}
+**Notable Pre-Market Movers (≥{GAP_THRESHOLD_PCT}% threshold)**
+- Gap UP:   {gap_up_str}
+- Gap DOWN: {gap_down_str}
 
 **Headlines**
 {news_str}
@@ -480,28 +485,14 @@ def run_research():
 
     logger.info(f"=== Pre-market research {today} {now} ===")
 
-    # Get regime summary from bot
-    regime_summary = "Regime engine not available — check main.py regime-status"
-    try:
-        import subprocess
-        result = subprocess.run(
-            ["python", "main.py", "regime-status"],
-            capture_output=True, text=True, timeout=30,
-            cwd=str(REPO_ROOT)
-        )
-        if result.returncode == 0:
-            regime_summary = result.stdout.strip()[:500]
-    except Exception as e:
-        logger.warning(f"Regime status failed: {e}")
-
     logger.info("Fetching market data...")
     market_data = fetch_market_data()
 
     logger.info("Fetching headlines...")
-    headlines = fetch_headlines(["NVDA", "AMD", "AMZN", "META", "SPY"])
+    headlines = fetch_headlines(UNIVERSE)
 
     logger.info("Generating AI Trading Intelligence Brief...")
-    brief = generate_brief(market_data, headlines, regime_summary)
+    brief = generate_brief(market_data, headlines)
 
     write_research_log(today, market_data, headlines, brief)
 
