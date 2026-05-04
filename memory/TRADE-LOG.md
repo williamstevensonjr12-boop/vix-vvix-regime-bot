@@ -277,10 +277,17 @@ Account equity $99,621.24, no open positions, no open orders.
 
 === EOD 2026-05-04 ===
 Equity: $99,639.88 (day P&L: +$18.64, day return: +0.019%)
-Trades: 1 (W:1 / L:0 / flat:0) | Win rate: 100% | P/F: ∞ (no losses)
+Trades: 1 manual (W:1 / L:0 / flat:0) | Bot trades: 0 | Win rate: 100% | P/F: ∞ (no losses)
   - Avg win: $18.64 | Avg loss: N/A
-  - Wins: MSFT long (+$18.64)
+  - Wins: MSFT long manual (+$18.64)
   - Losses: NONE
 Halt: NO | Kill switch: NO
 Open overnight: NONE (Cameron strategy is intraday-only, EOD flat)
-Notes: First successful Cameron VWAP-Bounce trade since strategy swap (2026-05-03). MSFT long entered 10:17 ET @ $417.757, exited 10:32 ET @ $419.621 (10 shares, +$1.864/share = +$18.64). Closed by bot ~13min after entry — no bracket legs visible on Alpaca (both buy and sell orders show as `market` type with `legs=0`); exit mechanism unclear from log but P&L is real and equity matches order math exactly. Bot wrapper auto-closed all (none open) at 3:55 PM ET as expected. Account variance vs trade-log sum: matches exactly ($18.64 = $18.64). Day trade count rolled from 7 → 8 on rolling 5-day window. PDT-flagged but well within paper-account margin. Bot pre-market gap %s buggy this morning (anchored to 2-day-old close); fixed mid-day in commit `7e88e4a` and 3 prior-corrections appended in RESEARCH-LOG. Bug signals to track: (1) `closure detected for MSFT but no fill found` WARNING at 10:32 — journal pipeline didn't capture the round-trip; trades.csv still shows last entry from 2026-04-30 (RKLB). Bot's internal `trades_today` counter also stayed at 0/5 after the closed round-trip — entry-side counter increment may be missing in the new Cameron signal path. Neither halt nor kill-switch tripped; far below 2% / 3% thresholds.
+Notes: **Manual override by Preston, not a bot trade.** Preston took the MSFT long discretionarily using Cameron VWAP-Bounce structure (close > VWAP, close > 200 EMA, 9 EMA > 20 EMA, recent VWAP touch, bar-over-bar close, structural stop) but **deliberately skipped the rvol ≥ 1.5× confirmation gate**. MSFT long entered 10:17 ET @ $417.757, manually exited 10:32 ET @ $419.621 (10 shares, +$1.864/share = +$18.64). Both fills are market orders, no bracket. Account variance vs P&L: matches exactly ($18.64 = $18.64). Day trade count rolled 7 → 8. PDT-flagged but well within paper-account margin.
+
+**Bot did not enter any trade today — the strategy never fired.** Earlier "bug signals" flagged at the first pass were misdiagnosed and are RETRACTED:
+- `closure detected for MSFT but no fill found` WARNING at 10:32 was correct behavior — bot's reconciler saw the manual position vanish and logged it; nothing was wrong with the journal pipeline.
+- `trades_today` counter stayed at 0/5 because the bot legitimately took zero trades; not a counter bug.
+- trades.csv still ending at 2026-04-30 (RKLB) is also correct — bot writes only its own fills, manual trades aren't journaled there.
+
+Bot wrapper auto-closed-all at 3:55 PM ET as expected (no positions open by then). Pre-market gap-% bug fixed mid-day in commit `7e88e4a`, 3 prior-corrections appended in RESEARCH-LOG. Neither halt nor kill-switch tripped; far below 2% / 3% thresholds.
