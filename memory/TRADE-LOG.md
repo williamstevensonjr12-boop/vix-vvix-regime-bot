@@ -230,3 +230,46 @@ Account equity $99,621.24, no open positions, no open orders.
 - Notification routines reference the dead `clickup.sh` stack and would need rewriting to `notify.sh` (finding C1).
 - The retracement code path in `backtest.py` is a phantom feature — either implement it in `strategy.py`/`main.py` (backtest evidence: +6pp small-cap, +23pp mega-cap) or delete from `backtest.py`. Currently misleading.
 
+
+
+=== STRATEGY SWAP — VWAP-BOUNCE LIVE 2026-05-03 ===
+
+**Bot resumed from retirement.** Halt reversed; `MAX_TRADES_PER_DAY = 5` restored.
+
+**New strategy:** Cameron VWAP-Bounce (Setup B only — no Setup A breakout, no Setup C micro-pullback). Wholesale replacement of the retired regime-aware ORB strategy.
+
+**Long entry conditions (mirror for short):**
+1. close > VWAP
+2. close > 200 EMA (regime filter)
+3. 9 EMA > 20 EMA (trend confirmation)
+4. Within last 3 bars, at least one bar low touched VWAP within 0.15% (pullback signal)
+5. Current bar close > prior bar close (bounce signal)
+6. Relative volume ≥ 1.5× of 20-bar average (volume confirmation)
+
+**Stop:** min(prior 5 bar lows) for long, max for short. Skip if stop distance > 1.5 × ATR (chop guardrail).
+**Target:** 2R (entry ± 2 × risk_per_share).
+**Risk per trade:** 0.75% of equity (bumped from 0.5%).
+**Universe:** SPY, QQQ, AAPL, MSFT, NVDA, GOOGL, AMZN, META (8 mega-caps). Old 30-name small-cap basket retired.
+**Direction:** both long and short — Cameron framework allows either side per symbol.
+
+**Methodology rule violation acknowledged:** Per `feedback_evidence_before_live_changes.md`, no live changes without multi-window backtest evidence. This swap is going live with **zero backtest evidence**. Decision was made deliberately as Path 1 (live blind, learn empirically). Backtest validation queued as a future session item.
+
+**What was rewritten this session:**
+- `indicators.py` (Phase 1, `99934a7`) — added EMA + relative_volume; deleted opening_range, avg_volume_same_time_of_day, atr_stop_price, is_atr_expanding
+- `config.py` + `strategy.py` (Phase 2-3, `33df1cb`) — Cameron VWAP-Bounce signal, ~140 lines of dead config removed
+- `main.py` (Phase 4, `8d78c6c`) — 720 → 340 lines, regime/sentiment/sector/VIX-beta/VVIX/market-neutral all removed
+- 6 dead modules deleted (Phase 6, `af1b24c`): regime, sentiment, sector_rotation, vix_factor, vvix_filter, market_neutral
+- 2 dead test files deleted (Phase 7, `edb88e6`): test_entry_gates.py, test_indicators.py
+- `journal.py` (`3b99881`) — TradeSignal field reads aligned with new dataclass; bug catch that would have crashed the bot on first trade
+
+**What's deferred (low-impact stale state):**
+- `backtest.py` — broken, on old ORB engine. `cmd_backtest` stubbed in main.py. Doesn't affect live.
+- 11 broken backtest harness scripts in repo root. Doesn't affect live.
+- 5 routine markdown files — still reference old strategy + dead clickup.sh notification path. Cloud-scheduled prompts only; live bot's notifications via notify.sh work fine.
+- Bot's CLAUDE.md + memory/TRADING-STRATEGY.md — old rulebook references regime/ORB. Affects future-session context, not live.
+- `README.md` — probably stale.
+
+**Live trading context:**
+- Branch `preston-filters`, commits past `04cc2fc` snapshot
+- Account equity $99,621.24, no open positions, no open orders
+- Wrapper restart needed to pick up new strategy (Phase 11 next)
