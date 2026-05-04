@@ -23,7 +23,11 @@ import requests
 logger = logging.getLogger(__name__)
 
 REQUEST_TIMEOUT_SEC = (10.0, 20.0)  # (connect, read)
-MAX_RETRIES = 4
+# 6 retries → ~63s base sleep budget (1+2+4+8+16+32) plus jitter, comfortably
+# under hang_watchdog's 180s SIGTERM ceiling. Bumped from 4 on 2026-05-04 after
+# observing overnight DNS-failure crash storms tied to laptop sleep/wake — the
+# 4-retry budget (~31s) was marginally too short for macOS DNS to recover.
+MAX_RETRIES = 6
 BASE_BACKOFF_SEC = 1.0
 RETRYABLE_EXC = (
     requests.exceptions.ConnectionError,

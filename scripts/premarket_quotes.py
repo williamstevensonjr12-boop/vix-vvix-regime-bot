@@ -34,18 +34,23 @@ def quote(symbol: str) -> str:
             info = t.info or {}
         prev = info.get("regularMarketPreviousClose") or info.get("previousClose")
         pre_px = info.get("preMarketPrice")
-        pre_chg = info.get("preMarketChangePercent")
 
         if pre_px is None and prev:
             return f"- {symbol}: no pre-market quote (prev close ${prev:.2f})"
         if pre_px is None:
             return f"- {symbol}: no quote available"
 
-        if pre_chg is None and prev:
+        # Always compute change% locally from prev_close. yfinance's
+        # preMarketChangePercent uses a different reference (often last
+        # extended-hours trade) and was reporting values inconsistent with
+        # the displayed prev close (e.g., AAPL pre $279.26 / prev $271.24
+        # showed -0.35% from yfinance, actual is +2.96%). 2026-05-04 fix.
+        if prev:
             pre_chg = (pre_px - prev) / prev * 100
-        chg_str = f"{pre_chg:+.2f}%" if pre_chg is not None else "n/a"
-        prev_str = f" vs prev close ${prev:.2f}" if prev else ""
-        return f"- {symbol}: pre ${pre_px:.2f} ({chg_str}){prev_str}"
+            chg_str = f"{pre_chg:+.2f}%"
+            prev_str = f" vs prev close ${prev:.2f}"
+            return f"- {symbol}: pre ${pre_px:.2f} ({chg_str}){prev_str}"
+        return f"- {symbol}: pre ${pre_px:.2f} (no prev close to compute %)"
     except Exception as e:
         return f"- {symbol}: fetch error ({type(e).__name__})"
 
