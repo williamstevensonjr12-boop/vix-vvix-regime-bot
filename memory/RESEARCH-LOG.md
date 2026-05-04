@@ -2638,3 +2638,33 @@ S&P 500 and Nasdaq at record highs, but pre-market shows near-flat gaps across t
 **Notification:** silent (no held position drawdown, no halt, no PAUSE).
 
 **Test-run notes:** This entry was written by a manual invocation of the pre-market routine at 03:1X ET on 2026-05-04 to verify the post-perplexity routine pipeline end-to-end (memory reads ✓, alpaca.sh wrappers ✓, WebSearch tool ✓ replacing perplexity.sh, RESEARCH-LOG append ✓, git push ✓). Note: original test entry was wrong-dated 2026-05-05; corrected to 2026-05-04 in a follow-up edit. The actual scheduled cron run will fire at 06:00 ET on 2026-05-04 and write a second entry for the same day, distinguishable by absence of the TEST RUN marker.
+
+---
+
+=== PRE-MARKET 2026-05-04 (cron run, 03:41 ET) ===
+
+**Account snapshot:** equity $99,621.24 · buying_power $398,484.96 · cash $99,621.24 · 0 open positions · 0 open orders · daytrade_count 7 · last_equity $99,621.24 (flat overnight, day P&L $0)
+
+**Held overnight:** none (Cameron strategy is intraday-only, EOD flat)
+
+**Macro context (via WebSearch):**
+- S&P 500 + Nasdaq closed at fresh all-time highs Friday May 1 (SPX 7,230.12 +0.29%, NDX +0.89%). Tone neutral-to-bullish into Monday session.
+- Today's earnings before/around the open: Palantir (PLTR), Vertex (VRTX), Tyson (TSN). None in mega-cap universe.
+- Week's main macro catalyst is Friday's April jobs report (consensus +53k vs prior +178k, unemployment 4.3%). No Tier-1 print scheduled today.
+- Geopolitical: Trump's "Project Freedom" plan to escort neutral cargo through Strait of Hormuz announced over the weekend; oil reaction mixed, no immediate market shock.
+
+**Per-symbol pre-market notes (yfinance, no live pre-market quotes available — script ran at 03:41 ET, before pre-market session opens ~04:00 ET; falling back to prev close only):**
+- SPY: no pre-market quote (prev close $718.66)
+- QQQ: no pre-market quote (prev close $667.71)
+- AAPL: no pre-market quote (prev close $271.24)
+- MSFT: no pre-market quote (prev close $408.02)
+- NVDA: no pre-market quote (prev close $199.57)
+- GOOGL: no pre-market quote (prev close $384.80)
+- AMZN: no pre-market quote (prev close $264.90)
+- META: no pre-market quote (prev close $611.91)
+
+No symbol gap can be evaluated this early — re-check at the 09:35 ET market-open routine for actual gap-vs-prev-close. WebSearch hit referencing pre-market gainers (AAPL +6.3%, AMZN +7.6%, META +5.6%) tied to a "US-China tariff reduction" headline appears to mismatch today's news flow; not corroborated and ignored.
+
+**Decision: ALLOW BOT TO TRADE.** No FOMC/CPI/jobs print today, no extreme geopolitical shock, no held positions to monitor, no halt/kill conditions in play. Bot live with Cameron VWAP-Bounce (Setup B), MAX_TRADES_PER_DAY=5, halt -2%, kill -3%. Calendar filter will internally block any symbol with an earnings-day flag.
+
+**Notification:** silent (no held position drawdown, no symbol halt, no PAUSE recommendation).
