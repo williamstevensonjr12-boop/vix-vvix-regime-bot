@@ -291,3 +291,11 @@ Notes: **Manual override by Preston, not a bot trade.** Preston took the MSFT lo
 - trades.csv still ending at 2026-04-30 (RKLB) is also correct — bot writes only its own fills, manual trades aren't journaled there.
 
 Bot wrapper auto-closed-all at 3:55 PM ET as expected (no positions open by then). Pre-market gap-% bug fixed mid-day in commit `7e88e4a`, 3 prior-corrections appended in RESEARCH-LOG. Neither halt nor kill-switch tripped; far below 2% / 3% thresholds.
+
+
+=== EOD 2026-05-05 ===
+Equity: $99,639.88 (day P&L: +$0.00, day return: 0.000%)
+Trades: 0 (W:0 / L:0 / flat:0) | Win rate: N/A | P/F: N/A
+Halt: NO | Kill switch: NO
+Open overnight: NONE (Cameron strategy is intraday-only)
+Notes: No-trade day. Bot did not fire — Cameron VWAP-Bounce setup never confirmed across the 8 mega-caps. Pre-market context (06:53 ET re-run): Iran/UAE escalation persisting (Brent +6%, S&P 500 closed -0.41% Mon), modest pre-market recovery (futures +0.3-0.5%), no earnings blocks, no FOMC/CPI. Day P&L flat at $0.00 — equity unchanged from yesterday's close. Account variance: zero. No manual overrides. Bot wrapper auto-close-all at 3:55 PM ET completed without positions to flatten. Far below 2% halt and 3% kill thresholds; daytrade_count 4 on rolling 5-day window.
