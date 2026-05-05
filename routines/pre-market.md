@@ -48,11 +48,14 @@ STEP 4 — Research via the WebSearch tool. Run these queries:
   - News on any currently-held ticker
   If WebSearch is unavailable, note that headlines were unavailable in the RESEARCH-LOG entry.
 
+  CORROBORATION RULE: any specific market-moving claim (named geopolitical event, percent moves on oil/yields/currencies, earnings surprise) must appear in at least TWO independent WebSearch hits with consistent details before going in the brief. If only one source mentions it, either run a second targeted query to confirm or omit the claim. WebSearch has previously returned indexed/fabricated headlines (e.g., the May-4 "US-China 90-day tariff reduction" hit that didn't match live tape) — corroborate before including.
+
 STEP 4.5 — Live per-symbol pre-market quotes via yfinance:
   python scripts/premarket_quotes.py
   Output is markdown bullets (one per mega-cap) with pre-market price + gap % vs prev close. Paste verbatim into the RESEARCH-LOG entry. Flag any symbol gapping >1% as a watch candidate.
 
 STEP 5 — Write dated entry to memory/RESEARCH-LOG.md:
+  - Header MUST use the actual current time, not the scheduled time. Compute with: TIME=$(TZ=America/New_York date +%H:%M). Header format: `=== PRE-MARKET $DATE (cron run, $TIME ET) ===`. Never hardcode "06:00" — manual refires and clock skew make the scheduled time misleading.
   - Account snapshot (equity, buying power, open positions)
   - Earnings-day exclusions (which of the 8 mega-caps are blocked today)
   - Market context (overnight news, futures)

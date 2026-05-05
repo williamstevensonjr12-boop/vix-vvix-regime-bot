@@ -63,13 +63,22 @@ def quote(symbol: str) -> str:
         # regularMarketPrice when the dedicated field is unavailable —
         # before market opens, regularMarketPrice tracks pre-market levels.
         pre_px = info.get("preMarketPrice")
+        used_regular_market_fallback = False
         if pre_px is None:
             pre_px = info.get("regularMarketPrice")
+            used_regular_market_fallback = True
 
         if pre_px is None and prev:
             return f"- {symbol}: no pre-market quote (prev close ${prev:.2f})"
         if pre_px is None:
             return f"- {symbol}: no quote available"
+
+        # If preMarketPrice is empty AND regularMarketPrice equals prev close,
+        # there's been no real pre-market activity yet — Yahoo is just echoing
+        # yesterday's close. Don't lie with "+0.00%"; report the empty-quote
+        # state explicitly. 2026-05-05 fix.
+        if used_regular_market_fallback and prev and abs(pre_px - prev) < 0.01:
+            return f"- {symbol}: no pre-market quote yet (prev close ${prev:.2f})"
 
         # Always compute change% locally from prev_close. yfinance's
         # preMarketChangePercent uses a different reference (often last
