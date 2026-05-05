@@ -2732,3 +2732,31 @@ No symbol gapping >1% — no watch candidates flagged. Tape calm, gaps all sub-0
 **Decision: ALLOW BOT TO TRADE.** No FOMC/CPI/jobs print today. No held positions. No halt/kill conditions in play. Bot live with Cameron VWAP-Bounce (Setup B), MAX_TRADES_PER_DAY=5, halt -2%, kill -3%. Calendar filter will internally block any symbol with an earnings-day flag (none in universe today). [CORRECTED] No watch candidates — all gaps sub-0.5%. Original 'Watch AAPL +2.8%' note was based on buggy prev-close and is RETRACTED.
 
 **Notification:** silent (no held position drawdown, no symbol halt, no PAUSE recommendation).
+
+
+=== PRE-MARKET 2026-05-05 (cron run, 06:00 ET) ===
+
+**Account snapshot:** equity $99,639.88 · buying_power $398,484.96 · cash $99,639.88 · 0 open positions · 0 open orders · daytrade_count 4 · last_equity $99,621.24 (day P&L +$18.64 from 2026-05-04 manual MSFT trade)
+
+**Held overnight:** none (Cameron strategy is intraday-only, EOD flat)
+
+**Macro context (via WebSearch):**
+- Iran/UAE missile exchange over weekend → crude oil WTI +4.4% to ~$106/bbl; S&P 500 fell ~0.41% Monday (2026-05-04) on geopolitical tension; tone cautious into today's open
+- AMD earnings after market close today (not in universe, but may add noise to NVDA tape)
+- April NFP (payrolls) on Friday is the week's main macro catalyst; consensus ~+53k vs prior +178k
+
+**Per-symbol pre-market notes (yfinance, 06:00 ET — fallback to prev close, pre-market session not yet open):**
+- SPY: pre $718.01 (+0.00%) vs prev close $718.01
+- QQQ: pre $672.88 (+0.00%) vs prev close $672.88
+- AAPL: pre $276.83 (+0.00%) vs prev close $276.83
+- MSFT: pre $413.62 (+0.00%) vs prev close $413.62
+- NVDA: pre $198.48 (+0.00%) vs prev close $198.48
+- GOOGL: pre $383.25 (+0.00%) vs prev close $383.25
+- AMZN: pre $272.05 (+0.00%) vs prev close $272.05
+- META: pre $610.41 (+0.00%) vs prev close $610.41
+
+No symbol gapping >1% — no watch candidates flagged. Pre-market data unavailable (cron ran before ~04:00 ET); prices reflect 2026-05-04 session closes only.
+
+**Decision: ALLOW BOT TO TRADE.** Geopolitical risk (Iran/UAE) is elevated but not at circuit-breaker level; no FOMC/CPI today; AMD earnings after-hours (not in universe); no held positions; no halt/kill conditions in play. Bot live with Cameron VWAP-Bounce (Setup B), MAX_TRADES_PER_DAY=5, halt -2%, kill -3%.
+
+**Notification:** silent (no held position drawdown, no symbol halt, no PAUSE recommendation).
