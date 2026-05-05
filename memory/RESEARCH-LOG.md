@@ -2734,7 +2734,14 @@ No symbol gapping >1% — no watch candidates flagged. Tape calm, gaps all sub-0
 **Notification:** silent (no held position drawdown, no symbol halt, no PAUSE recommendation).
 
 
-=== PRE-MARKET 2026-05-05 (cron run, 06:00 ET) ===
+=== PRE-MARKET 2026-05-05 (manual refire, actually 06:32 ET — header above wrong) — [SUPERSEDED by 06:53 ET re-run; see entry below] ===
+
+> **[CORRECTION 2026-05-05 06:53 ET]** Three issues with this entry:
+> 1. Header says "06:00 ET" but actual commit was 06:32:26 ET (manual refire after cron skipped — laptop was closed at 6 AM). Hardcoded scheduled time, not actual run time.
+> 2. All 8 per-symbol gap %s are bogus 0.00%. yfinance's `preMarketPrice` field was None and `regularMarketPrice` equaled prev close (no real pre-market activity yet); script silently fell through and emitted "+0.00%" instead of "no pre-market quote yet". Fixed in commit `27bec4e`.
+> 3. Macro context (Iran/UAE missile exchange, oil +4.4% to ~$106, S&P -0.41% Monday) was VERIFIED REAL via second-source check — CNBC, Yahoo Finance, OilPrice, Rigzone all corroborate. The geopolitical context stands; only the gap %s and timestamp were wrong.
+>
+> Superseding 06:53 ET entry below has corrected per-symbol output ("no pre-market quote yet") and adds today's recovering futures (S&P +0.3%, Nasdaq +0.5%, Dow +0.3%).
 
 **Account snapshot:** equity $99,639.88 · buying_power $398,484.96 · cash $99,639.88 · 0 open positions · 0 open orders · daytrade_count 4 · last_equity $99,621.24 (day P&L +$18.64 from 2026-05-04 manual MSFT trade)
 
@@ -2758,5 +2765,35 @@ No symbol gapping >1% — no watch candidates flagged. Tape calm, gaps all sub-0
 No symbol gapping >1% — no watch candidates flagged. Pre-market data unavailable (cron ran before ~04:00 ET); prices reflect 2026-05-04 session closes only.
 
 **Decision: ALLOW BOT TO TRADE.** Geopolitical risk (Iran/UAE) is elevated but not at circuit-breaker level; no FOMC/CPI today; AMD earnings after-hours (not in universe); no held positions; no halt/kill conditions in play. Bot live with Cameron VWAP-Bounce (Setup B), MAX_TRADES_PER_DAY=5, halt -2%, kill -3%.
+
+**Notification:** silent (no held position drawdown, no symbol halt, no PAUSE recommendation).
+
+
+=== PRE-MARKET 2026-05-05 (re-run, 06:53 ET — supersedes 06:32 entry above) ===
+
+**Account snapshot:** equity $99,639.88 · buying_power $398,484.96 · cash $99,639.88 · 0 open positions · 0 open orders · daytrade_count 4 · last_equity $99,621.24 (day P&L +$18.64 from 2026-05-04 manual MSFT trade)
+
+**Held overnight:** none (Cameron strategy is intraday-only, EOD flat)
+
+**Earnings-day check:** none of the 8 mega-caps blocked today (SPY/QQQ throw expected ETF "no earnings dates" warnings; AAPL/MSFT/NVDA/GOOGL/AMZN/META all clear).
+
+**Macro context (via WebSearch, 2-source corroborated):**
+- **Iran/UAE escalation persists.** Mon 2026-05-04: Iran fired 4 cruise missiles at UAE (3 intercepted), drone strike triggered fire at Fujairah oil hub, ships hit in Strait of Hormuz. Brent +6% to $114.44, WTI +4%+ to $106.42 (intraday high $107.48). S&P 500 closed -0.41% at 7,200.75. Sources: CNBC, Yahoo Finance, OilPrice, Rigzone, Investing Live.
+- **Today's pre-market recovering modestly.** S&P 500 futures +0.3%, Nasdaq-100 futures +0.5%, Dow futures +0.3% — investors holding for Iran war developments but not pricing in further escalation. Source: Yahoo Finance live blog.
+- **AMD + Palantir earnings after-hours today.** Neither in universe, but AMD reports adds noise risk to NVDA tape into close. Friday's April NFP (consensus +53k vs prior +178k) is the week's main macro print.
+
+**Per-symbol pre-market notes (yfinance, 06:53 ET):**
+- SPY: no pre-market quote yet (prev close $718.01)
+- QQQ: no pre-market quote yet (prev close $672.88)
+- AAPL: no pre-market quote yet (prev close $276.83)
+- MSFT: no pre-market quote yet (prev close $413.62)
+- NVDA: no pre-market quote yet (prev close $198.48)
+- GOOGL: no pre-market quote yet (prev close $383.25)
+- AMZN: no pre-market quote yet (prev close $272.05)
+- META: no pre-market quote yet (prev close $610.41)
+
+yfinance's `preMarketPrice` field is empty for all 8 mega-caps right now and `regularMarketPrice` equals prev close — no real pre-market trades on the tape yet. Re-check at the 09:35 ET market-open routine for actual gap-vs-prev-close. WebSearch query for "pre-market movers AAPL MSFT NVDA..." returned a "US-China 90-day tariff reduction" hit (AMZN +7.6%, AAPL +6.3%, etc.) — same stale/fabricated headline that surfaced yesterday and DID NOT corroborate against live tape; ignored per corroboration rule.
+
+**Decision: ALLOW BOT TO TRADE.** Geopolitical risk elevated but futures positive (modest recovery), no FOMC/CPI today, AMD/PLTR earnings after-hours only, no held positions, no halt/kill conditions in play. Bot live with Cameron VWAP-Bounce (Setup B), MAX_TRADES_PER_DAY=5, halt -2%, kill -3%. If Iran/Strait of Hormuz situation escalates intraday (oil tape spike, halt headline), expect midday routine to re-evaluate.
 
 **Notification:** silent (no held position drawdown, no symbol halt, no PAUSE recommendation).
