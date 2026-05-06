@@ -2797,3 +2797,35 @@ yfinance's `preMarketPrice` field is empty for all 8 mega-caps right now and `re
 **Decision: ALLOW BOT TO TRADE.** Geopolitical risk elevated but futures positive (modest recovery), no FOMC/CPI today, AMD/PLTR earnings after-hours only, no held positions, no halt/kill conditions in play. Bot live with Cameron VWAP-Bounce (Setup B), MAX_TRADES_PER_DAY=5, halt -2%, kill -3%. If Iran/Strait of Hormuz situation escalates intraday (oil tape spike, halt headline), expect midday routine to re-evaluate.
 
 **Notification:** silent (no held position drawdown, no symbol halt, no PAUSE recommendation).
+
+
+=== PRE-MARKET 2026-05-06 (cron run, 07:07 ET) ===
+
+**Account snapshot:** equity $99,639.87 · buying_power $398,559.48 · cash $99,639.87 · 0 open positions · 0 open orders · daytrade_count 2 · last_equity $99,639.87 (day P&L $0.00 — yesterday was a no-trade flat)
+
+**Held overnight:** none (Cameron strategy is intraday-only, EOD flat)
+
+**Earnings-day check:** none of the 8 mega-caps blocked today.
+
+**Macro context (via WebSearch, 2-source corroborated):**
+- **Iran/Hormuz de-escalation.** Ship successfully transited Strait of Hormuz under US Navy protection; ceasefire holding despite recent provocations. Oil rolling over after yesterday's spike. Sources: Schwab market update, futures tape recovery.
+- **Modest pre-market lift.** S&P 500 futures +0.25%, Nasdaq-100 futures +0.52%, Dow futures +0.24%. Source: WebSearch futures tape.
+- **AMD + Palantir earnings today (after-hours).** AMD rebounding +2% pre-market after -5% Mon (HSBC downgrade). Neither in universe; AMD adds noise risk to NVDA tape into close.
+- **JOLTS print at 10:00 ET.** Consensus ~6.8M openings vs prior ~7.0M. Single-source — modest market-mover at most; not a pause trigger.
+- **NFP Friday** is the week's main macro catalyst (single source — flagged for Friday routine).
+
+**Per-symbol pre-market notes (yfinance, 07:07 ET):**
+- SPY: pre $731.45 (+1.06%) vs prev close $723.77
+- QQQ: pre $693.39 (+1.73%) vs prev close $681.61
+- AAPL: pre $283.15 (-0.36%) vs prev close $284.18
+- MSFT: pre $412.25 (+0.21%) vs prev close $411.38
+- NVDA: pre $201.47 (+2.53%) vs prev close $196.50
+- GOOGL: pre $396.58 (+2.10%) vs prev close $388.43
+- AMZN: pre $276.32 (+1.01%) vs prev close $273.55
+- META: pre $607.33 (+0.39%) vs prev close $604.96
+
+**Watch candidates (gapping >1%):** NVDA (+2.53%), GOOGL (+2.10%), QQQ (+1.73%), SPY (+1.06%), AMZN (+1.01%). Tape is broadly risk-on into the open — Cameron VWAP-Bounce setup is more likely to fire long today than short. WebSearch per-symbol movers hit returned conflicting numbers (AAPL +1.66%, NVDA -0.13%) that do NOT corroborate against yfinance live tape; ignored per corroboration rule. Note also: yesterday's prev-close anchors here ($723.77 SPY, $681.61 QQQ, etc.) reflect Tuesday's recovery from Monday's Iran/UAE selloff — the previously-logged $718.01 SPY / $672.88 QQQ from Tuesday's open were closed levels; today's prev close shows the bounce already happened during yesterday's session.
+
+**Decision: ALLOW BOT TO TRADE.** Geopolitical risk fading (Hormuz transit + ceasefire), futures positive, no FOMC/CPI today, JOLTS at 10:00 ET is at most a minor mover, no held positions, no halt/kill conditions in play. Bot live with Cameron VWAP-Bounce (Setup B), MAX_TRADES_PER_DAY=5, halt -2%, kill -3%.
+
+**Notification:** silent (no held position drawdown, no symbol halt, no PAUSE recommendation).
