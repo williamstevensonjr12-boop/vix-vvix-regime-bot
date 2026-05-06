@@ -96,10 +96,10 @@ def run_dashboard(window_days: int = 30):
         if eq > 0 and abs(dpnl) / eq >= config.KILL_SWITCH_LOSS_PCT:
             kill_days.append(day)
 
-    # Regime breakdown
-    regime_counts: dict[str, int] = defaultdict(int)
+    # Side breakdown (long vs short)
+    side_counts: dict[str, int] = defaultdict(int)
     for t in window_trades:
-        regime_counts[t.get("regime", "UNKNOWN")] += 1
+        side_counts[(t.get("side") or "?").lower()] += 1
 
     # Running equity curve (from perf log)
     perf_window = sorted(
@@ -141,11 +141,11 @@ def run_dashboard(window_days: int = 30):
     print(f"  Total P&L       : ${total_pnl:+,.2f}")
     print(f"  Max drawdown    : ${max_dd:,.2f}")
 
-    print(f"\n{BOLD}── REGIME BREAKDOWN ─────────────────────────────────{RESET}")
-    for regime, count in sorted(regime_counts.items()):
-        bar = "█" * (count * 20 // max(regime_counts.values(), default=1))
+    print(f"\n{BOLD}── SIDE BREAKDOWN ───────────────────────────────────{RESET}")
+    for side, count in sorted(side_counts.items()):
+        bar = "█" * (count * 20 // max(side_counts.values(), default=1))
         pct = count / total
-        print(f"  {regime:<22} {bar:<20} {count:>3} ({pct:.0%})")
+        print(f"  {side:<22} {bar:<20} {count:>3} ({pct:.0%})")
 
     print(f"\n{BOLD}── GO-LIVE CHECKLIST ────────────────────────────────{RESET}")
     print(f"  {_check(ok_wr)} Win rate ≥ 52%         actual: {_pct(win_rate):<8}  target: 52%")
@@ -172,9 +172,9 @@ def run_dashboard(window_days: int = 30):
     print(f"\n{BOLD}── RECENT DAYS ──────────────────────────────────────{RESET}")
     recent = sorted(daily_pnl.items())[-10:]
     for d, dpnl in recent:
-        regime = perf_map.get(d, {}).get("regime", "?")
+        n = sum(1 for t in window_trades if t.get("date") == d)
         color = GREEN if dpnl >= 0 else RED
         bar = ("+" if dpnl >= 0 else "-") * min(int(abs(dpnl) / 100), 20)
-        print(f"  {d}  {color}{bar:<22}{RESET}  ${dpnl:+8,.2f}  [{regime}]")
+        print(f"  {d}  {color}{bar:<22}{RESET}  ${dpnl:+8,.2f}  ({n} tr)")
 
     print(f"\n{BOLD}{'='*60}{RESET}\n")

@@ -38,11 +38,6 @@ def build_dashboard():
     avg_win  = gross_win  / len(wins)   if wins   else 0
     avg_loss = gross_loss / len(losses) if losses else 0
 
-    # Regime breakdown
-    regime_counts: dict[str, int] = defaultdict(int)
-    for t in trades:
-        regime_counts[t.get("regime", "?")] += 1
-
     # Daily P&L
     daily_pnl: dict[str, float] = defaultdict(float)
     for t in trades:
@@ -118,7 +113,7 @@ def build_dashboard():
 </head>
 <body>
 
-<h1>VIX/VVIX Regime Alpha Bot</h1>
+<h1>Cameron VWAP-Bounce Bot</h1>
 <div class="subtitle">Paper Trading Dashboard &nbsp;·&nbsp; Updated {now} &nbsp;·&nbsp; Equity start: ${config.INITIAL_EQUITY:,.0f}</div>
 
 <!-- KPI Cards -->
@@ -169,31 +164,25 @@ def build_dashboard():
   </div>
 </div>
 
-<!-- Go-live + Regime row -->
-<div class="two-col" style="margin-bottom:20px;">
-  <div class="section">
-    <h2>Go-Live Checklist</h2>
-    <ul class="checklist">
-      <li>
-        <span class="badge {'pass' if ok_wr else 'fail'}">{'✓' if ok_wr else '✗'}</span>
-        Win rate ≥ 52% &nbsp;<span style="color:#94a3b8">{win_rate:.1%}</span>
-      </li>
-      <li>
-        <span class="badge {'pass' if ok_pf else 'fail'}">{'✓' if ok_pf else '✗'}</span>
-        Profit factor ≥ 1.10 &nbsp;<span style="color:#94a3b8">{profit_factor:.2f}</span>
-      </li>
-      <li>
-        <span class="badge {'pass' if ok_ks else 'fail'}">{'✓' if ok_ks else '✗'}</span>
-        Zero kill-switch days &nbsp;<span style="color:#94a3b8">{len(kill_days)}</span>
-      </li>
-    </ul>
-    <div class="go-live {'yes' if go_live else 'no'}">
-      {'🚀 GO-LIVE CRITERIA MET' if go_live else '⏳ Keep paper trading'}
-    </div>
-  </div>
-  <div class="section">
-    <h2>Regime Breakdown</h2>
-    <div class="chart-wrap"><canvas id="regimeChart"></canvas></div>
+<!-- Go-live row -->
+<div class="section" style="margin-bottom:20px;">
+  <h2>Go-Live Checklist</h2>
+  <ul class="checklist">
+    <li>
+      <span class="badge {'pass' if ok_wr else 'fail'}">{'✓' if ok_wr else '✗'}</span>
+      Win rate ≥ 52% &nbsp;<span style="color:#94a3b8">{win_rate:.1%}</span>
+    </li>
+    <li>
+      <span class="badge {'pass' if ok_pf else 'fail'}">{'✓' if ok_pf else '✗'}</span>
+      Profit factor ≥ 1.10 &nbsp;<span style="color:#94a3b8">{profit_factor:.2f}</span>
+    </li>
+    <li>
+      <span class="badge {'pass' if ok_ks else 'fail'}">{'✓' if ok_ks else '✗'}</span>
+      Zero kill-switch days &nbsp;<span style="color:#94a3b8">{len(kill_days)}</span>
+    </li>
+  </ul>
+  <div class="go-live {'yes' if go_live else 'no'}">
+    {'🚀 GO-LIVE CRITERIA MET' if go_live else '⏳ Keep paper trading'}
   </div>
 </div>
 
@@ -201,16 +190,16 @@ def build_dashboard():
 <div class="section">
   <h2>Recent Trades (last 20)</h2>
   {'<p style="color:#64748b;font-size:0.8rem;">No trades yet — bot is running.</p>' if not recent_trades else ''}
-  {'<table><thead><tr><th>Date</th><th>Time</th><th>Symbol</th><th>Entry</th><th>Stop</th><th>Target</th><th>Qty</th><th>Regime</th><th>Result</th><th>P&L</th></tr></thead><tbody>' if recent_trades else ''}
+  {'<table><thead><tr><th>Date</th><th>Time</th><th>Symbol</th><th>Side</th><th>Entry</th><th>Stop</th><th>Target</th><th>Qty</th><th>Result</th><th>P&L</th></tr></thead><tbody>' if recent_trades else ''}
   {''.join(f"""<tr>
     <td>{t.get('date','')}</td>
     <td>{t.get('time','')[:5]}</td>
     <td><b>{t.get('symbol','')}</b></td>
+    <td>{t.get('side','')}</td>
     <td>${float(t.get('entry_price',0)):.2f}</td>
     <td>${float(t.get('stop_price',0)):.2f}</td>
     <td>${float(t.get('target_price',0)):.2f}</td>
     <td>{t.get('qty','')}</td>
-    <td>{t.get('regime','')}</td>
     <td class="{'win' if t.get('result')=='WIN' else 'loss'}">{t.get('result','')}</td>
     <td class="{'win' if float(t.get('pnl',0))>=0 else 'loss'}">${float(t.get('pnl',0)):+.2f}</td>
   </tr>""" for t in reversed(recent_trades)) if recent_trades else ''}
@@ -258,25 +247,6 @@ new Chart(document.getElementById('dailyChart'), {{
     }}]
   }},
   options: {{ ...chartDefaults, responsive: true, maintainAspectRatio: false }}
-}});
-
-// Regime doughnut
-new Chart(document.getElementById('regimeChart'), {{
-  type: 'doughnut',
-  data: {{
-    labels: {json.dumps(list(regime_counts.keys()))},
-    datasets: [{{
-      data: {json.dumps(list(regime_counts.values()))},
-      backgroundColor: ['rgba(99,102,241,0.8)','rgba(251,191,36,0.8)','rgba(248,113,113,0.8)'],
-      borderColor: '#0f1117',
-      borderWidth: 2,
-    }}]
-  }},
-  options: {{
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {{ legend: {{ position: 'right', labels: {{ color: '#94a3b8', font: {{ size: 11 }} }} }} }}
-  }}
 }});
 </script>
 </body>

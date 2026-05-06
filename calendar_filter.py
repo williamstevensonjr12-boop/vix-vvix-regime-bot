@@ -1,8 +1,10 @@
 """
 calendar_filter.py — High-impact economic event filter.
 
-Blocks ORB entries on FOMC, CPI, NFP, GDP, retail-sales, ISM days. These events
-create explosive fake breakouts that stop out ORB positions immediately.
+Blocks entries on FOMC decision days, CPI release days, and BLS NFP release
+days. These events create explosive moves that stop out new positions
+immediately. See calendar_feed.TIER_1_TITLE_PATTERNS for the exact match list
+(narrowly scoped — Fed-speaker events do NOT block).
 
 Date source (preferred): ForexFactory weekly JSON feed via calendar_feed.py.
 Date source (fallback): hardcoded `_HIGH_IMPACT_DATES` below — used only when

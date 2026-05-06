@@ -1,13 +1,9 @@
 """
-risk.py — Position sizing, dynamic stops, daily limits, and kill switch.
+risk.py — Position sizing, daily limits, and kill switch for Cameron VWAP-Bounce.
 
-Sizing hierarchy (multiplicative):
-  base_risk_pct × regime_size_factor × vvix_size_factor × sentiment_size_factor
-  × vol_adjusted_multiplier  (target_vol / realized_vol)
-  = final_risk_pct
-
-ATR-based stops replace fixed % stops for more dynamic sizing.
-Portfolio exposure cap prevents over-concentration.
+Sizing: base_risk_pct × vol_adjusted_multiplier (target_vol / realized_vol).
+Stop is computed by strategy.py from prior-bar lows/highs (ATR guardrail enforced
+there, not here). Portfolio exposure cap prevents over-concentration.
 """
 from __future__ import annotations
 import logging
@@ -63,23 +59,15 @@ def calculate_position_size(
     account_equity: float,
     entry_price: float,
     stop_price: float,
-    regime_size_factor: float = 1.0,
-    vvix_size_factor: float = 1.0,
-    sentiment_size_factor: float = 1.0,
     realized_vol: float | None = None,
-    take_profit_r: float = None,
+    take_profit_r: float | None = None,
     side: str = "long",
-    orb_range: float | None = None,
 ) -> SizingResult:
     """
-    Full vol-adjusted, regime-aware position sizing.
+    Vol-adjusted position sizing for Cameron VWAP-Bounce.
     For longs: stop_price < entry_price, target above entry.
     For shorts: stop_price > entry_price, target below entry.
     Returns qty = 0 if risk_per_share is non-positive or sizing fails.
-
-    If config.USE_FIB_TARGET is True and orb_range is provided, the take-profit
-    target is computed as entry ± FIB_EXTENSION_LEVEL × orb_range instead of the
-    fixed take_profit_r × risk_per_share. Otherwise falls back to fixed-R behavior.
     """
     if take_profit_r is None:
         take_profit_r = config.TAKE_PROFIT_R
@@ -91,18 +79,9 @@ def calculate_position_size(
     if risk_per_share <= 0:
         return SizingResult(0, 0, 0, stop_price, entry_price, 0, 1.0, {})
 
-    # Vol adjustment
     vol_mult = vol_adjusted_size_multiplier(realized_vol) if realized_vol else 1.0
-
-    # Composite risk %
-    final_risk_pct = (
-        config.RISK_PER_TRADE_PCT
-        * regime_size_factor
-        * vvix_size_factor
-        * sentiment_size_factor
-        * vol_mult
-    )
-    final_risk_pct = min(final_risk_pct, config.RISK_PER_TRADE_PCT * 2.0)  # cap at 2x base
+    final_risk_pct = config.RISK_PER_TRADE_PCT * vol_mult
+    final_risk_pct = min(final_risk_pct, config.RISK_PER_TRADE_PCT * 2.0)
 
     risk_amount = account_equity * final_risk_pct
     qty = int(risk_amount / risk_per_share)
@@ -110,14 +89,7 @@ def calculate_position_size(
     if qty <= 0:
         return SizingResult(0, 0, final_risk_pct, stop_price, entry_price, risk_per_share, vol_mult, {})
 
-    use_fib = getattr(config, "USE_FIB_TARGET", False) and orb_range is not None and orb_range > 0
-    if use_fib:
-        fib_dist = config.FIB_EXTENSION_LEVEL * orb_range
-        if side == "short":
-            target_price = round(entry_price - fib_dist, 2)
-        else:
-            target_price = round(entry_price + fib_dist, 2)
-    elif side == "short":
+    if side == "short":
         target_price = round(entry_price - take_profit_r * risk_per_share, 2)
     else:
         target_price = round(entry_price + take_profit_r * risk_per_share, 2)
@@ -132,9 +104,6 @@ def calculate_position_size(
         vol_multiplier=round(vol_mult, 3),
         breakdown={
             "base_risk_pct": config.RISK_PER_TRADE_PCT,
-            "regime_factor": regime_size_factor,
-            "vvix_factor": vvix_size_factor,
-            "sentiment_factor": sentiment_size_factor,
             "vol_mult": vol_mult,
         },
     )

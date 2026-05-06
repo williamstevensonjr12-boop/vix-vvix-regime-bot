@@ -18,7 +18,7 @@ while true; do
 
     if [ $EXIT_CODE -eq 0 ]; then
         # Clean exit — usually EOD shutdown. Pause briefly then restart so the
-        # bot is ready for tomorrow's pre-market regime check + scan loop.
+        # bot is ready to wait on tomorrow's market open.
         echo "$(date): Bot exited cleanly (EOD). Restarting in 60 seconds for next session..."
         sleep 60
     else

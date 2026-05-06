@@ -14,6 +14,7 @@ Output: repo/setup_dashboard.html (open in browser; meta-refreshes every 30s)
 """
 from __future__ import annotations
 import argparse
+import csv
 import os
 import sys
 import time
@@ -38,8 +39,34 @@ REFRESH_SECONDS = 30
 OUTPUT = REPO / "setup_dashboard.html"
 
 
-def evaluate_symbol(client, symbol: str) -> dict:
-    """Compute all gate values for one symbol. Returns dict for templating."""
+def count_trades_today(today_iso: str) -> int:
+    """Count rows in trades.csv where date == today (matches journal schema)."""
+    path = REPO / "trades.csv"
+    if not path.is_file():
+        return 0
+    try:
+        with open(path, "r", newline="") as f:
+            return sum(1 for r in csv.DictReader(f) if r.get("date") == today_iso)
+    except Exception:
+        return 0
+
+
+def evaluate_symbol(
+    client,
+    symbol: str,
+    account_equity: float,
+    open_positions: dict,
+    trades_today: int,
+    daily_pnl: float,
+    daily_start_equity: float,
+) -> dict:
+    """Compute all gate values for one symbol. Returns dict for templating.
+
+    READY columns (long_ready / short_ready) are derived from the actual
+    strategy.check_entry_signal / check_short_signal calls — single source of
+    truth with the live bot. Per-gate booleans are computed locally for
+    diagnostic visibility but do NOT determine READY.
+    """
     out = {"symbol": symbol, "error": None}
     try:
         bars = data_mod.get_today_bars(client, symbol)
@@ -129,27 +156,88 @@ def evaluate_symbol(client, symbol: str) -> dict:
         out["stop_long_ok"] = out["stop_short_ok"] = False
         out["atr_cap"] = config.ATR_GUARDRAIL_MULT * atr
 
-    out["long_ready"] = all([
-        out["long_above_vwap"], out["long_above_200ema"], out["ema_stack_long"],
-        out["pullback_long"], out["bounce_long"], out["rvol_ok"], out["stop_long_ok"],
-    ])
-    out["short_ready"] = all([
-        out["short_below_vwap"], out["short_below_200ema"], out["ema_stack_short"],
-        out["pullback_short"], out["bounce_short"], out["rvol_ok"], out["stop_short_ok"],
-    ])
+    # Single source of truth: ask strategy.py what the bot would actually do.
+    # If check_*_signal returns a TradeSignal, the bot would enter right now.
+    long_sig = short_sig = None
+    long_block = short_block = ""
+    try:
+        long_sig = strat.check_entry_signal(
+            symbol, bars, account_equity, open_positions,
+            trades_today, daily_pnl, daily_start_equity,
+        )
+    except Exception as e:
+        long_block = f"err: {e}"
+    try:
+        short_sig = strat.check_short_signal(
+            symbol, bars, account_equity, open_positions,
+            trades_today, daily_pnl, daily_start_equity,
+        )
+    except Exception as e:
+        short_block = f"err: {e}"
+
+    out["long_ready"] = long_sig is not None
+    out["short_ready"] = short_sig is not None
+
+    # Derive a human-readable block reason when not ready.
+    if not out["long_ready"] and not long_block:
+        long_block = _block_reason(out, "long",
+            symbol, open_positions, trades_today, daily_pnl, daily_start_equity)
+    if not out["short_ready"] and not short_block:
+        short_block = _block_reason(out, "short",
+            symbol, open_positions, trades_today, daily_pnl, daily_start_equity)
+    out["long_block"] = long_block
+    out["short_block"] = short_block
 
     return out
+
+
+def _block_reason(out: dict, side: str, symbol: str, open_positions: dict,
+                  trades_today: int, daily_pnl: float, daily_start_equity: float) -> str:
+    """Mirror strategy._gates_pass + setup-gate + stop checks to label what blocked."""
+    gates_ok, reason = strat._gates_pass(
+        symbol, open_positions, trades_today, daily_pnl, daily_start_equity,
+    )
+    if not gates_ok:
+        return reason
+    if side == "long":
+        setup_ok = all([out["long_above_vwap"], out["long_above_200ema"],
+                        out["ema_stack_long"], out["pullback_long"],
+                        out["bounce_long"], out["rvol_ok"]])
+        stop_ok = out.get("stop_long_ok", False)
+    else:
+        setup_ok = all([out["short_below_vwap"], out["short_below_200ema"],
+                        out["ema_stack_short"], out["pullback_short"],
+                        out["bounce_short"], out["rvol_ok"]])
+        stop_ok = out.get("stop_short_ok", False)
+    if not setup_ok:
+        return "setup incomplete"
+    if not stop_ok:
+        return "stop > 1.5×ATR (chop)"
+    return "sizing/exposure"
 
 
 def get_account_state():
     try:
         broker = AlpacaBroker()
-        equity = float(broker.get_equity())
+        acct = broker.get_account()
+        equity = float(acct.equity)
+        last_equity = float(getattr(acct, "last_equity", equity) or equity)
         positions = broker.get_positions()
-        return {"equity": equity, "open_positions": len(positions),
-                "position_symbols": list(positions.keys()), "error": None}
+        return {
+            "equity": equity,
+            "last_equity": last_equity,
+            "daily_pnl": equity - last_equity,
+            "positions": positions,
+            "open_positions": len(positions),
+            "position_symbols": list(positions.keys()),
+            "error": None,
+        }
     except Exception as e:
-        return {"equity": None, "open_positions": None, "position_symbols": [], "error": str(e)}
+        return {
+            "equity": None, "last_equity": None, "daily_pnl": 0.0,
+            "positions": {}, "open_positions": None, "position_symbols": [],
+            "error": str(e),
+        }
 
 
 def cell(ok: bool, value: str = "") -> str:
@@ -177,6 +265,7 @@ def render_html(symbol_data: list[dict], account: dict) -> str:
 
         ready_long_cls = "ready" if d["long_ready"] else "not-ready"
         ready_long = "READY" if d["long_ready"] else "—"
+        long_block = escape(d.get("long_block") or "")
         rows_long.append(
             f'<tr><td><b>{sym}</b></td><td>{price}</td><td>{vwap}</td>'
             + cell(d["long_above_vwap"])
@@ -186,11 +275,13 @@ def render_html(symbol_data: list[dict], account: dict) -> str:
             + cell(d["bounce_long"])
             + cell(d["rvol_ok"], rvol_v)
             + cell(d["stop_long_ok"], f"risk ${d.get('risk_long', 0):.2f} / cap ${d['atr_cap']:.2f}")
-            + f'<td class="{ready_long_cls}"><b>{ready_long}</b></td></tr>'
+            + f'<td class="{ready_long_cls}"><b>{ready_long}</b></td>'
+            + f'<td class="block">{long_block}</td></tr>'
         )
 
         ready_short_cls = "ready" if d["short_ready"] else "not-ready"
         ready_short = "READY" if d["short_ready"] else "—"
+        short_block = escape(d.get("short_block") or "")
         rows_short.append(
             f'<tr><td><b>{sym}</b></td><td>{price}</td><td>{vwap}</td>'
             + cell(d["short_below_vwap"])
@@ -200,7 +291,8 @@ def render_html(symbol_data: list[dict], account: dict) -> str:
             + cell(d["bounce_short"])
             + cell(d["rvol_ok"], rvol_v)
             + cell(d["stop_short_ok"], f"risk ${d.get('risk_short', 0):.2f} / cap ${d['atr_cap']:.2f}")
-            + f'<td class="{ready_short_cls}"><b>{ready_short}</b></td></tr>'
+            + f'<td class="{ready_short_cls}"><b>{ready_short}</b></td>'
+            + f'<td class="block">{short_block}</td></tr>'
         )
 
     err_section = ""
@@ -216,10 +308,14 @@ def render_html(symbol_data: list[dict], account: dict) -> str:
         acct_html = f'<div class="warn">Account fetch failed: {escape(account["error"])}</div>'
     else:
         held = ", ".join(account["position_symbols"]) or "none"
+        trades_today = account.get("trades_today", 0)
+        daily_pnl = account.get("daily_pnl", 0.0)
+        pnl_cls = "ok" if daily_pnl >= 0 else "fail"
         acct_html = (
             f'<div class="account">Equity <b>${account["equity"]:,.2f}</b> · '
+            f'Day P&L <b class="{pnl_cls}">${daily_pnl:+,.2f}</b> · '
             f'Open positions <b>{account["open_positions"]}/{config.MAX_OPEN_POSITIONS}</b> ({escape(held)}) · '
-            f'Trade cap <b>{config.MAX_TRADES_PER_DAY}/day</b> · '
+            f'Trades today <b>{trades_today}/{config.MAX_TRADES_PER_DAY}</b> · '
             f'Halt <b>{config.DAILY_MAX_LOSS_PCT * 100:.1f}%</b> · '
             f'Kill <b>{config.KILL_SWITCH_LOSS_PCT * 100:.1f}%</b></div>'
         )
@@ -231,7 +327,7 @@ def render_html(symbol_data: list[dict], account: dict) -> str:
         "<th>Bounce</th>"
         f"<th>rvol ≥{config.CAMERON_VOLUME_MULTIPLIER}×</th>"
         f"<th>Stop ≤{config.ATR_GUARDRAIL_MULT}×ATR</th>"
-        "<th>LONG</th></tr>"
+        "<th>BOT</th><th>Block</th></tr>"
     )
     short_header = (
         "<tr><th>Sym</th><th>Price</th><th>VWAP</th>"
@@ -240,7 +336,7 @@ def render_html(symbol_data: list[dict], account: dict) -> str:
         "<th>Drop</th>"
         f"<th>rvol ≥{config.CAMERON_VOLUME_MULTIPLIER}×</th>"
         f"<th>Stop ≤{config.ATR_GUARDRAIL_MULT}×ATR</th>"
-        "<th>SHORT</th></tr>"
+        "<th>BOT</th><th>Block</th></tr>"
     )
 
     return f"""<!DOCTYPE html>
@@ -262,15 +358,18 @@ def render_html(symbol_data: list[dict], account: dict) -> str:
   td.fail {{ background: #321414; color: #f88; }}
   td.ready {{ background: #2a4a1a; color: #afa; font-size: 13px; }}
   td.not-ready {{ background: #1a1d24; color: #666; }}
+  td.block {{ color: #888; font-size: 11px; text-align: left; }}
+  b.ok {{ color: #6f6; }}
+  b.fail {{ color: #f88; }}
 </style>
 </head><body>
 <h1>Cameron VWAP-Bounce — Live Setup Status</h1>
 <div class="meta">Generated {now_et} · Auto-refresh {REFRESH_SECONDS}s · {len(symbol_data)} symbols</div>
 {acct_html}
 <h2>LONG setups</h2>
-<table><thead>{long_header}</thead><tbody>{''.join(rows_long) or '<tr><td colspan="11">no rows</td></tr>'}</tbody></table>
+<table><thead>{long_header}</thead><tbody>{''.join(rows_long) or '<tr><td colspan="12">no rows</td></tr>'}</tbody></table>
 <h2>SHORT setups</h2>
-<table><thead>{short_header}</thead><tbody>{''.join(rows_short) or '<tr><td colspan="11">no rows</td></tr>'}</tbody></table>
+<table><thead>{short_header}</thead><tbody>{''.join(rows_short) or '<tr><td colspan="12">no rows</td></tr>'}</tbody></table>
 {err_section}
 </body></html>"""
 
@@ -278,7 +377,24 @@ def render_html(symbol_data: list[dict], account: dict) -> str:
 def regenerate():
     client = data_mod.get_data_client()
     account = get_account_state()
-    rows = [evaluate_symbol(client, sym) for sym in config.MOMENTUM_UNIVERSE]
+    today_iso = datetime.now(ET).date().isoformat()
+    trades_today = count_trades_today(today_iso)
+    account["trades_today"] = trades_today
+    equity = account["equity"] or 0.0
+    last_equity = account["last_equity"] or equity
+    daily_pnl = account["daily_pnl"]
+    positions = account["positions"]
+    rows = [
+        evaluate_symbol(
+            client, sym,
+            account_equity=equity,
+            open_positions=positions,
+            trades_today=trades_today,
+            daily_pnl=daily_pnl,
+            daily_start_equity=last_equity,
+        )
+        for sym in config.MOMENTUM_UNIVERSE
+    ]
     OUTPUT.write_text(render_html(rows, account))
     ready_long = sum(1 for d in rows if d.get("long_ready"))
     ready_short = sum(1 for d in rows if d.get("short_ready"))

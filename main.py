@@ -258,7 +258,7 @@ def cmd_paper(debug: bool = False):
                     notify.entry(
                         symbol=sym, side=side,
                         entry=sig.entry_price, stop=sig.stop_price, target=sig.target_price,
-                        qty=sig.qty, regime="VWAP-Bounce",
+                        qty=sig.qty,
                         reason=getattr(sig, "reason", ""),
                     )
                 elif miss_reason:
@@ -335,7 +335,7 @@ def _save_daily_summary(broker, daily_start_equity, today):
     gp = sum(float(t.get("pnl", 0)) for t in wins)
     gl = abs(sum(float(t.get("pnl", 0)) for t in losses))
     journal.save_daily_performance({
-        "date": str(today), "regime": "VWAP-Bounce",
+        "date": str(today),
         "trades": len(today_trades), "wins": len(wins), "losses": len(losses),
         "gross_pnl": round(day_pnl, 2),
         "win_rate": len(wins) / len(today_trades) if today_trades else 0,
@@ -347,24 +347,10 @@ def _save_daily_summary(broker, daily_start_equity, today):
     })
     logger.info(f"Day complete | P&L=${day_pnl:+,.2f} | equity=${final_eq:,.2f}")
 
-    if today_trades:
-        try:
-            import measure_slippage
-            slip = measure_slippage.get_summary(date_filter=str(today))
-            if slip and slip.get("entry_median_abs_pct") is not None:
-                logger.info(
-                    f"Realized slippage today | "
-                    f"entry median {slip['entry_median_abs_pct']:.4f}%  "
-                    f"exit median {slip['exit_median_abs_pct']:.4f}% "
-                    f"(n={slip['count']})"
-                )
-        except Exception as e:
-            logger.warning(f"slippage summary failed: {e}")
-
     notify.eod(
         date_str=str(today), pnl=day_pnl,
         trades=len(today_trades), wins=len(wins), losses=len(losses),
-        equity=final_eq, regime="VWAP-Bounce",
+        equity=final_eq,
         killswitch=rsk.is_kill_switch_active(),
     )
 
@@ -382,13 +368,13 @@ def cmd_dashboard():
 
 
 def cmd_backtest(start: str, end: str, equity: float, debug: bool = False):
-    """Phase 5 will rewire backtest.py for VWAP-Bounce. Until then this is a stub
-    so the CLI doesn't break."""
+    """Backtest stub. Phase 5 will add a VWAP-Bounce backtester; until then the
+    CLI subcommand exists only so callers don't get an argparse error."""
     setup_logging(debug)
     print(BANNER)
     logger.warning(
-        "backtest mode is currently disabled — backtest.py still on ORB engine. "
-        "Phase 5 of the strategy swap will replace it with VWAP-Bounce."
+        "backtest mode is not implemented — Phase 5 will add a VWAP-Bounce "
+        "backtester. No prior backtest engine exists in the repo."
     )
 
 

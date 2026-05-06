@@ -156,7 +156,7 @@ def check_entry_signal(
 
     ok, reason = _gates_pass(symbol, open_positions, trades_today, daily_pnl, daily_start_equity)
     if not ok:
-        logger.debug(f"{symbol} long: gate blocked — {reason}")
+        logger.info(f"{symbol} long: gate blocked — {reason}")
         return None
 
     vwap_series = ind.calculate_vwap(bars)
@@ -192,7 +192,7 @@ def check_entry_signal(
     )
 
     if not (c1 and c2 and c3 and c4 and c5 and c6):
-        logger.debug(
+        logger.info(
             f"{symbol} long: setup incomplete | >VWAP={c1} >200EMA={c2} 9>20={c3} "
             f"pullback={c4} bounce={c5} rvol≥{config.CAMERON_VOLUME_MULTIPLIER}={c6} "
             f"(price={price:.2f} vwap={vwap:.2f} rvol={rvol:.2f})"
@@ -278,7 +278,7 @@ def check_short_signal(
 
     ok, reason = _gates_pass(symbol, open_positions, trades_today, daily_pnl, daily_start_equity)
     if not ok:
-        logger.debug(f"{symbol} short: gate blocked — {reason}")
+        logger.info(f"{symbol} short: gate blocked — {reason}")
         return None
 
     vwap_series = ind.calculate_vwap(bars)
@@ -314,7 +314,7 @@ def check_short_signal(
     )
 
     if not (c1 and c2 and c3 and c4 and c5 and c6):
-        logger.debug(
+        logger.info(
             f"{symbol} short: setup incomplete | <VWAP={c1} <200EMA={c2} 9<20={c3} "
             f"pullback={c4} rejection={c5} rvol≥{config.CAMERON_VOLUME_MULTIPLIER}={c6} "
             f"(price={price:.2f} vwap={vwap:.2f} rvol={rvol:.2f})"

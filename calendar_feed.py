@@ -37,15 +37,21 @@ CACHE_TTL_SECONDS = 60 * 60  # 1 hour
 # major foreign central banks because they can move SPY/QQQ pre-market.
 EQUITY_RELEVANT_COUNTRIES = {"USD", "EUR", "GBP", "CNY", "JPY"}
 
-# BLOCKING patterns — events on these days warrant blocking ORB entries.
-# Kept narrow to match prior behavior: FOMC, CPI, NFP only. These are the three
-# events with the worst historical record of producing fake breakouts that
-# stop out ORB positions immediately. Widening this set is a strategy decision,
-# not a feed upgrade — discuss before adding.
+# BLOCKING patterns — events on these days warrant blocking entries.
+# Scope: FOMC decision days, CPI, BLS NFP only. Substring "FOMC" alone matches
+# every "FOMC Member X Speaks" event (Fed has speakers most weekdays), which
+# would block the bot constantly — so patterns are scoped to the actual
+# decision titles, with TIER_1_DENY_PATTERNS catching false positives.
 TIER_1_TITLE_PATTERNS = (
-    "FOMC", "Federal Funds Rate", "Fed Chair", "Powell",
+    "FOMC Statement", "FOMC Press Conference",
+    "Federal Funds Rate",
     "CPI", "Core CPI",
-    "Non-Farm Employment", "Non-Farm Payrolls", "NFP",
+    "Non-Farm Employment Change", "Non-Farm Payrolls", "NFP",
+)
+TIER_1_DENY_PATTERNS = (
+    "ADP",                 # ADP NFP preview, not the BLS release
+    "FOMC Member",         # Fed speakers, not policy decisions
+    "FOMC Meeting Minutes",  # ~3-week-old summary; informational, not a decision
 )
 
 # WATCHLIST patterns — events worth surfacing in the brief/dashboard for
@@ -62,8 +68,15 @@ TIER_2_TITLE_PATTERNS = (
 
 
 def _is_tier_1(title: str) -> bool:
-    """Tier-1: events that warrant blocking ORB entries (FOMC/CPI/NFP)."""
-    return any(pat.lower() in title.lower() for pat in TIER_1_TITLE_PATTERNS)
+    """Tier-1: events that warrant blocking entries (FOMC decision/CPI/NFP).
+
+    Deny-list runs first so titles like "FOMC Member Bowman Speaks" or
+    "ADP Non-Farm Employment Change" don't fall through to the broad pattern.
+    """
+    t = title.lower()
+    if any(d.lower() in t for d in TIER_1_DENY_PATTERNS):
+        return False
+    return any(pat.lower() in t for pat in TIER_1_TITLE_PATTERNS)
 
 
 def _is_tier_2(title: str) -> bool:

@@ -7,14 +7,13 @@ moment in the bot's lifecycle and formats a consistent, useful message.
 
 Usage:
     import notifications as notify
-    notify.entry(symbol="RUN", side="long", entry=12.68, stop=12.27,
-                 target=13.39, qty=332, regime="A", reason="ORB+VWAP+2.1x vol")
-    notify.exit(symbol="RUN", side="long", entry=12.68, exit=12.73,
-                qty=332, pnl=16.60, r_multiple=0.13, reason="EOD force-close")
-    notify.regime(prev="A", new="B", vix=22.5, vvix=110, why="VVIX spike")
-    notify.alert("VVIX +10% intraday — emergency risk-off")
+    notify.entry(symbol="AAPL", side="long", entry=275.00, stop=273.50,
+                 target=278.00, qty=50, reason="VWAP-Bounce | rvol 1.8x")
+    notify.exit(symbol="AAPL", side="long", entry=275.00, exit_price=278.00,
+                qty=50, pnl=150.00, r_multiple=2.0, reason="target hit")
+    notify.alert("Kill switch tripped — bot halted for the day")
     notify.eod(date_str="2026-05-01", pnl=3.25, trades=2, wins=1, losses=1,
-               equity=99624.49, regime="A")
+               equity=99624.49)
 
 All calls fail safe: a notification that can't be sent is logged but doesn't
 raise. The bot continues regardless.
@@ -56,7 +55,7 @@ def _send(notif_type: str, message: str, title: str | None = None) -> bool:
 # ── lifecycle notifications ─────────────────────────────────────────────────
 
 def entry(symbol: str, side: str, entry: float, stop: float, target: float,
-          qty: int, regime: str, reason: str = "") -> bool:
+          qty: int, reason: str = "") -> bool:
     """Trade opened — high priority, push immediately."""
     side_str = "LONG" if side.lower() == "long" else "SHORT"
     risk_dollars = abs(entry - stop) * qty
@@ -64,8 +63,7 @@ def entry(symbol: str, side: str, entry: float, stop: float, target: float,
     msg = (
         f"{symbol} {side_str} {qty}sh @ ${entry:.2f}\n"
         f"  stop ${stop:.2f}  (-${risk_dollars:.0f} risk)\n"
-        f"  target ${target:.2f}  (+${target_dollars:.0f} = {target_dollars/risk_dollars:.1f}R)\n"
-        f"  regime: {regime}"
+        f"  target ${target:.2f}  (+${target_dollars:.0f} = {target_dollars/risk_dollars:.1f}R)"
     )
     if reason:
         msg += f"\n  setup: {reason}"
@@ -88,21 +86,13 @@ def exit(symbol: str, side: str, entry: float, exit_price: float, qty: int,
     return _send("exit", msg)
 
 
-def regime(prev: str, new: str, vix: float, vvix: float, why: str = "") -> bool:
-    """Regime transition — high priority because it changes sizing/universe."""
-    msg = f"Regime {prev} → {new}\n  VIX {vix:.1f}  VVIX {vvix:.1f}"
-    if why:
-        msg += f"\n  why: {why}"
-    return _send("regime", msg)
-
-
 def alert(message: str) -> bool:
     """Urgent alert — kill switch, VVIX spike, system error. Highest priority."""
     return _send("alert", message)
 
 
 def eod(date_str: str, pnl: float, trades: int, wins: int, losses: int,
-        equity: float, regime: str, killswitch: bool = False) -> bool:
+        equity: float, killswitch: bool = False) -> bool:
     """End-of-day summary — once per session at close."""
     sign = "+" if pnl >= 0 else ""
     wr = f"{wins/trades*100:.0f}%" if trades > 0 else "—"
@@ -110,8 +100,7 @@ def eod(date_str: str, pnl: float, trades: int, wins: int, losses: int,
         f"EOD {date_str}\n"
         f"  P&L: {sign}${pnl:.2f}  ({sign}{pnl/equity*100:.2f}%)\n"
         f"  Trades: {trades}  W:{wins}  L:{losses}  WR:{wr}\n"
-        f"  Equity: ${equity:,.2f}\n"
-        f"  Regime: {regime}"
+        f"  Equity: ${equity:,.2f}"
     )
     if killswitch:
         msg += "\n  ⚠ KILL SWITCH TRIPPED"
