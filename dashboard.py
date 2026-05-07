@@ -22,6 +22,17 @@ def _load_csv(path: str) -> list[dict]:
         return list(csv.DictReader(f))
 
 
+def _to_float(v, default: float = 0.0) -> float:
+    # csv.DictReader returns "" for empty cells; dict.get's default only fires
+    # when the key is missing, so empty strings sneak through and crash float().
+    if v is None or v == "":
+        return default
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return default
+
+
 def build_dashboard():
     trades = _load_csv(config.TRADES_CSV)
     perf   = _load_csv(config.PERFORMANCE_CSV)
@@ -31,27 +42,27 @@ def build_dashboard():
     losses = [t for t in trades if t.get("result") == "LOSS"]
     total  = len(trades)
     win_rate = len(wins) / total if total else 0
-    gross_win  = sum(float(t.get("pnl", 0)) for t in wins)
-    gross_loss = abs(sum(float(t.get("pnl", 0)) for t in losses))
+    gross_win  = sum(_to_float(t.get("pnl")) for t in wins)
+    gross_loss = abs(sum(_to_float(t.get("pnl")) for t in losses))
     profit_factor = gross_win / gross_loss if gross_loss > 0 else 0
-    total_pnl = sum(float(t.get("pnl", 0)) for t in trades)
+    total_pnl = sum(_to_float(t.get("pnl")) for t in trades)
     avg_win  = gross_win  / len(wins)   if wins   else 0
     avg_loss = gross_loss / len(losses) if losses else 0
 
     # Daily P&L
     daily_pnl: dict[str, float] = defaultdict(float)
     for t in trades:
-        daily_pnl[t.get("date", "")] += float(t.get("pnl", 0))
+        daily_pnl[t.get("date", "")] += _to_float(t.get("pnl"))
 
     # Equity curve from performance.csv
     perf_sorted = sorted(perf, key=lambda p: p.get("date", ""))
     equity_dates  = [p["date"] for p in perf_sorted]
-    equity_values = [float(p.get("equity", config.INITIAL_EQUITY)) for p in perf_sorted]
+    equity_values = [_to_float(p.get("equity"), config.INITIAL_EQUITY) for p in perf_sorted]
 
     # Kill switch days
     kill_days = []
     for p in perf_sorted:
-        ret = float(p.get("daily_return_pct", 0))
+        ret = _to_float(p.get("daily_return_pct"))
         if ret <= -config.KILL_SWITCH_LOSS_PCT * 100:
             kill_days.append(p["date"])
 
@@ -196,12 +207,12 @@ def build_dashboard():
     <td>{t.get('time','')[:5]}</td>
     <td><b>{t.get('symbol','')}</b></td>
     <td>{t.get('side','')}</td>
-    <td>${float(t.get('entry_price',0)):.2f}</td>
-    <td>${float(t.get('stop_price',0)):.2f}</td>
-    <td>${float(t.get('target_price',0)):.2f}</td>
+    <td>${_to_float(t.get('entry_price')):.2f}</td>
+    <td>${_to_float(t.get('stop_price')):.2f}</td>
+    <td>${_to_float(t.get('target_price')):.2f}</td>
     <td>{t.get('qty','')}</td>
     <td class="{'win' if t.get('result')=='WIN' else 'loss'}">{t.get('result','')}</td>
-    <td class="{'win' if float(t.get('pnl',0))>=0 else 'loss'}">${float(t.get('pnl',0)):+.2f}</td>
+    <td class="{'win' if _to_float(t.get('pnl'))>=0 else 'loss'}">${_to_float(t.get('pnl')):+.2f}</td>
   </tr>""" for t in reversed(recent_trades)) if recent_trades else ''}
   {'</tbody></table>' if recent_trades else ''}
 </div>
