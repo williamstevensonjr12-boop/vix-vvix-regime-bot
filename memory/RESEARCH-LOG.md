@@ -2829,3 +2829,34 @@ yfinance's `preMarketPrice` field is empty for all 8 mega-caps right now and `re
 **Decision: ALLOW BOT TO TRADE.** Geopolitical risk fading (Hormuz transit + ceasefire), futures positive, no FOMC/CPI today, JOLTS at 10:00 ET is at most a minor mover, no held positions, no halt/kill conditions in play. Bot live with Cameron VWAP-Bounce (Setup B), MAX_TRADES_PER_DAY=5, halt -2%, kill -3%.
 
 **Notification:** silent (no held position drawdown, no symbol halt, no PAUSE recommendation).
+
+
+=== PRE-MARKET 2026-05-07 (cron run, 06:01 ET) ===
+
+**Account snapshot:** equity $99,639.87 · buying_power $398,559.48 · cash $99,639.87 · 0 open positions · 0 open orders · daytrade_count 0 · last_equity $99,639.87 (day P&L $0.00 — yesterday flat, no bot trades)
+
+**Held overnight:** none (Cameron strategy is intraday-only, EOD flat)
+
+**Earnings-day check:** none of the 8 mega-caps blocked today.
+
+**Macro context (via WebSearch, 2-source corroborated):**
+- **Iran peace deal hopes drove yesterday's rally.** S&P 500 closed +1.46% at 7,365.12 (record), Nasdaq +2%, Russell 2000 + S&P 500 set new highs. Crude oil fell 7% on report US/Iran nearing agreement to end the war. Sources: CNBC, TheStreet, Schwab.
+- **Today's earnings (none in universe):** Shell (SHEL), McDonald's (MCD), Gilead (GILD), McKesson (MCK), CoreWeave (CRWV), Coinbase (COIN), Airbnb (ABNB). Plus February construction spending. Source: CNBC + Schwab.
+- **AMD +13% on strong guidance** (after-hours yesterday) — adds bid to NVDA tape into the open. Super Micro +18%. Sources: Schwab, market catalyst feeds.
+- **Friday NFP** remains the week's main macro print.
+
+**Per-symbol pre-market notes (yfinance, 06:01 ET):**
+- SPY: pre $734.51 (+0.09%) vs prev close $733.83
+- QQQ: pre $696.15 (+0.05%) vs prev close $695.77
+- AAPL: pre $286.80 (-0.25%) vs prev close $287.51
+- MSFT: pre $414.55 (+0.14%) vs prev close $413.96
+- NVDA: pre $208.80 (+0.47%) vs prev close $207.83
+- GOOGL: pre $402.06 (+1.01%) vs prev close $398.04
+- AMZN: pre $275.25 (+0.09%) vs prev close $274.99
+- META: pre $612.84 (-0.01%) vs prev close $612.88
+
+**Watch candidates (gapping >1%):** GOOGL (+1.01%) only. Tape is digesting yesterday's record-setting rally — modest follow-through, not a fresh impulse. WebSearch per-symbol movers query returned stale May-5 numbers (NVDA +5.1%, GOOG +2.1%, AAPL +0.4%) that don't corroborate yfinance live tape; ignored per corroboration rule.
+
+**Decision: ALLOW BOT TO TRADE.** Geopolitical risk continuing to fade (Iran deal nearing), futures barely positive after yesterday's record close, no FOMC/CPI today, AMD/SMCI catalysts neutral-to-positive for NVDA, no held positions, no halt/kill conditions in play. Bot live with Cameron VWAP-Bounce (Setup B), MAX_TRADES_PER_DAY=5, halt -2%, kill -3%.
+
+**Notification:** silent (no held position drawdown, no symbol halt, no PAUSE recommendation).
