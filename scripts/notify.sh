@@ -70,9 +70,9 @@ case "$TYPE" in
   eod)
     : "${TITLE:=📅 EOD Summary}";   PRIORITY="${PRIORITY:-default}"; TAGS="calendar" ;;
   info)
-    : "${TITLE:=ℹ️  VIX/VVIX Bot}"; PRIORITY="${PRIORITY:-low}";     TAGS="information_source" ;;
+    : "${TITLE:=ℹ️  Cameron VWAP-Bounce}"; PRIORITY="${PRIORITY:-low}";     TAGS="information_source" ;;
   *)
-    : "${TITLE:=VIX/VVIX Regime Bot}"; PRIORITY="${PRIORITY:-default}"; TAGS="chart_with_upwards_trend" ;;
+    : "${TITLE:=Cameron VWAP-Bounce Bot}"; PRIORITY="${PRIORITY:-default}"; TAGS="chart_with_upwards_trend" ;;
 esac
 
 stamp="$(date '+%Y-%m-%d %H:%M %Z')"
