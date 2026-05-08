@@ -38,21 +38,19 @@ CACHE_TTL_SECONDS = 60 * 60  # 1 hour
 EQUITY_RELEVANT_COUNTRIES = {"USD", "EUR", "GBP", "CNY", "JPY"}
 
 # BLOCKING patterns — events on these days warrant blocking entries.
-# Scope: FOMC decision days, CPI, BLS NFP only. Substring "FOMC" alone matches
-# every "FOMC Member X Speaks" event (Fed has speakers most weekdays), which
-# would block the bot constantly — so patterns are scoped to the actual
-# decision titles, with TIER_1_DENY_PATTERNS catching false positives.
+# Scope: ONLY when the Fed Chair (current chair, whoever holds the role) is
+# the speaker — Chair speeches, Chair testimony, FOMC Press Conferences (where
+# the Chair leads Q&A). All other macro events (CPI, NFP, FOMC member
+# speakers, FOMC minutes) move the tape but don't reliably create the
+# fake-breakout pattern that justifies a hard block; the bot trades through
+# them. Patterns are generic ("Fed Chair", "FOMC Chair") so they survive a
+# chair handover without code change.
 TIER_1_TITLE_PATTERNS = (
-    "FOMC Statement", "FOMC Press Conference",
-    "Federal Funds Rate",
-    "CPI", "Core CPI",
-    "Non-Farm Employment Change", "Non-Farm Payrolls", "NFP",
+    "Fed Chair",            # "Fed Chair X Speaks/Testifies"
+    "FOMC Chair",           # "FOMC Chair X Speaks/Testifies"
+    "FOMC Press Conference",  # Chair takes Q&A after the rate decision
 )
-TIER_1_DENY_PATTERNS = (
-    "ADP",                 # ADP NFP preview, not the BLS release
-    "FOMC Member",         # Fed speakers, not policy decisions
-    "FOMC Meeting Minutes",  # ~3-week-old summary; informational, not a decision
-)
+TIER_1_DENY_PATTERNS: tuple[str, ...] = ()
 
 # WATCHLIST patterns — events worth surfacing in the brief/dashboard for
 # situational awareness, but NOT blocking entries. These move the tape but
