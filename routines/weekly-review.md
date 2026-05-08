@@ -28,7 +28,6 @@ STEP 3 — Compute week metrics:
   - Trades taken: long count, short count, W/L/open, win rate, profit factor
   - Best and worst trade by R-multiple
   - Setup quality breakdown: how many entries fired, how many got skipped at the ATR-guardrail (stop > 1.5×ATR), how many at exposure cap, how many at trades-per-day limit
-  - Avg slippage on entries (use measure_slippage.py)
 
 STEP 4 — Append full review to memory/WEEKLY-REVIEW.md (use template from that file). Include:
   - stats table

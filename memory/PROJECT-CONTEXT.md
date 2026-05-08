@@ -34,7 +34,7 @@ bash scripts/alpaca.sh account     # account state
 bash scripts/alpaca.sh positions   # open positions
 bash scripts/alpaca.sh regime      # current regime
 bash scripts/alpaca.sh vix         # VIX/VVIX snapshot
-bash scripts/clickup.sh "message"  # notifications
+bash scripts/notify.sh <type> "<msg>"  # ntfy push (types: entry, exit, regime, alert, eod, info)
 ```
 
 ## Security Rules

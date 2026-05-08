@@ -225,9 +225,7 @@ def check_entry_signal(
     if sizing.qty <= 0:
         return None
 
-    notional = price * sizing.qty
-    current_exposure = sum(p.get("qty", 0) * p.get("entry_price", 0) for p in open_positions.values())
-    cap_ok, cap_reason = rsk.check_exposure_cap(account_equity, current_exposure, notional)
+    cap_ok, cap_reason = rsk.check_portfolio_exposure(open_positions, sizing.qty, price, account_equity)
     if not cap_ok:
         logger.info(f"{symbol} long: exposure cap blocked — {cap_reason}")
         return None
@@ -345,9 +343,7 @@ def check_short_signal(
     if sizing.qty <= 0:
         return None
 
-    notional = price * sizing.qty
-    current_exposure = sum(p.get("qty", 0) * p.get("entry_price", 0) for p in open_positions.values())
-    cap_ok, cap_reason = rsk.check_exposure_cap(account_equity, current_exposure, notional)
+    cap_ok, cap_reason = rsk.check_portfolio_exposure(open_positions, sizing.qty, price, account_equity)
     if not cap_ok:
         logger.info(f"{symbol} short: exposure cap blocked — {cap_reason}")
         return None
