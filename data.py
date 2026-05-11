@@ -47,14 +47,26 @@ def _fetch_alpaca_bars(
         timeframe=TimeFrame(bar_size_minutes, TimeFrameUnit.Minute),
         start=start,
         end=end,
-        feed="iex",
+        feed="sip",
     )
     try:
         result = client.get_stock_bars(request)
         df = result.df
     except Exception as e:
-        logger.error(f"Alpaca fetch error {symbol}: {e}")
-        return pd.DataFrame()
+        # SIP requires paid Alpaca plan — fall back to IEX (free tier)
+        try:
+            request_iex = StockBarsRequest(
+                symbol_or_symbols=symbol,
+                timeframe=TimeFrame(bar_size_minutes, TimeFrameUnit.Minute),
+                start=start,
+                end=end,
+                feed="iex",
+            )
+            result = client.get_stock_bars(request_iex)
+            df = result.df
+        except Exception as e2:
+            logger.error(f"Alpaca fetch error {symbol} (sip+iex): {e2}")
+            return pd.DataFrame()
 
     if df is None or df.empty:
         return pd.DataFrame()

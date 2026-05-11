@@ -1110,7 +1110,11 @@ def cmd_gap_go_scan(debug: bool = False):
             continue
 
         # Scan each candidate for breakout and entry
+        entries_this_scan = 0
         for cand in candidates:
+            if len(open_positions) + entries_this_scan >= gg.MAX_POSITIONS:
+                break
+
             if cand.in_position or cand.failed:
                 continue
             if cand.symbol in open_positions:
@@ -1152,6 +1156,7 @@ def cmd_gap_go_scan(debug: bool = False):
                 if order:
                     cand.in_position = True
                     trades_today += 1
+                    entries_this_scan += 1
                     logger.info(
                         f"ENTRY ▶ {cand.symbol}  ~{current_price:.2f}  stop={cand.stop_level:.2f}"
                         f"  t1={cand.target1:.2f}  qty={qty}  gap={cand.gap_pct:+.1f}%  rvol={cand.rvol:.1f}×"
