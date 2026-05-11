@@ -243,9 +243,10 @@ class AlpacaBroker:
             return False
 
     def get_order_status(self, order_id: str) -> str:
+        """Returns lowercase status value: 'filled', 'partially_filled', 'canceled', etc."""
         try:
             order = self.client.get_order_by_id(order_id)
-            return str(order.status)
+            return order.status.value
         except Exception as e:
             logger.warning(f"get_order_status {order_id} failed: {e}")
             return "unknown"
@@ -253,7 +254,7 @@ class AlpacaBroker:
     def is_tradable(self, symbol: str) -> bool:
         try:
             asset = self.client.get_asset(symbol)
-            return bool(asset.tradable) and str(asset.status) == "AssetStatus.active"
+            return bool(asset.tradable) and "active" in str(asset.status).lower()
         except Exception as e:
             logger.warning(f"is_tradable check failed for {symbol}: {e}")
             return True  # fail-open

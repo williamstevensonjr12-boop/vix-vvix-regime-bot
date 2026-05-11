@@ -1114,10 +1114,10 @@ def cmd_gap_go_scan(debug: bool = False):
             if not cand.in_position or cand.failed:
                 continue
             try:
-                # Check if stop fired — if so, cancel remaining limit orders
+                # Check if stop fired
                 if cand.stop_order_id:
                     st = broker.get_order_status(cand.stop_order_id)
-                    if "filled" in st:
+                    if st == "filled":
                         for oid in [cand.t1_order_id, cand.t2_order_id, cand.t3_order_id]:
                             if oid:
                                 broker.cancel_order(oid)
@@ -1127,24 +1127,34 @@ def cmd_gap_go_scan(debug: bool = False):
 
                 # T1 fill check
                 if not cand.t1_filled and cand.t1_order_id:
-                    if "filled" in broker.get_order_status(cand.t1_order_id):
+                    if broker.get_order_status(cand.t1_order_id) == "filled":
                         cand.t1_filled = True
                         logger.info(f"{cand.symbol}: T1 filled at {cand.target1:.2f} — stop → breakeven, submitting T2")
                         broker.cancel_order(cand.stop_order_id)
                         remaining = cand.qty_t2 + cand.qty_t3
                         new_stop = broker.submit_stop_order(cand.symbol, remaining, round(cand.entry_price, 2))
-                        cand.stop_order_id = str(new_stop.id) if new_stop else ""
+                        if not new_stop:
+                            logger.critical(f"{cand.symbol}: breakeven stop failed — closing position")
+                            broker.close_position(cand.symbol)
+                            cand.failed = True
+                            continue
+                        cand.stop_order_id = str(new_stop.id)
                         t2_ord = broker.submit_limit_sell(cand.symbol, cand.qty_t2, round(cand.t2, 2))
                         cand.t2_order_id = str(t2_ord.id) if t2_ord else ""
 
                 # T2 fill check
                 elif cand.t1_filled and not cand.t2_filled and cand.t2_order_id:
-                    if "filled" in broker.get_order_status(cand.t2_order_id):
+                    if broker.get_order_status(cand.t2_order_id) == "filled":
                         cand.t2_filled = True
                         logger.info(f"{cand.symbol}: T2 filled at {cand.t2:.2f} — stop → T1, submitting T3")
                         broker.cancel_order(cand.stop_order_id)
                         new_stop = broker.submit_stop_order(cand.symbol, cand.qty_t3, round(cand.target1, 2))
-                        cand.stop_order_id = str(new_stop.id) if new_stop else ""
+                        if not new_stop:
+                            logger.critical(f"{cand.symbol}: T1 trail stop failed — closing position")
+                            broker.close_position(cand.symbol)
+                            cand.failed = True
+                            continue
+                        cand.stop_order_id = str(new_stop.id)
                         t3_ord = broker.submit_limit_sell(cand.symbol, cand.qty_t3, round(cand.t3, 2))
                         cand.t3_order_id = str(t3_ord.id) if t3_ord else ""
 
@@ -1208,7 +1218,14 @@ def cmd_gap_go_scan(debug: bool = False):
                 entries_this_scan += 1
 
                 stop_ord = broker.submit_stop_order(cand.symbol, qty, round(cand.stop_level, 2))
-                cand.stop_order_id = str(stop_ord.id) if stop_ord else ""
+                if not stop_ord:
+                    logger.critical(f"{cand.symbol}: initial stop failed — closing position immediately")
+                    broker.close_position(cand.symbol)
+                    cand.in_position = False
+                    trades_today -= 1
+                    entries_this_scan -= 1
+                    continue
+                cand.stop_order_id = str(stop_ord.id)
 
                 t1_ord = broker.submit_limit_sell(cand.symbol, q1, round(cand.target1, 2))
                 cand.t1_order_id = str(t1_ord.id) if t1_ord else ""
