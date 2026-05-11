@@ -33,6 +33,7 @@ MIN_GAP_PCT       = 4.0    # minimum overnight gap-up (%)
 MIN_RVOL          = 1.5    # minimum relative volume at ORB vs 20-day avg scaled to 15 min
 MIN_PRICE         = 2.0
 MAX_PRICE         = 500.0
+MAX_FLOAT_SHARES  = 100_000_000  # 100M shares — matches backtest config
 RISK_PCT          = 0.015  # 1.5% of equity per trade
 DAILY_LOSS_LIMIT  = 0.03   # halt entries if down 3% on the day
 ORB_END_TIME      = "09:45"
@@ -208,7 +209,21 @@ def scan_gapper_candidates() -> list[GapGoCandidate]:
         logger.warning("No symbols passed daily pre-filter")
         return []
 
-    logger.info(f"  {len(prefiltered)} symbols passed EMA20/price pre-filter → fetching today's opens")
+    logger.info(f"  {len(prefiltered)} symbols passed EMA20/price pre-filter → applying float filter")
+
+    # ── Float filter: < 100M shares (matches backtest config) ────────────────
+    float_passed = []
+    for p in prefiltered:
+        try:
+            shares = getattr(yf.Ticker(p["symbol"]).fast_info, "shares", None)
+            if shares is None or shares < MAX_FLOAT_SHARES:
+                float_passed.append(p)
+            else:
+                logger.debug(f"{p['symbol']}: float {shares / 1e6:.0f}M > 100M — skipped")
+        except Exception:
+            float_passed.append(p)  # fail-open on data error
+    prefiltered = float_passed
+    logger.info(f"  {len(prefiltered)} symbols passed float filter (<100M shares) → fetching today's opens")
 
     # ── Phase 2: today's intraday open (1-min, RTH only) ─────────────────────
     syms_to_check = [p["symbol"] for p in prefiltered]
