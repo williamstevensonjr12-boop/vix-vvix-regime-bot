@@ -316,7 +316,7 @@ def scan_gapper_candidates() -> list[GapGoCandidate]:
             return 0.0
 
     def _check_catalyst(sym: str) -> bool:
-        """True if yfinance news shows a relevant catalyst published today."""
+        """True if yfinance news shows a relevant catalyst published within 24 hours."""
         try:
             news = yf.Ticker(sym).news
             if not news:
@@ -326,15 +326,21 @@ def scan_gapper_candidates() -> list[GapGoCandidate]:
                 "merger", "acquisition", "acquired", "buyout", "partnership", "guidance",
                 "beat", "beats", "raised", "upgrade", "upgraded", "contract", "deal",
             }
+            from datetime import datetime, timezone as tz
+            now_utc = datetime.now(tz.utc)
             for item in news[:5]:
-                title = (item.get("title") or "").lower()
-                pub_time = item.get("providerPublishTime", 0)
-                # Only count news from today
-                from datetime import timezone
-                import time as _time
-                if _time.time() - pub_time < 86400:  # within 24 hours
-                    if any(kw in title for kw in keywords):
-                        return True
+                # yfinance new structure: item['content']['title'] + item['content']['pubDate']
+                content = item.get("content") or {}
+                title = (content.get("title") or item.get("title") or "").lower()
+                pub_str = content.get("pubDate") or content.get("displayTime") or ""
+                if pub_str:
+                    try:
+                        pub_dt = datetime.fromisoformat(pub_str.replace("Z", "+00:00"))
+                        if (now_utc - pub_dt).total_seconds() < 86400:
+                            if any(kw in title for kw in keywords):
+                                return True
+                    except Exception:
+                        pass
         except Exception:
             pass
         return False

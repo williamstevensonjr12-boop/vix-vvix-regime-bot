@@ -131,7 +131,7 @@ class AlpacaBroker:
                 after=day_start,
                 limit=200,
             ))
-            return [o for o in orders if str(o.status) in ("filled", "OrderStatus.filled")]
+            return [o for o in orders if o.status.value == "filled"]
         except Exception as e:
             logger.error(f"Failed to fetch today's orders: {e}")
             return []
