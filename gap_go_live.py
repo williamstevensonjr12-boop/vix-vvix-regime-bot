@@ -89,6 +89,8 @@ class GapGoCandidate:
     today_open: float
     ema20_prev: float
     avg_daily_vol: float    # 20-day avg daily volume — used for ORB RVOL check
+    premarket_rvol: float = 0.0   # pre-market volume vs avg daily (ranking signal)
+    has_catalyst: bool = False    # confirmed news catalyst today
     # Populated after ORB closes (9:45)
     orb_high: float = 0.0
     orb_low: float = 0.0
@@ -100,8 +102,21 @@ class GapGoCandidate:
     fibs: dict = field(default_factory=dict)
     entry_key: str = ""
     entry_level: float = 0.0
+    entry_price: float = 0.0     # actual fill price (set after entry)
     stop_level: float = 0.0
-    target1: float = 0.0          # 127.2% extension — take-profit for bracket order
+    target1: float = 0.0         # T1: 127.2% extension
+    t2: float = 0.0              # T2: 161.8% extension
+    t3: float = 0.0              # T3: 261.8% extension
+    # Partial exit state
+    qty_t1: int = 0
+    qty_t2: int = 0
+    qty_t3: int = 0
+    stop_order_id: str = ""
+    t1_order_id: str = ""
+    t2_order_id: str = ""
+    t3_order_id: str = ""
+    t1_filled: bool = False
+    t2_filled: bool = False
     # Runtime
     in_position: bool = False
     failed: bool = False           # price blew through r786 — abort setup
@@ -234,33 +249,41 @@ def scan_gapper_candidates() -> list[GapGoCandidate]:
             interval="1m",
             progress=False,
             group_by="ticker",
-            prepost=False,  # RTH only (9:30 AM onwards)
+            prepost=True,  # include pre-market for volume check
         )
     except Exception as e:
         logger.warning(f"Intraday open fetch failed ({e}) — using daily open as fallback")
         intra_raw = None
 
+    def _get_intra(sym: str) -> pd.DataFrame | None:
+        """Return full 1-min intraday df for symbol (pre-market + RTH)."""
+        if intra_raw is None or intra_raw.empty:
+            return None
+        try:
+            if isinstance(intra_raw.columns, pd.MultiIndex):
+                if sym not in intra_raw.columns.get_level_values(0):
+                    return None
+                df = intra_raw[sym].copy()
+            else:
+                df = intra_raw.copy()
+            df.columns = [c.lower() for c in df.columns]
+            return df
+        except Exception:
+            return None
+
     def _get_today_open(sym: str) -> float | None:
         """Extract the 9:30 AM opening price from 1-min intraday data."""
-        if intra_raw is not None and not intra_raw.empty:
+        intra = _get_intra(sym)
+        if intra is not None:
             try:
-                if isinstance(intra_raw.columns, pd.MultiIndex):
-                    if sym not in intra_raw.columns.get_level_values(0):
-                        return None
-                    intra = intra_raw[sym].copy()
-                else:
-                    intra = intra_raw.copy()
-                intra.columns = [c.lower() for c in intra.columns]
-                # First RTH bar = 9:30 AM open
                 rth_bars = intra[
                     (intra.index.hour > 9) |
                     ((intra.index.hour == 9) & (intra.index.minute >= 30))
                 ]
-                if rth_bars.empty:
-                    return None
-                return float(rth_bars.iloc[0]["open"])
+                if not rth_bars.empty:
+                    return float(rth_bars.iloc[0]["open"])
             except Exception:
-                return None
+                pass
         # Fallback: daily data's today bar
         try:
             if isinstance(daily_raw.columns, pd.MultiIndex):
@@ -277,6 +300,44 @@ def scan_gapper_candidates() -> list[GapGoCandidate]:
             return float(today_rows.iloc[0]["open"])
         except Exception:
             return None
+
+    def _get_premarket_rvol(sym: str, avg_daily_vol: float) -> float:
+        """Pre-market volume (4 AM–9:29 AM) as ratio of avg daily volume."""
+        intra = _get_intra(sym)
+        if intra is None or avg_daily_vol <= 0:
+            return 0.0
+        try:
+            pm = intra[
+                (intra.index.hour >= 4) &
+                ((intra.index.hour < 9) | ((intra.index.hour == 9) & (intra.index.minute < 30)))
+            ]
+            return float(pm["volume"].sum()) / avg_daily_vol if not pm.empty else 0.0
+        except Exception:
+            return 0.0
+
+    def _check_catalyst(sym: str) -> bool:
+        """True if yfinance news shows a relevant catalyst published today."""
+        try:
+            news = yf.Ticker(sym).news
+            if not news:
+                return False
+            keywords = {
+                "earnings", "fda", "approval", "approved", "trial", "data", "results",
+                "merger", "acquisition", "acquired", "buyout", "partnership", "guidance",
+                "beat", "beats", "raised", "upgrade", "upgraded", "contract", "deal",
+            }
+            for item in news[:5]:
+                title = (item.get("title") or "").lower()
+                pub_time = item.get("providerPublishTime", 0)
+                # Only count news from today
+                from datetime import timezone
+                import time as _time
+                if _time.time() - pub_time < 86400:  # within 24 hours
+                    if any(kw in title for kw in keywords):
+                        return True
+        except Exception:
+            pass
+        return False
 
     # ── Build candidates ──────────────────────────────────────────────────────
     candidates: list[GapGoCandidate] = []
@@ -295,6 +356,9 @@ def scan_gapper_candidates() -> list[GapGoCandidate]:
         if gap_pct < MIN_GAP_PCT:
             continue  # long-only: require gap-up
 
+        pm_rvol = _get_premarket_rvol(sym, p["avg_daily_vol"])
+        catalyst = _check_catalyst(sym)
+
         candidates.append(GapGoCandidate(
             symbol=sym,
             gap_pct=round(gap_pct, 2),
@@ -303,15 +367,22 @@ def scan_gapper_candidates() -> list[GapGoCandidate]:
             today_open=today_open,
             ema20_prev=p["ema20_prev"],
             avg_daily_vol=p["avg_daily_vol"],
+            premarket_rvol=round(pm_rvol, 2),
+            has_catalyst=catalyst,
         ))
 
-    candidates.sort(key=lambda c: c.gap_pct, reverse=True)
+    # Sort: catalyst first, then by gap% + pre-market RVOL combined score
+    candidates.sort(
+        key=lambda c: (c.has_catalyst, c.gap_pct + c.premarket_rvol * 2),
+        reverse=True,
+    )
     top = candidates[:MAX_CANDIDATES]
 
     logger.info(f"  {len(candidates)} gap-up candidates → scanning top {len(top)}:")
     for c in top:
         logger.info(
-            f"    {c.symbol:6s}  gap={c.gap_pct:+.1f}%  open=${c.today_open:.2f}"
+            f"    {c.symbol:6s}  gap={c.gap_pct:+.1f}%  pm_rvol={c.premarket_rvol:.2f}x"
+            f"  catalyst={'YES' if c.has_catalyst else 'no'}  open=${c.today_open:.2f}"
         )
     return top
 
@@ -415,8 +486,9 @@ def update_candidate_state(cand: GapGoCandidate, intraday: pd.DataFrame) -> None
         cand.entry_key   = ek
         cand.entry_level = fibs[ek]
         cand.stop_level  = fibs[sk] - buf
-        # T1 = 127.2% ext; fallback to 161.8% if missing
         cand.target1 = fibs.get("e1272") or fibs.get("e1618") or (cand.breakout_price * 1.10)
+        cand.t2      = fibs.get("e1618") or fibs.get("e2000") or (cand.breakout_price * 1.20)
+        cand.t3      = fibs.get("e2618") or (cand.breakout_price * 1.35)
 
         logger.info(
             f"{cand.symbol}: BREAKOUT {close:.2f} (orb_high={cand.orb_high:.2f}) "

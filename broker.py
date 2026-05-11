@@ -13,6 +13,8 @@ from urllib3.util.retry import Retry
 from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import (
     MarketOrderRequest,
+    LimitOrderRequest,
+    StopOrderRequest,
     GetOrdersRequest,
     TakeProfitRequest,
     StopLossRequest,
@@ -186,3 +188,72 @@ class AlpacaBroker:
         except Exception as e:
             logger.error(f"Cancel-all failed: {e}")
             return False
+
+    def submit_market_buy(self, symbol: str, qty: int):
+        try:
+            order = self.client.submit_order(MarketOrderRequest(
+                symbol=symbol,
+                qty=qty,
+                side=OrderSide.BUY,
+                time_in_force=TimeInForce.DAY,
+            ))
+            logger.info(f"MARKET BUY ▶ {symbol} qty={qty} | id={order.id}")
+            return order
+        except Exception as e:
+            logger.error(f"Market buy failed {symbol}: {e}")
+            return None
+
+    def submit_stop_order(self, symbol: str, qty: int, stop_price: float):
+        try:
+            order = self.client.submit_order(StopOrderRequest(
+                symbol=symbol,
+                qty=qty,
+                side=OrderSide.SELL,
+                time_in_force=TimeInForce.DAY,
+                stop_price=round(stop_price, 2),
+            ))
+            logger.info(f"STOP ▶ {symbol} qty={qty} stop={stop_price:.2f} | id={order.id}")
+            return order
+        except Exception as e:
+            logger.error(f"Stop order failed {symbol}: {e}")
+            return None
+
+    def submit_limit_sell(self, symbol: str, qty: int, limit_price: float):
+        try:
+            order = self.client.submit_order(LimitOrderRequest(
+                symbol=symbol,
+                qty=qty,
+                side=OrderSide.SELL,
+                time_in_force=TimeInForce.DAY,
+                limit_price=round(limit_price, 2),
+            ))
+            logger.info(f"LIMIT SELL ▶ {symbol} qty={qty} limit={limit_price:.2f} | id={order.id}")
+            return order
+        except Exception as e:
+            logger.error(f"Limit sell failed {symbol}: {e}")
+            return None
+
+    def cancel_order(self, order_id: str) -> bool:
+        try:
+            self.client.cancel_order_by_id(order_id)
+            logger.info(f"CANCELLED order {order_id}")
+            return True
+        except Exception as e:
+            logger.warning(f"Cancel order {order_id} failed: {e}")
+            return False
+
+    def get_order_status(self, order_id: str) -> str:
+        try:
+            order = self.client.get_order_by_id(order_id)
+            return str(order.status)
+        except Exception as e:
+            logger.warning(f"get_order_status {order_id} failed: {e}")
+            return "unknown"
+
+    def is_tradable(self, symbol: str) -> bool:
+        try:
+            asset = self.client.get_asset(symbol)
+            return bool(asset.tradable) and str(asset.status) == "AssetStatus.active"
+        except Exception as e:
+            logger.warning(f"is_tradable check failed for {symbol}: {e}")
+            return True  # fail-open

@@ -1109,7 +1109,49 @@ def cmd_gap_go_scan(debug: bool = False):
             time.sleep(60)
             continue
 
-        # Scan each candidate for breakout and entry
+        # ── Partial exit monitoring for open positions ────────────────────────
+        for cand in candidates:
+            if not cand.in_position or cand.failed:
+                continue
+            try:
+                # Check if stop fired — if so, cancel remaining limit orders
+                if cand.stop_order_id:
+                    st = broker.get_order_status(cand.stop_order_id)
+                    if "filled" in st:
+                        for oid in [cand.t1_order_id, cand.t2_order_id, cand.t3_order_id]:
+                            if oid:
+                                broker.cancel_order(oid)
+                        cand.failed = True
+                        logger.info(f"{cand.symbol}: stop filled — position closed")
+                        continue
+
+                # T1 fill check
+                if not cand.t1_filled and cand.t1_order_id:
+                    if "filled" in broker.get_order_status(cand.t1_order_id):
+                        cand.t1_filled = True
+                        logger.info(f"{cand.symbol}: T1 filled at {cand.target1:.2f} — stop → breakeven, submitting T2")
+                        broker.cancel_order(cand.stop_order_id)
+                        remaining = cand.qty_t2 + cand.qty_t3
+                        new_stop = broker.submit_stop_order(cand.symbol, remaining, round(cand.entry_price, 2))
+                        cand.stop_order_id = str(new_stop.id) if new_stop else ""
+                        t2_ord = broker.submit_limit_sell(cand.symbol, cand.qty_t2, round(cand.t2, 2))
+                        cand.t2_order_id = str(t2_ord.id) if t2_ord else ""
+
+                # T2 fill check
+                elif cand.t1_filled and not cand.t2_filled and cand.t2_order_id:
+                    if "filled" in broker.get_order_status(cand.t2_order_id):
+                        cand.t2_filled = True
+                        logger.info(f"{cand.symbol}: T2 filled at {cand.t2:.2f} — stop → T1, submitting T3")
+                        broker.cancel_order(cand.stop_order_id)
+                        new_stop = broker.submit_stop_order(cand.symbol, cand.qty_t3, round(cand.target1, 2))
+                        cand.stop_order_id = str(new_stop.id) if new_stop else ""
+                        t3_ord = broker.submit_limit_sell(cand.symbol, cand.qty_t3, round(cand.t3, 2))
+                        cand.t3_order_id = str(t3_ord.id) if t3_ord else ""
+
+            except Exception as e:
+                logger.error(f"Partial exit monitor error {cand.symbol}: {e}", exc_info=True)
+
+        # ── Scan for new entries ──────────────────────────────────────────────
         entries_this_scan = 0
         for cand in candidates:
             if len(open_positions) + entries_this_scan >= gg.MAX_POSITIONS:
@@ -1133,34 +1175,50 @@ def cmd_gap_go_scan(debug: bool = False):
                 if not gg.should_enter(cand, bars):
                     continue
 
-                # R:R gate: T1 must be ≥ MIN_RR × stop distance from entry level
+                # R:R gate
                 current_price = float(bars.iloc[-1]["close"])
                 stop_dist     = abs(cand.entry_level - cand.stop_level)
                 target_dist   = abs(cand.target1 - cand.entry_level)
                 if stop_dist <= 0 or (target_dist / stop_dist) < gg.MIN_RR:
-                    logger.debug(
-                        f"{cand.symbol}: R:R {target_dist/stop_dist:.1f} < {gg.MIN_RR} — skip"
-                    )
+                    logger.debug(f"{cand.symbol}: R:R {target_dist/stop_dist:.1f} < {gg.MIN_RR} — skip")
                     continue
 
                 qty = gg.calculate_position_size(equity, cand.entry_level, cand.stop_level)
-                if qty <= 0:
+                if qty < 3:  # need at least 3 shares for thirds
                     continue
 
-                order = broker.submit_bracket_order(
-                    symbol=cand.symbol,
-                    qty=qty,
-                    stop_price=round(cand.stop_level, 2),
-                    take_profit_price=round(cand.target1, 2),
+                # Halt check
+                if not broker.is_tradable(cand.symbol):
+                    logger.warning(f"{cand.symbol}: not tradable (halt?) — skipping")
+                    continue
+
+                # Split into thirds
+                q1 = max(1, qty // 3)
+                q2 = max(1, qty // 3)
+                q3 = max(1, qty - q1 - q2)
+
+                entry_order = broker.submit_market_buy(cand.symbol, qty)
+                if not entry_order:
+                    continue
+
+                cand.in_position  = True
+                cand.entry_price  = cand.entry_level
+                cand.qty_t1, cand.qty_t2, cand.qty_t3 = q1, q2, q3
+                trades_today     += 1
+                entries_this_scan += 1
+
+                stop_ord = broker.submit_stop_order(cand.symbol, qty, round(cand.stop_level, 2))
+                cand.stop_order_id = str(stop_ord.id) if stop_ord else ""
+
+                t1_ord = broker.submit_limit_sell(cand.symbol, q1, round(cand.target1, 2))
+                cand.t1_order_id = str(t1_ord.id) if t1_ord else ""
+
+                logger.info(
+                    f"ENTRY ▶ {cand.symbol}  ~{current_price:.2f}  stop={cand.stop_level:.2f}"
+                    f"  T1={cand.target1:.2f}  T2={cand.t2:.2f}  T3={cand.t3:.2f}"
+                    f"  qty={qty} ({q1}/{q2}/{q3})  gap={cand.gap_pct:+.1f}%"
+                    f"  rvol={cand.rvol:.1f}×  catalyst={'YES' if cand.has_catalyst else 'no'}"
                 )
-                if order:
-                    cand.in_position = True
-                    trades_today += 1
-                    entries_this_scan += 1
-                    logger.info(
-                        f"ENTRY ▶ {cand.symbol}  ~{current_price:.2f}  stop={cand.stop_level:.2f}"
-                        f"  t1={cand.target1:.2f}  qty={qty}  gap={cand.gap_pct:+.1f}%  rvol={cand.rvol:.1f}×"
-                    )
 
             except Exception as e:
                 logger.error(f"Error processing {cand.symbol}: {e}", exc_info=True)
