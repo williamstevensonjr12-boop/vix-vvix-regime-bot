@@ -13,6 +13,8 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     timeout-minutes: 395  # 6h35m — covers 9:32 AM start through 3:45 PM force-close + buffer
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     steps:
       - uses: actions/checkout@v4
 
