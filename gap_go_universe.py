@@ -11,7 +11,7 @@ _RAW = [
     "AVXL", "ALDX", "ADMA", "BCRX", "SUPN", "XNCR",
     "MGNX", "AGIO", "ACAD", "RARE", "KRYS", "INSM", "HRMY",
     "VKTX", "TMDX", "GKOS", "OCUL", "PRTA", "LNTH",
-    "PBYI", "CRVS", "AMRN", "ARDX", "NVAX", "VXRT",
+    "PBYI", "CRVS", "ARDX", "NVAX", "VXRT",
     "AGEN", "FATE", "NTLA", "EDIT", "BEAM", "CRSP", "SEER",
     "ATAI", "KROS", "IMVT", "HALO", "CHRS",
     "ANAB", "OGEN", "IRWD", "MNKD", "NKTR",
@@ -44,7 +44,7 @@ _RAW = [
     "LGND", "LPCN",
     "LQDA", "LRMR", "LTRN", "LYRA",
     "MARK", "MDGL", "MEIP", "MESO",
-    "MGTX", "MIRM", "MIST", "MLTX", "MNPR",
+    "MGTX", "MIRM", "MIST", "MLTX",
     "MRNA", "MTNB",
     "NBTX", "NNOX", "NPCE", "NRIX", "NRXP",
     "NTRB", "NVCR", "OCGN",
@@ -53,7 +53,7 @@ _RAW = [
     "PASG", "PCSA", "PCVX", "PDYN", "PGEN", "PHGE", "PHIO",
     "PHVS", "PLRX", "PLSE", "PMVP",
     "PRME", "PRQR", "PTLO",
-    "PYXS", "QNRX", "RDVT", "RIGL", "RNAZ",
+    "PYXS", "RDVT", "RIGL", "RNAZ",
     "RNXT", "RPRX", "RYTM",
     "SBIG", "SGMO", "SHPH", "SIGA",
     "SINT", "SLDB", "SLGL", "SLNM", "SMMT", "SNOA",
@@ -62,33 +62,49 @@ _RAW = [
     "TENX", "TGTX", "TNXP",
     "TRVI", "TVTX", "TYRA",
     "URGN", "UTHR", "VCEL",
-    "VLRS", "VNDA", "VNRX", "VRCA", "VRDN", "VRTX", "VSTM",
+    "VLRS", "VNDA", "VNRX", "VRDN", "VRTX", "VSTM",
     "VTRS", "WINT", "XBIT", "XELA", "XENE",
     "XERS", "XFOR", "XTLB", "ZDGE",
-    "ZLAB", "ZNTL",
+    "ZLAB",
+    # ── Biotech / Pharma (new additions — verified live May 2026) ─────────────
+    "ABSI", "ACRS", "AURA", "CABA", "CATX", "CCCC", "CLDX", "COGT",
+    "CSTL", "CYTK", "DSGN", "IDYA", "IMTX", "IOVA", "LENZ", "MAIA",
+    "MDXG", "PEPG", "QURE", "RGNX", "SABS", "SANA", "TSHA", "VTVT",
     # ── AI / Small-cap Tech ───────────────────────────────────────────────────
     "BBAI", "SOUN", "RGTI", "IONQ", "QMCO", "KULR", "CRKN",
     "AEYE", "AEVA", "LIDR", "OUST", "GFAI", "AIXI", "RCAT",
     "PAYO", "ALLT",
+    # ── AI / Tech / Quantum (new additions — verified live May 2026) ──────────
+    "ARQQ", "NVTS", "QBTS", "QUBT", "SSYS", "MGNI", "NRDS",
+    "RELY", "SKYX", "TIGR", "DJT",
     # ── Crypto / Bitcoin mining ───────────────────────────────────────────────
     "MARA", "RIOT", "CLSK", "CIFR", "HUT", "HIVE", "WULF", "APLD",
     "IREN", "BTBT", "GREE",
+    # ── Crypto / Bitcoin mining (new additions — verified live May 2026) ──────
+    "BTCS", "CORZ", "SATO",
     # ── EV / Clean energy / Space ─────────────────────────────────────────────
     "EVGO", "CHPT",
     "BLNK", "SPCE", "JOBY", "ACHR", "MVST",
     "RIVN", "LCID", "NIO", "XPEV",
+    # ── Clean energy / Industrials (new additions — verified live May 2026) ───
+    "FLNC", "GEVO", "MNTK", "NEXT", "OPAL", "PLUG", "WKHS",
     # ── Small-cap Fintech / Financial ─────────────────────────────────────────
     "DAVE", "HIMS", "CLOV", "BARK", "LMND", "OPEN",
     "UPST", "AFRM", "SOFI",
+    # ── Fintech / Financial (new additions — verified live May 2026) ──────────
+    "ATLC", "KPLT", "LPRO", "OPFI", "PSFE", "UWMC",
     # ── Meme / High-volatility ────────────────────────────────────────────────
     "GME", "AMC", "KOSS", "BB", "NOK", "MVIS", "SNDL", "TLRY",
     "ATER", "NEGG",
     # ── Small-cap Energy ──────────────────────────────────────────────────────
-    "INDO", "BORR", "RIG", "NINE",
+    "INDO", "BORR", "RIG",
     # ── Other known gappers ───────────────────────────────────────────────────
     "SKLZ", "GRAB", "DKNG",
     "HOOD", "PLTR", "SMCI", "COIN", "SNAP", "ROKU",
     "SHOP", "NET", "LYFT",
+    # ── Other volatile (new additions — verified live May 2026) ───────────────
+    "BTDR", "BRCC", "GRPN", "HYMC", "JMIA", "PSNY",
+    "SHLS", "TPVG", "TXMD", "WRAP",
 ]
 
 # Deduplicate preserving order
