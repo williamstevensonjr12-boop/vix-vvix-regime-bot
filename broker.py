@@ -34,7 +34,7 @@ class _TimeoutAdapter(HTTPAdapter):
     """HTTPAdapter that enforces connect + read timeouts on every request."""
 
     def send(self, request, **kwargs):
-        kwargs.setdefault("timeout", (_CONNECT_TIMEOUT, _READ_TIMEOUT))
+        kwargs["timeout"] = (_CONNECT_TIMEOUT, _READ_TIMEOUT)
         return super().send(request, **kwargs)
 
 
